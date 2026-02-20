@@ -8,7 +8,7 @@ import React, {
   useCallback,
 } from "react";
 
-const CONSENT_KEY = "quiz_analytics_consent";
+const CONSENT_KEY = "hootka_analytics_consent";
 
 type ConsentStatus = "pending" | "accepted" | "rejected";
 

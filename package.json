@@ -1,5 +1,5 @@
 {
-  "name": "karoot-quiz-tempo-real",
+  "name": "hootka",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -27,8 +27,8 @@
     "test:load:monitor": "node load-tests/monitor.js 1000",
     "test:load:run-all": "bash load-tests/run-all.sh",
     "test:load:analyze": "node load-tests/analyze.js",
-    "docker:build": "docker build -t karoot-quiz:latest .",
-    "docker:run": "docker run --rm -p 3000:3000 karoot-quiz:latest"
+    "docker:build": "docker build -t hootka:latest .",
+    "docker:run": "docker run --rm -p 3000:3000 hootka:latest"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.4",

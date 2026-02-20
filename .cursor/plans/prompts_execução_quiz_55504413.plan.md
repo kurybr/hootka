@@ -1191,8 +1191,8 @@ LICENSE
 ```json
 {
   "scripts": {
-    "docker:build": "docker build -t karoot-quiz:latest .",
-    "docker:run": "docker run --rm -p 3000:3000 karoot-quiz:latest"
+    "docker:build": "docker build -t hootka:latest .",
+    "docker:run": "docker run --rm -p 3000:3000 hootka:latest"
   }
 }
 ```

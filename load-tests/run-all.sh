@@ -18,7 +18,7 @@ COOLDOWN="${COOLDOWN:-30}"
 
 mkdir -p "$RESULTS_DIR"
 
-echo "=== Testes de Carga - Quiz em Tempo Real ==="
+echo "=== Testes de Carga - Hootka ==="
 echo "Target: $TARGET"
 echo "Resultados: $RESULTS_DIR"
 echo ""

@@ -3,8 +3,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
-  title: "Política de Privacidade | Quiz em Tempo Real",
-  description: "Política de privacidade e uso de cookies do Quiz em Tempo Real",
+  title: "Política de Privacidade | Hootka",
+  description: "Política de privacidade e uso de cookies do Hootka",
 };
 
 export default function PrivacyPage() {
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
         <section className="space-y-4">
           <h2 className="text-xl font-semibold">1. Coleta de informações</h2>
           <p className="text-muted-foreground leading-relaxed">
-            O Quiz em Tempo Real coleta informações de uso através do Google
+            O Hootka coleta informações de uso através do Google
             Analytics (GA4) e exibe anúncios via Google AdSense. O Analytics
             coleta dados como páginas visitadas, tempo de permanência e eventos
             interativos (criação de sala, entrada em sala, início e fim de

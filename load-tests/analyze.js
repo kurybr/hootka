@@ -153,7 +153,7 @@ function getEnvironmentInfo() {
 function generateMarkdown(results, breakingPoint, env) {
   const lines = [];
 
-  lines.push("# Relatório de Testes de Carga - Quiz em Tempo Real");
+  lines.push("# Relatório de Testes de Carga - Hootka");
   lines.push("");
   lines.push(`*Gerado em: ${new Date().toLocaleString("pt-BR")}*`);
   lines.push("");

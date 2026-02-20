@@ -26,7 +26,7 @@ export default function HomePage() {
       >
         <div className="space-y-2">
           <h1 className="text-4xl font-bold tracking-tight">
-            Quiz em Tempo Real
+            Hootka
           </h1>
           <p className="text-muted-foreground">
             Crie ou entre em uma sala para começar a jogar

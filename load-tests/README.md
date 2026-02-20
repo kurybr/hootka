@@ -1,4 +1,4 @@
-# Testes de Carga - Quiz em Tempo Real
+# Testes de Carga - Hootka
 
 Infraestrutura de testes de carga usando [Artillery](https://artillery.io/) com suporte a Socket.IO v4 para simular participantes simultâneos.
 

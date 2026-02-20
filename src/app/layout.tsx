@@ -23,8 +23,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quiz em Tempo Real",
-  description: "Sistema de questionários interativos em tempo real",
+  title: "Hootka",
+  description: "Quiz interativo em tempo real",
   other: {
     "google-adsense-account": "ca-pub-4212036856145911",
   },

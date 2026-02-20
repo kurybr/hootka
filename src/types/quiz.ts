@@ -35,3 +35,11 @@ export interface Answer {
   responseTime: number;
   score: number;
 }
+
+export interface SavedQuiz {
+  id: string;
+  title: string;
+  questions: Question[];
+  createdAt: number;
+  updatedAt: number;
+}

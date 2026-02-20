@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -25,6 +25,7 @@ import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
 import { ResultCard } from "@/components/ResultCard";
 import { SoundToggle } from "@/components/SoundToggle";
+import { fireConfetti } from "@/lib/confetti";
 import { toast } from "@/hooks/use-toast";
 
 const PARTICIPANT_ID_KEY = "quiz_participantId";
@@ -69,6 +70,20 @@ export default function PlayRoomPage() {
     }
   }, [status, currentQuestionIndex]);
 
+  const lastAnswerCorrectRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    const unsub = provider.onAnswerResult((data) => {
+      lastAnswerCorrectRef.current = data.correct;
+    });
+    return unsub;
+  }, [provider]);
+
+  useEffect(() => {
+    if (status === "playing") {
+      lastAnswerCorrectRef.current = null;
+    }
+  }, [status, currentQuestionIndex]);
+
   useEffect(() => {
     const unsub = provider.onHostDisconnected(() => setHostDisconnected(true));
     return unsub;
@@ -101,14 +116,32 @@ export default function PlayRoomPage() {
     return unsub;
   }, [provider]);
 
+  const confettiFiredForQuestion = useRef<number>(-1);
+  useEffect(() => {
+    if (status !== "result" || confettiFiredForQuestion.current === currentQuestionIndex) return;
+    let correct = false;
+    if (participantId && room && currentQuestion) {
+      const qKey = String(currentQuestionIndex);
+      const answer = room.answers?.[qKey]?.[participantId];
+      if (answer) {
+        correct = answer.optionIndex === currentQuestion.correctOptionIndex;
+      }
+    }
+    if (!correct && lastAnswerCorrectRef.current !== true) return;
+    correct = correct || lastAnswerCorrectRef.current === true;
+    confettiFiredForQuestion.current = currentQuestionIndex;
+    const t = setTimeout(() => fireConfetti(), 400);
+    return () => clearTimeout(t);
+  }, [status, currentQuestionIndex, currentQuestion, participantId, room]);
+
   if (!roomId) {
     router.replace("/");
     return null;
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <div className="mx-auto max-w-lg space-y-8">
+    <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-8">
+      <div className="mx-auto w-full max-w-2xl space-y-8">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-2xl font-bold">Quiz</h1>
           <div className="flex items-center gap-2">
@@ -205,16 +238,20 @@ export default function PlayRoomPage() {
             )}
             {status === "playing" && currentQuestion && (
               <motion.div
-                key="playing"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
+                key={`playing-${currentQuestionIndex}`}
+                initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -16, scale: 0.98 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               >
           <Card>
             <CardHeader>
-              <CardTitle>Pergunta {currentQuestionIndex + 1}</CardTitle>
-              <Timer questionStartTimestamp={questionStartTimestamp} />
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <span className="rounded-lg bg-primary px-2.5 py-0.5 font-mono text-sm font-bold text-primary-foreground">
+                  Pergunta {currentQuestionIndex + 1} de {room?.questions.length ?? 0}
+                </span>
+              </CardTitle>
+              <Timer questionStartTimestamp={questionStartTimestamp} size="large" />
             </CardHeader>
             <CardContent className="space-y-6">
               <QuestionCard
@@ -267,12 +304,26 @@ export default function PlayRoomPage() {
                   />
                 );
               })()}
-              {ranking.length > 0 && (
-                <Ranking
-                  participants={ranking}
-                  currentParticipantId={participantId}
-                />
-              )}
+              {ranking.length > 0 && (() => {
+                const myRank = ranking.find((p) => p.id === participantId);
+                return (
+                  <div className="space-y-2">
+                    {myRank && (
+                      <motion.p
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-lg bg-primary/15 px-4 py-2 text-center font-medium text-primary"
+                      >
+                        Você ficou em {myRank.position}º lugar!
+                      </motion.p>
+                    )}
+                    <Ranking
+                      participants={ranking}
+                      currentParticipantId={participantId}
+                    />
+                  </div>
+                );
+              })()}
               <p className="text-center text-muted-foreground">
                 Aguardando próxima pergunta...
               </p>

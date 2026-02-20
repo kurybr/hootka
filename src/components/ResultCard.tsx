@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { motion, useSpring, useTransform } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSound } from "@/providers/SoundProvider";
@@ -28,11 +29,17 @@ export function ResultCard({
 }: ResultCardProps) {
   const { playVictory, playDefeat } = useSound();
   const didNotAnswer = selectedIndex === null;
+  const spring = useSpring(0, { stiffness: 50, damping: 25 });
+  const displayScore = useTransform(spring, (v) => Math.round(v));
 
   useEffect(() => {
     if (correct) playVictory();
     else playDefeat();
   }, [correct, playVictory, playDefeat]);
+
+  useEffect(() => {
+    spring.set(score);
+  }, [score, spring]);
 
   return (
     <div className="space-y-4">
@@ -53,9 +60,9 @@ export function ResultCard({
             <span className="font-bold">Errou!</span>
           </div>
         )}
-        <span className="font-mono text-lg font-bold">
-          +{score} pts
-        </span>
+        <motion.span className="font-mono text-lg font-bold">
+          +<motion.span>{displayScore}</motion.span> pts
+        </motion.span>
       </div>
 
       <p className="text-lg font-medium">{question.text}</p>

@@ -1,4 +1,4 @@
-import type { Answer, Participant, Question, Room } from "@/types/quiz";
+import type { Answer, Participant, Question, Room } from "../types/quiz";
 import type { IGameStore } from "./IGameStore";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

@@ -1,4 +1,4 @@
-import type { Answer, Participant, Room } from "@/types/quiz";
+import type { Answer, Participant, Room } from "../types/quiz";
 import type { IGameStore } from "./IGameStore";
 
 export class InMemoryStore implements IGameStore {

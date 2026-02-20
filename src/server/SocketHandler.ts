@@ -2,8 +2,8 @@ import { Server } from "socket.io";
 import type { Socket } from "socket.io";
 import { GameEngine } from "./GameEngine";
 import { InMemoryStore } from "./InMemoryStore";
-import { serverMetrics } from "@/lib/serverMetrics";
-import type { ClientEvents, ServerEvents } from "@/types/events";
+import { serverMetrics } from "../lib/serverMetrics";
+import type { ClientEvents, ServerEvents } from "../types/events";
 
 const QUESTION_TIMEOUT_MS = 120000;
 

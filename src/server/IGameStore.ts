@@ -1,4 +1,4 @@
-import type { Answer, Participant, Room } from "@/types/quiz";
+import type { Answer, Participant, Room } from "../types/quiz";
 
 export interface IGameStore {
   createRoom(room: Room): Promise<void>;

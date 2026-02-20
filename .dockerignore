@@ -1,0 +1,39 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Build output (será gerado no container)
+.next
+dist
+out
+build
+
+# Testes e desenvolvimento
+load-tests
+coverage
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Git e IDE
+.git
+.gitignore
+.dockerignore
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentação e misc
+README*
+LICENSE
+.env*.local
+.DS_Store
+*.pem
+*.log
+
+# Vercel
+.vercel

@@ -74,6 +74,9 @@ todos:
   - id: prompt-24
     content: Prompt 24 - Dashboard de Resultados + Relatorio de Limites
     status: completed
+  - id: prompt-25
+    content: Prompt 25 - Imagem Docker para Producao (Standalone + Custom Server)
+    status: completed
 isProject: false
 ---
 
@@ -1036,4 +1039,173 @@ export interface SavedQuiz {
 - Recomendacoes de otimizacao baseadas nos gargalos encontrados
 - README com instrucoes claras para reproduzir os testes
 - Limites recomendados para producao documentados (ex: "maximo de X usuarios por sala, Y salas simultaneas")
+
+---
+
+## Fase 9 -- Deploy e Infraestrutura (Prompt 25)
+
+### Prompt 25 -- Imagem Docker para Producao (Standalone + Custom Server)
+
+**Escopo:** Criar uma imagem Docker otimizada para producao, usando Next.js standalone output combinado com o custom server (Socket.IO), resultando em uma imagem leve e pronta para deploy.
+
+**Contexto tecnico:**
+
+O projeto usa um custom server (`server.ts`) que integra Socket.IO ao Next.js. O modo `output: 'standalone'` do Next.js gera um bundle minimo com apenas as dependencias necessarias, mas **nao inclui automaticamente o custom server**. A estrategia e:
+
+1. Habilitar `output: 'standalone'` no `next.config`
+2. Compilar `server.ts` e `src/server/` para JavaScript com `tsc` (eliminando necessidade de `tsx` em runtime)
+3. Copiar o servidor compilado para dentro do bundle standalone
+4. Resultado: imagem ~180MB em vez de ~500MB+
+
+```mermaid
+graph LR
+  subgraph builder ["Stage: Builder"]
+    A[npm ci] --> B[next build]
+    B --> C[.next/standalone/]
+    A --> D[tsc server.ts]
+    D --> E[dist/server.js]
+  end
+
+  subgraph runner ["Stage: Runner"]
+    C --> F[/app/]
+    E --> F
+    G[.next/static] --> F
+    H[public/] --> F
+  end
+
+  F --> I["node dist/server.js"]
+```
+
+
+
+**Instrucoes de execucao:**
+
+- Atualizar `next.config.js` (ou converter `next.config.ts` para `.js` para evitar dependencia de TypeScript em runtime):
+
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'standalone',
+};
+
+module.exports = nextConfig;
+```
+
+- Criar `tsconfig.server.json` para compilar apenas o servidor:
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": "./dist",
+    "noEmit": false,
+    "declaration": false
+  },
+  "include": ["server.ts", "src/server/**/*.ts", "src/types/**/*.ts"]
+}
+```
+
+- Adicionar script de build do servidor no `package.json`:
+
+```json
+{
+  "scripts": {
+    "build:server": "tsc -p tsconfig.server.json",
+    "build:all": "npm run build && npm run build:server"
+  }
+}
+```
+
+- Criar `Dockerfile` com multi-stage build otimizado:
+
+```dockerfile
+# Build stage
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY . .
+
+RUN mkdir -p public
+RUN npm run build:all
+
+# Production stage
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copiar bundle standalone do Next.js (inclui node_modules minimos)
+COPY --from=builder /app/.next/standalone ./
+# Copiar assets estaticos (nao incluidos no standalone)
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+# Copiar servidor customizado compilado
+COPY --from=builder /app/dist/server.js ./dist/server.js
+COPY --from=builder /app/dist/src ./dist/src
+
+USER nextjs
+EXPOSE 3000
+
+# Usar node diretamente (sem tsx, sem npx)
+CMD ["node", "dist/server.js"]
+```
+
+- Criar `.dockerignore` para excluir arquivos desnecessarios do contexto de build:
+
+```
+node_modules
+.next
+.git
+load-tests
+coverage
+*.test.ts
+*.spec.ts
+.env*.local
+.DS_Store
+README*
+LICENSE
+.vscode
+.idea
+```
+
+- Ajustar `server.ts` para que os imports funcionem apos compilacao:
+  - Verificar que os paths `@/*` sao resolvidos corretamente no `tsconfig.server.json`
+  - Se necessario, usar paths relativos no `server.ts` e `src/server/` para evitar problemas com alias apos compilacao
+  - Alternativa: usar `tsc-alias` ou `tsconfig-paths` para resolver aliases no build
+- Adicionar script de conveniencia no `package.json`:
+
+```json
+{
+  "scripts": {
+    "docker:build": "docker build -t karoot-quiz:latest .",
+    "docker:run": "docker run --rm -p 3000:3000 karoot-quiz:latest"
+  }
+}
+```
+
+- Testar o container:
+  1. `npm run docker:build` -- build da imagem
+  2. `npm run docker:run` -- iniciar container
+  3. Acessar `http://localhost:3000` -- verificar pagina inicial
+  4. Criar sala e entrar com participante -- verificar WebSocket funcionando
+  5. Jogar uma partida completa -- verificar que tudo funciona
+
+**Criterios de aceite:**
+
+- `docker build` completa sem erros
+- Container inicia e responde em `http://localhost:3000` em menos de 5 segundos
+- WebSocket (Socket.IO) funciona corretamente dentro do container
+- Imagem final menor que 250MB (idealmente ~180MB com standalone)
+- Container roda como usuario nao-root (`nextjs`)
+- Nenhuma dependencia de desenvolvimento presente na imagem final (sem `tsx`, sem `typescript`, sem `artillery`)
+- Variavel `PORT` configuravel via environment variable
+- `node dist/server.js` como entrypoint (sem overhead de tsx/npx)
 

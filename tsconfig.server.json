@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "noEmit": false,
+    "declaration": false,
+    "jsx": "preserve"
+  },
+  "include": [
+    "server.ts",
+    "src/server/**/*.ts",
+    "src/lib/serverMetrics.ts",
+    "src/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}

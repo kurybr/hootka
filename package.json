@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "next build",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build:all": "npm run build && npm run build:server",
     "start": "NODE_ENV=production tsx server.ts",
     "lint": "next lint",
     "test:load:setup": "node load-tests/seed-quiz.js",
@@ -24,7 +26,9 @@
     "test:load:E": "node load-tests/run-with-seed.js E-disconnect-reconnect",
     "test:load:monitor": "node load-tests/monitor.js 1000",
     "test:load:run-all": "bash load-tests/run-all.sh",
-    "test:load:analyze": "node load-tests/analyze.js"
+    "test:load:analyze": "node load-tests/analyze.js",
+    "docker:build": "docker build -t karoot-quiz:latest .",
+    "docker:run": "docker run --rm -p 3000:3000 karoot-quiz:latest"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.4",

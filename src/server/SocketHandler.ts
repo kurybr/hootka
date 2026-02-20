@@ -97,6 +97,10 @@ export function setupSocketHandler(io: TypedServer): void {
       if (!roomId || !effectiveHostId) return;
       try {
         const room = await engine.startGame(roomId, effectiveHostId);
+        const { count, total } = engine.getAnswerCount(
+          room,
+          room.currentQuestionIndex
+        );
         socket.emit("game:status-changed" as keyof ServerEvents, {
           status: room.status,
           questionIndex: room.currentQuestionIndex,
@@ -109,6 +113,10 @@ export function setupSocketHandler(io: TypedServer): void {
           timestamp: room.questionStartTimestamp,
         });
         io.to(roomId).emit("room:state" as keyof ServerEvents, room);
+        io.to(roomId).emit("game:answer-count" as keyof ServerEvents, {
+          count,
+          total,
+        });
       } catch (err) {
         socket.emit("error", {
           message: err instanceof Error ? err.message : "Erro ao iniciar jogo",
@@ -146,12 +154,20 @@ export function setupSocketHandler(io: TypedServer): void {
       if (!roomId || !effectiveHostId) return;
       try {
         const room = await engine.nextQuestion(roomId, effectiveHostId);
+        const { count, total } = engine.getAnswerCount(
+          room,
+          room.currentQuestionIndex
+        );
         io.to(roomId).emit("game:status-changed" as keyof ServerEvents, {
           status: room.status,
           questionIndex: room.currentQuestionIndex,
           timestamp: room.questionStartTimestamp,
         });
         io.to(roomId).emit("room:state" as keyof ServerEvents, room);
+        io.to(roomId).emit("game:answer-count" as keyof ServerEvents, {
+          count,
+          total,
+        });
       } catch (err) {
         socket.emit("error", {
           message:

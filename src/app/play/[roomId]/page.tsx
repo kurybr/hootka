@@ -12,9 +12,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { QuestionCard } from "@/components/QuestionCard";
+import { Timer } from "@/components/Timer";
 import { useRoom } from "@/hooks/useRoom";
 import { useParticipants } from "@/hooks/useParticipants";
 import { useGameState } from "@/hooks/useGameState";
+import { useTimer } from "@/hooks/useTimer";
 
 const PARTICIPANT_ID_KEY = "quiz_participantId";
 
@@ -23,10 +26,15 @@ export default function PlayRoomPage() {
   const router = useRouter();
   const roomId = params.roomId as string;
   const [participantId, setParticipantId] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const { room, loading, error } = useRoom({ roomId, role: "participant" });
   const participants = useParticipants(room);
-  const { status, currentQuestionIndex } = useGameState(room);
+  const {
+    status,
+    currentQuestionIndex,
+    questionStartTimestamp,
+  } = useGameState(room);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -35,6 +43,19 @@ export default function PlayRoomPage() {
   }, []);
 
   const currentQuestion = room?.questions[currentQuestionIndex];
+  const { isExpired } = useTimer(
+    status === "playing" ? questionStartTimestamp : null
+  );
+
+  const handleAnswer = (optionIndex: number) => {
+    setSelectedIndex(optionIndex);
+  };
+
+  useEffect(() => {
+    if (status === "playing") {
+      setSelectedIndex(null);
+    }
+  }, [status, currentQuestionIndex]);
 
   if (!roomId) {
     router.replace("/");
@@ -106,18 +127,24 @@ export default function PlayRoomPage() {
               </div>
             </CardContent>
           </Card>
-        ) : status === "playing" ? (
+        ) : status === "playing" && currentQuestion ? (
           <Card>
             <CardHeader>
               <CardTitle>Pergunta {currentQuestionIndex + 1}</CardTitle>
-              <CardDescription>
-                {currentQuestion?.text ?? "Carregando..."}
-              </CardDescription>
+              <Timer questionStartTimestamp={questionStartTimestamp} />
             </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Alternativas e timer serão exibidos no Prompt 8
-              </p>
+            <CardContent className="space-y-6">
+              <QuestionCard
+                question={currentQuestion}
+                onAnswer={handleAnswer}
+                disabled={isExpired}
+                selectedIndex={selectedIndex}
+              />
+              {isExpired && (
+                <p className="text-center font-medium text-destructive">
+                  Tempo esgotado!
+                </p>
+              )}
             </CardContent>
           </Card>
         ) : status === "result" ? (

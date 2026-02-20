@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: prompt-08
     content: Prompt 8 - Tela de Pergunta + Timer Visual
-    status: pending
+    status: completed
   - id: prompt-09
     content: Prompt 9 - Envio de Resposta + Validacao Server-side
     status: pending

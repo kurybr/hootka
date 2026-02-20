@@ -16,6 +16,8 @@ import { useRealTime } from "@/hooks/useRealTime";
 import { useRoom } from "@/hooks/useRoom";
 import { useParticipants } from "@/hooks/useParticipants";
 import { useGameState } from "@/hooks/useGameState";
+import { useAnswerCount } from "@/hooks/useAnswerCount";
+import { Timer } from "@/components/Timer";
 
 export default function HostRoomPage() {
   const params = useParams();
@@ -26,7 +28,12 @@ export default function HostRoomPage() {
 
   const { room, loading, error } = useRoom({ roomId, role: "host" });
   const participants = useParticipants(room);
-  const { status, currentQuestionIndex } = useGameState(room);
+  const {
+    status,
+    currentQuestionIndex,
+    questionStartTimestamp,
+  } = useGameState(room);
+  const { count, total } = useAnswerCount();
 
   const copyCode = () => {
     if (room?.code) {
@@ -151,10 +158,14 @@ export default function HostRoomPage() {
               <CardDescription>
                 {currentQuestion?.text ?? "Carregando..."}
               </CardDescription>
+              <Timer
+                questionStartTimestamp={questionStartTimestamp}
+                className="mt-4"
+              />
             </CardHeader>
-            <CardContent>
-              <p className="mb-4 text-muted-foreground">
-                Timer e alternativas serão exibidos no Prompt 8
+            <CardContent className="space-y-4">
+              <p className="text-center font-medium">
+                {count} de {total} responderam
               </p>
               <Button variant="outline" onClick={handleForceResult}>
                 Encerrar Pergunta

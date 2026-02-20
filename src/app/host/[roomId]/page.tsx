@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import { Timer } from "@/components/Timer";
 import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
 import { AnswerDistribution } from "@/components/AnswerDistribution";
+import { SoundToggle } from "@/components/SoundToggle";
 
 export default function HostRoomPage() {
   const params = useParams();
@@ -78,11 +80,14 @@ export default function HostRoomPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="mx-auto max-w-lg space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h1 className="text-2xl font-bold">Sala do Host</h1>
-          <Button variant="outline" asChild>
-            <Link href="/">Sair</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <SoundToggle />
+            <Button variant="outline" asChild>
+              <Link href="/">Sair</Link>
+            </Button>
+          </div>
         </div>
 
         {error && (
@@ -93,8 +98,17 @@ export default function HostRoomPage() {
 
         {loading ? (
           <p className="text-center text-muted-foreground">Carregando...</p>
-        ) : status === "waiting" ? (
-          <>
+        ) : (
+          <AnimatePresence mode="wait">
+            {status === "waiting" && (
+              <motion.div
+                key="waiting"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="space-y-8"
+              >
             <Card>
               <CardHeader>
                 <CardTitle>Código da Sala</CardTitle>
@@ -171,8 +185,16 @@ export default function HostRoomPage() {
             >
               Iniciar Jogo
             </Button>
-          </>
-        ) : status === "playing" ? (
+              </motion.div>
+            )}
+            {status === "playing" && (
+              <motion.div
+                key="playing"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
           <Card>
             <CardHeader>
               <CardTitle>Pergunta {currentQuestionIndex + 1}</CardTitle>
@@ -193,7 +215,16 @@ export default function HostRoomPage() {
               </Button>
             </CardContent>
           </Card>
-        ) : status === "result" && currentQuestion ? (
+              </motion.div>
+            )}
+            {status === "result" && currentQuestion && (
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
           <Card>
             <CardHeader>
               <CardTitle>Resultado da Rodada</CardTitle>
@@ -238,7 +269,16 @@ export default function HostRoomPage() {
               )}
             </CardContent>
           </Card>
-        ) : status === "finished" ? (
+              </motion.div>
+            )}
+            {status === "finished" && (
+              <motion.div
+                key="finished"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
           <Card>
             <CardHeader>
               <CardTitle>Jogo Encerrado</CardTitle>
@@ -255,7 +295,10 @@ export default function HostRoomPage() {
               </Button>
             </CardContent>
           </Card>
-        ) : null}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
       </div>
     </main>
   );

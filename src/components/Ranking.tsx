@@ -1,5 +1,6 @@
 "use client";
 
+import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Medal, Award, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { RankedParticipant } from "@/hooks/useRanking";
@@ -25,6 +26,7 @@ export function Ranking({
     <div className={cn("space-y-2", className)}>
       <h3 className="text-sm font-medium">Ranking</h3>
       <ul className="space-y-2">
+        <AnimatePresence mode="sync">
         {participants.map((p) => {
           const isTop3 = p.position <= 3;
           const isCurrent = p.id === currentParticipantId;
@@ -32,8 +34,13 @@ export function Ranking({
           const topStyle = isTop3 ? TOP_COLORS[p.position - 1] : "";
 
           return (
-            <li
+            <motion.li
               key={p.id}
+              layout
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
               className={cn(
                 "flex items-center gap-3 rounded-lg border px-3 py-2",
                 isTop3 && topStyle,
@@ -65,9 +72,10 @@ export function Ranking({
               {isCurrent && !isDisconnected && (
                 <span className="text-xs text-muted-foreground">(você)</span>
               )}
-            </li>
+            </motion.li>
           );
         })}
+        </AnimatePresence>
       </ul>
     </div>
   );

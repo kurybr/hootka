@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +24,7 @@ import { useRanking } from "@/hooks/useRanking";
 import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
 import { ResultCard } from "@/components/ResultCard";
+import { SoundToggle } from "@/components/SoundToggle";
 
 const PARTICIPANT_ID_KEY = "quiz_participantId";
 
@@ -91,11 +93,14 @@ export default function PlayRoomPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="mx-auto max-w-lg space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h1 className="text-2xl font-bold">Quiz</h1>
-          <Button variant="outline" asChild>
-            <Link href="/">Sair</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <SoundToggle />
+            <Button variant="outline" asChild>
+              <Link href="/">Sair</Link>
+            </Button>
+          </div>
         </div>
 
         {hostDisconnected && (
@@ -113,7 +118,16 @@ export default function PlayRoomPage() {
 
         {loading ? (
           <p className="text-center text-muted-foreground">Carregando...</p>
-        ) : status === "waiting" ? (
+        ) : (
+          <AnimatePresence mode="wait">
+            {status === "waiting" && (
+              <motion.div
+                key="waiting"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
           <Card>
             <CardHeader>
               <CardTitle>Aguardando o Host iniciar o jogo...</CardTitle>
@@ -171,7 +185,16 @@ export default function PlayRoomPage() {
               </div>
             </CardContent>
           </Card>
-        ) : status === "playing" && currentQuestion ? (
+              </motion.div>
+            )}
+            {status === "playing" && currentQuestion && (
+              <motion.div
+                key="playing"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
           <Card>
             <CardHeader>
               <CardTitle>Pergunta {currentQuestionIndex + 1}</CardTitle>
@@ -192,7 +215,16 @@ export default function PlayRoomPage() {
               )}
             </CardContent>
           </Card>
-        ) : status === "result" && currentQuestion ? (
+              </motion.div>
+            )}
+            {status === "result" && currentQuestion && (
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
           <Card>
             <CardHeader>
               <CardTitle>Resultado da Rodada</CardTitle>
@@ -230,7 +262,16 @@ export default function PlayRoomPage() {
               </p>
             </CardContent>
           </Card>
-        ) : status === "finished" ? (
+              </motion.div>
+            )}
+            {status === "finished" && (
+              <motion.div
+                key="finished"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+              >
           <Card>
             <CardHeader>
               <CardTitle>Jogo Encerrado</CardTitle>
@@ -250,7 +291,10 @@ export default function PlayRoomPage() {
               </Button>
             </CardContent>
           </Card>
-        ) : null}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
       </div>
     </main>
   );

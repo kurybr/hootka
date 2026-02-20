@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSound } from "@/providers/SoundProvider";
 import type { Question } from "@/types/quiz";
 
 const OPTION_COLORS = [
@@ -24,7 +26,13 @@ export function ResultCard({
   score,
   correct,
 }: ResultCardProps) {
+  const { playVictory, playDefeat } = useSound();
   const didNotAnswer = selectedIndex === null;
+
+  useEffect(() => {
+    if (correct) playVictory();
+    else playDefeat();
+  }, [correct, playVictory, playDefeat]);
 
   return (
     <div className="space-y-4">

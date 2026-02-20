@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { RealTimeProvider } from "@/providers/RealTimeContext";
+import { SoundProvider } from "@/providers/SoundProvider";
 import { ReconnectingOverlay } from "@/components/ReconnectingOverlay";
 
 const geistSans = Geist({
@@ -32,9 +33,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <RealTimeProvider>
-          {children}
-          <ReconnectingOverlay />
-          <Toaster />
+          <SoundProvider>
+            {children}
+            <ReconnectingOverlay />
+            <Toaster />
+          </SoundProvider>
         </RealTimeProvider>
       </body>
     </html>

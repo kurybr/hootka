@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
+import { motion } from "framer-motion";
 import { Trophy, Medal, Award, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { RankedParticipant } from "@/hooks/useRanking";
@@ -10,6 +13,25 @@ interface FinalRankingProps {
   className?: string;
 }
 
+function fireConfetti() {
+  const count = 150;
+  const defaults = { origin: { y: 0.7 }, zIndex: 9999 };
+
+  function fire(particleRatio: number, opts: confetti.Options) {
+    confetti({
+      ...defaults,
+      ...opts,
+      particleCount: Math.floor(count * particleRatio),
+    });
+  }
+
+  fire(0.25, { spread: 26, startVelocity: 55 });
+  fire(0.2, { spread: 60 });
+  fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+  fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+  fire(0.1, { spread: 120, startVelocity: 45 });
+}
+
 export function FinalRanking({
   participants,
   currentParticipantId = null,
@@ -17,13 +39,39 @@ export function FinalRanking({
 }: FinalRankingProps) {
   const top3 = participants.slice(0, 3);
   const rest = participants.slice(3);
+  const hasFired = useRef(false);
+
+  useEffect(() => {
+    if (participants.length > 0 && !hasFired.current) {
+      hasFired.current = true;
+      const t = setTimeout(fireConfetti, 300);
+      return () => clearTimeout(t);
+    }
+  }, [participants.length]);
 
   return (
-    <div className={cn("space-y-6", className)}>
-      <h2 className="text-center text-2xl font-bold">Ranking Final</h2>
+    <motion.div
+      className={cn("space-y-6", className)}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <motion.h2
+        className="text-center text-2xl font-bold"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        Ranking Final
+      </motion.h2>
 
       {top3.length > 0 && (
-        <div className="flex items-end justify-center gap-4">
+        <motion.div
+          className="flex items-end justify-center gap-4"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+        >
           {top3[1] && (
             <div className="flex flex-col items-center">
               <div className="mb-2 flex h-16 w-16 items-center justify-center rounded-full border-2 border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800">
@@ -68,7 +116,7 @@ export function FinalRanking({
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       )}
 
       {rest.length > 0 && (
@@ -108,6 +156,6 @@ export function FinalRanking({
           </ul>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

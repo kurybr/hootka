@@ -32,6 +32,7 @@
     "test:load:playwright:install": "npx playwright install chromium",
     "test:load:playwright:seed": "node load-tests/seed-quiz-playwright.js",
     "test:load:analyze": "node load-tests/analyze.js",
+    "test:load:report:html": "node load-tests/report-html.js",
     "docker:build": "docker build -t hootka:latest .",
     "docker:run": "docker run --rm -p 3000:3000 hootka:latest"
   },

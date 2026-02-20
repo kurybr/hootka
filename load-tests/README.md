@@ -128,6 +128,21 @@ Após rodar `yarn test:load:run-all` ou cenários com `--output load-tests/resul
 yarn test:load:analyze
 ```
 
+### Relatório HTML (visualizar no navegador)
+
+O comando `artillery report` foi removido na v2. Gere um relatório HTML local com:
+
+```bash
+# Todos os JSON em load-tests/results/
+yarn test:load:report:html
+
+# Um arquivo específico (após rodar teste com --output)
+yarn test:load:playwright -- --output load-tests/results/playwright.json
+node load-tests/report-html.js load-tests/results/playwright.json -o load-tests/results/report.html
+```
+
+O script gera `load-tests/results/report.html` e tenta abrir no navegador.
+
 O `analyze.js` lê os JSON em `load-tests/results/`, extrai p50/p95/p99, taxa de erro e memória, identifica o ponto de quebra (p99 > 500ms ou erro > 5%) e escreve `load-tests/RESULTS.md` com:
 
 - Ambiente (Node, plataforma, arquitetura)

@@ -46,12 +46,24 @@ todos:
     status: completed
   - id: prompt-15
     content: "Prompt 15 - Biblioteca de Quizzes (localStorage)"
-    status: pending
+    status: completed
   - id: prompt-16
-    content: "Prompt 16 - Migracao Firebase: Setup + Provider Firebase"
+    content: "Prompt 16 - Atalhos de Teclado para Respostas (A S D F)"
     status: pending
   - id: prompt-17
-    content: "Prompt 17 - Migracao Firebase: Cloud Functions + Seguranca"
+    content: "Prompt 17 - Layout Responsivo e Espacamento"
+    status: pending
+  - id: prompt-18
+    content: "Prompt 18 - Confetti no Resultado de Cada Pergunta"
+    status: pending
+  - id: prompt-19
+    content: "Prompt 19 - Polimento UX das Telas"
+    status: pending
+  - id: prompt-20
+    content: "Prompt 20 - Migracao Firebase: Setup + Provider Firebase"
+    status: pending
+  - id: prompt-21
+    content: "Prompt 21 - Migracao Firebase: Cloud Functions + Seguranca"
     status: pending
 isProject: false
 ---
@@ -694,9 +706,137 @@ export interface SavedQuiz {
 
 ---
 
-## Fase 6 -- Migracao para Firebase (Prompts 16 a 17)
+## Fase 6 -- Acessibilidade, Layout e Polimento (Prompts 16 a 19)
 
-### Prompt 16 -- Setup Firebase + Provider Firebase
+### Prompt 16 -- Atalhos de Teclado para Respostas (A S D F)
+
+**Escopo:** Permitir que participantes respondam usando teclas do teclado, melhorando a velocidade e acessibilidade.
+
+**Instrucoes de execucao:**
+
+- No componente `QuestionCard.tsx`:
+  - Mapear teclas: `A` -> opcao 0, `S` -> opcao 1, `D` -> opcao 2, `F` -> opcao 3
+  - Aceitar tanto maiusculas quanto minusculas
+  - Exibir a tecla correspondente em cada botao de alternativa (badge ou texto pequeno: "A", "S", "D", "F")
+  - Somente ativar quando o componente nao esta `disabled`
+  - Ignorar se `selectedIndex !== null` (ja respondeu)
+  - Usar `useEffect` com `keydown` listener, com cleanup adequado
+- Adicionar indicador visual no botao ao pressionar a tecla (breve highlight antes de confirmar)
+- Garantir que nao conflita com inputs de texto abertos (nao ativar se o foco esta em input/textarea)
+
+**Criterios de aceite:**
+
+- Participante pressiona A, S, D ou F e a resposta e enviada
+- Tecla so funciona quando as alternativas estao habilitadas
+- Badge com a letra visivel em cada alternativa
+- Nao interfere com campos de texto em outras telas
+
+---
+
+### Prompt 17 -- Layout Responsivo e Espacamento
+
+**Escopo:** Aumentar largura maxima e espacamento para melhor respiro visual.
+
+**Instrucoes de execucao:**
+
+- Telas do Host (`app/host/[roomId]/page.tsx`, `app/host/page.tsx`, `app/host/create/page.tsx`, `app/host/edit/[quizId]/page.tsx`):
+  - Aumentar `max-w-lg` para `max-w-4xl` (ou `max-w-[1440px]` onde necessario)
+  - Aumentar padding geral (`p-8` -> `p-8 lg:p-12`)
+  - Cards com mais padding interno
+  - Timer e contador de respostas com tipografia maior para projecao em tela grande
+  - Ranking com itens mais espacados
+- Telas do Participante (`app/play/[roomId]/page.tsx`):
+  - Aumentar `max-w-lg` para `max-w-2xl`
+  - Alternativas com `min-h-[80px]` (em vez de 60px) para toque facil em mobile
+  - Tipografia do enunciado um pouco maior (`text-xl`)
+  - Timer mais visivel
+- Tela inicial (`app/page.tsx`):
+  - Manter centrada, mas com cards maiores
+- Garantir que tudo se adapta a mobile (responsivo, nao apenas desktop)
+
+**Criterios de aceite:**
+
+- Telas do Host confortaveis em monitor/projetor (1440px+)
+- Telas do participante legiveis em smartphones
+- Nenhum layout quebrado em nenhuma resolucao
+- Espacamento e tipografia consistentes
+
+---
+
+### Prompt 18 -- Confetti no Resultado de Cada Pergunta
+
+**Escopo:** Adicionar confetti ao final de cada pergunta para celebrar acertos.
+
+**Instrucoes de execucao:**
+
+- Usar `canvas-confetti` (ja instalado no projeto)
+- Extrair logica de confetti para `lib/confetti.ts`:
+  - `fireConfetti()` -- confetti completo (para acertos e ranking final)
+  - `fireConfettiLight()` -- confetti mais sutil/curto (para o host no fim de cada rodada)
+  - Reutilizar a funcao `fireConfetti` ja existente em `FinalRanking.tsx`
+- Tela do Participante (`ResultCard.tsx` ou `app/play/[roomId]/page.tsx`):
+  - Quando status muda para `result` e o participante **acertou**: disparar `fireConfetti()`
+  - Se errou ou nao respondeu: nao disparar confetti
+- Tela do Host (`app/host/[roomId]/page.tsx`):
+  - Quando status muda para `result`: disparar `fireConfettiLight()` (indicando fim da rodada)
+- Garantir que nao dispara multiplas vezes na mesma transicao
+
+**Criterios de aceite:**
+
+- Participante que acertou ve confetti na tela de resultado
+- Participante que errou nao ve confetti
+- Host ve confetti leve ao fim de cada rodada
+- Confetti do ranking final continua funcionando como antes
+- Nenhum confetti duplicado
+
+---
+
+### Prompt 19 -- Polimento UX das Telas
+
+**Escopo:** Melhorar a experiencia geral com ajustes finos de UX em todas as telas.
+
+**Instrucoes de execucao:**
+
+- Tela inicial (`app/page.tsx`):
+  - Adicionar icones nos cards (ex: `Users` para Criar Sala, `LogIn` para Entrar)
+  - Animacao sutil de entrada (fade in)
+- Tela de Join (`app/join/page.tsx`):
+  - Auto-focus no campo de codigo ao abrir
+  - Mascara visual no campo de codigo (letras maiusculas, espacamento)
+- Lobby do Host (`app/host/[roomId]/page.tsx`):
+  - Codigo da sala com tipografia ainda maior e mais destaque
+  - Animacao ao novo participante entrar (slide in na lista)
+  - Contador de participantes animado
+- Tela de pergunta (participante):
+  - Numero da pergunta com badge colorido ("Pergunta 3 de 10")
+  - Transicao mais dramatica ao entrar nova pergunta
+- Tela de resultado:
+  - Pontuacao com animacao de contagem (0 -> score)
+  - Posicao no ranking com destaque visual ("Voce subiu para 2o lugar!")
+- Tela do Host durante jogo:
+  - Contador "X de Y responderam" com barra de progresso
+  - Tipografia grande legivel em projetor
+- Biblioteca de quizzes:
+  - Animacao de entrada nos cards
+  - Preview das primeiras perguntas no card (truncado)
+  - Ordenacao/filtro visual (mais recente, por titulo)
+- Consistencia geral:
+  - Todos os botoes de acao principal com mesmo estilo
+  - Espacamento uniforme entre secoes
+  - Loading states consistentes (skeleton ou spinner)
+
+**Criterios de aceite:**
+
+- Todas as telas com experiencia fluida e polida
+- Animacoes sutis que nao atrapalham o fluxo
+- Consistencia visual em todo o app
+- Legibilidade excelente tanto em mobile quanto projetor
+
+---
+
+## Fase 7 -- Migracao para Firebase (Prompts 20 a 21)
+
+### Prompt 20 -- Setup Firebase + Provider Firebase
 
 **Escopo:** Implementar o provider Firebase e o store Firebase, substituindo WebSocket.
 
@@ -724,7 +864,7 @@ export interface SavedQuiz {
 
 ---
 
-### Prompt 17 -- Cloud Functions + Regras de Seguranca
+### Prompt 21 -- Cloud Functions + Regras de Seguranca
 
 **Escopo:** Mover validacao critica para Cloud Functions e configurar seguranca.
 

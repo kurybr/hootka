@@ -26,6 +26,11 @@
     "test:load:E": "node load-tests/run-with-seed.js E-disconnect-reconnect",
     "test:load:monitor": "node load-tests/monitor.js 1000",
     "test:load:run-all": "bash load-tests/run-all.sh",
+    "test:load:playwright": "node load-tests/run-with-seed.js playwright-join",
+    "test:load:playwright:headed": "node load-tests/run-with-seed.js playwright-join-headed",
+    "test:load:playwright:chrome": "node load-tests/run-with-seed.js playwright-join-chrome",
+    "test:load:playwright:install": "npx playwright install chromium",
+    "test:load:playwright:seed": "node load-tests/seed-quiz-playwright.js",
     "test:load:analyze": "node load-tests/analyze.js",
     "docker:build": "docker build -t hootka:latest .",
     "docker:run": "docker run --rm -p 3000:3000 hootka:latest"

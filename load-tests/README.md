@@ -6,6 +6,7 @@ Infraestrutura de testes de carga usando [Artillery](https://artillery.io/) com 
 
 - Node.js 18+
 - Servidor do Quiz rodando em `http://localhost:3000` (ou defina `TARGET`)
+- Para cenários Playwright: `yarn test:load:playwright:install` (uma vez) para baixar o Chromium. O cenário padrão usa Chromium (evita crash do Chrome no Mac).
 
 ## Instalação
 
@@ -70,6 +71,9 @@ TARGET=https://meu-quiz.example.com COOLDOWN=15 yarn test:load:run-all
 | `yarn test:load:medium` | Teste médio | 50 simultâneos |
 | `yarn test:load:large` | Teste grande | 200 simultâneos |
 | `yarn test:load:stress` | Teste de estresse | 500+ (encontrar limite) |
+| `yarn test:load:playwright` | Teste Playwright (Chromium headless) | ~15 usuários em 15s |
+| `yarn test:load:playwright:headed` | Teste Playwright com navegador visível | ~15 usuários em 15s |
+| `yarn test:load:playwright:chrome` | Teste Playwright (Chrome do sistema) | ~15 usuários em 15s |
 
 Ou execute diretamente:
 
@@ -85,6 +89,13 @@ artillery run load-tests/scenarios/join-and-play.yml --output load-tests/results
 ```
 
 ## Cenários disponíveis
+
+### Playwright (navegação com navegador real)
+- **playwright-join.yml** – Usa Chromium do Playwright (padrão, mais estável). Requer `yarn test:load:playwright:install`.
+- **playwright-join-headed.yml** – Navegador visível (não headless). Bom para debug.
+- **playwright-join-chrome.yml** – Usa Chrome do sistema. Alternativa se preferir; pode causar crash (SIGABRT) no Mac.
+
+O seed para Playwright usa **seed-quiz-playwright.js**: o host cria a sala via UI (como um usuário real), extrai o código da tela e passa para os participantes. Use `yarn test:load:playwright:seed` para testar o seed isoladamente.
 
 ### Básicos
 - **create-room.yml** – Hosts criam salas (cada virtual user = 1 host, 1 sala)

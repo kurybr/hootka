@@ -43,3 +43,10 @@ export interface SavedQuiz {
   createdAt: number;
   updatedAt: number;
 }
+
+export interface ExportedQuiz {
+  version: 1;
+  title: string;
+  questions: Question[];
+  exportedAt: number;
+}

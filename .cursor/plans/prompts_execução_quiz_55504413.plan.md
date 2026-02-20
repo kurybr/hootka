@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: prompt-06
     content: Prompt 6 - Hooks de Sincronizacao via Provider
-    status: pending
+    status: completed
   - id: prompt-07
     content: Prompt 7 - Maquina de Estados + Inicio do Jogo
     status: pending

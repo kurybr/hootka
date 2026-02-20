@@ -21,6 +21,7 @@ import { useRanking } from "@/hooks/useRanking";
 import { Timer } from "@/components/Timer";
 import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
+import { AnswerDistribution } from "@/components/AnswerDistribution";
 
 export default function HostRoomPage() {
   const params = useParams();
@@ -176,15 +177,33 @@ export default function HostRoomPage() {
               </Button>
             </CardContent>
           </Card>
-        ) : status === "result" ? (
+        ) : status === "result" && currentQuestion ? (
           <Card>
             <CardHeader>
               <CardTitle>Resultado da Rodada</CardTitle>
               <CardDescription>
-                Resposta correta e distribuição serão exibidos no Prompt 11
+                Resposta correta e distribuição de respostas
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {(() => {
+                const qKey = String(currentQuestionIndex);
+                const answers = room?.answers?.[qKey] ?? {};
+                const counts: [number, number, number, number] = [0, 0, 0, 0];
+                for (const answer of Object.values(answers)) {
+                  if (answer.optionIndex >= 0 && answer.optionIndex <= 3) {
+                    counts[answer.optionIndex]++;
+                  }
+                }
+                const total = Object.keys(answers).length;
+                return (
+                  <AnswerDistribution
+                    question={currentQuestion}
+                    counts={counts}
+                    total={total}
+                  />
+                );
+              })()}
               {ranking.length > 0 && (
                 <Ranking participants={ranking} />
               )}

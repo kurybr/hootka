@@ -34,7 +34,7 @@ todos:
     status: completed
   - id: prompt-11
     content: Prompt 11 - Tela de Resultado da Rodada + Ranking
-    status: pending
+    status: completed
   - id: prompt-12
     content: Prompt 12 - Tratamento de Desconexao
     status: pending

@@ -22,6 +22,7 @@ import { useTimer } from "@/hooks/useTimer";
 import { useRanking } from "@/hooks/useRanking";
 import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
+import { ResultCard } from "@/components/ResultCard";
 
 const PARTICIPANT_ID_KEY = "quiz_participantId";
 
@@ -167,15 +168,33 @@ export default function PlayRoomPage() {
               )}
             </CardContent>
           </Card>
-        ) : status === "result" ? (
+        ) : status === "result" && currentQuestion ? (
           <Card>
             <CardHeader>
               <CardTitle>Resultado da Rodada</CardTitle>
               <CardDescription>
-                Seu resultado será exibido no Prompt 11
+                Confira seu desempenho nesta pergunta
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {(() => {
+                const qKey = String(currentQuestionIndex);
+                const answer = participantId
+                  ? room?.answers?.[qKey]?.[participantId]
+                  : null;
+                const correct = answer
+                  ? answer.optionIndex === currentQuestion.correctOptionIndex
+                  : false;
+                const score = answer?.score ?? 0;
+                return (
+                  <ResultCard
+                    question={currentQuestion}
+                    selectedIndex={answer?.optionIndex ?? null}
+                    score={score}
+                    correct={correct}
+                  />
+                );
+              })()}
               {ranking.length > 0 && (
                 <Ranking
                   participants={ranking}

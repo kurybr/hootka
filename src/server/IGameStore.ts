@@ -6,6 +6,11 @@ export interface IGameStore {
   getRoomByCode(code: string): Promise<Room | null>;
   updateRoom(roomId: string, updates: Partial<Room>): Promise<void>;
   addParticipant(roomId: string, participant: Participant): Promise<void>;
+  updateParticipantConnection(
+    roomId: string,
+    participantId: string,
+    connected: boolean
+  ): Promise<void>;
   addAnswer(
     roomId: string,
     questionIndex: number,

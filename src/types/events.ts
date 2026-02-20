@@ -3,6 +3,7 @@ import type { Participant, Question, Room } from "./quiz";
 export interface ClientEvents {
   "room:create": (data: { questions: Question[] }) => void;
   "room:join": (data: { code: string; name: string }) => void;
+  "room:rejoin": (data: { roomId: string }) => void;
   "game:start": () => void;
   "game:next-question": () => void;
   "game:force-result": () => void;
@@ -15,6 +16,9 @@ export interface ServerEvents {
   "room:joined": (data: { participantId: string; roomId: string }) => void;
   "room:state": (data: Room) => void;
   "room:participant-joined": (data: Participant) => void;
+  "room:participant-disconnected": (data: { participantId: string }) => void;
+  "room:participant-reconnected": (data: Participant) => void;
+  "room:host-disconnected": () => void;
   "game:status-changed": (data: {
     status: Room["status"];
     questionIndex: number;

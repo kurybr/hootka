@@ -1,6 +1,6 @@
 "use client";
 
-import { Trophy, Medal, Award } from "lucide-react";
+import { Trophy, Medal, Award, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { RankedParticipant } from "@/hooks/useRanking";
 
@@ -79,12 +79,14 @@ export function FinalRanking({
           <ul className="space-y-2">
             {rest.map((p) => {
               const isCurrent = p.id === currentParticipantId;
+              const isDisconnected = p.connected === false;
               return (
                 <li
                   key={p.id}
                   className={cn(
                     "flex items-center gap-3 rounded-lg border px-3 py-2",
-                    isCurrent && "border-primary bg-primary/10 font-medium"
+                    isCurrent && "border-primary bg-primary/10 font-medium",
+                    isDisconnected && "opacity-60"
                   )}
                 >
                   <span className="w-12 text-sm text-muted-foreground">
@@ -92,7 +94,12 @@ export function FinalRanking({
                   </span>
                   <span className="flex-1 truncate">{p.name}</span>
                   <span className="font-mono font-semibold">{p.totalScore} pts</span>
-                  {isCurrent && (
+                  {isDisconnected && (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <WifiOff className="h-4 w-4" />
+                    </span>
+                  )}
+                  {isCurrent && !isDisconnected && (
                     <span className="text-xs text-muted-foreground">(você)</span>
                   )}
                 </li>

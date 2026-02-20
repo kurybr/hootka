@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { RealTimeProvider } from "@/providers/RealTimeContext";
+import { ReconnectingOverlay } from "@/components/ReconnectingOverlay";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
       >
         <RealTimeProvider>
           {children}
+          <ReconnectingOverlay />
           <Toaster />
         </RealTimeProvider>
       </body>

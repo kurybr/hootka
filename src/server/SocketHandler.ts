@@ -21,6 +21,76 @@ export function setupSocketHandler(io: TypedServer): void {
       ?.participantId;
 
     socket.on(
+      "room:rejoin" as keyof ClientEvents,
+      async (data: { roomId: string }) => {
+        const roomId = data.roomId;
+        const room = await store.getRoom(roomId);
+        if (!room) return;
+
+        if (hostId && room.hostId === hostId) {
+          socket.join(roomId);
+          socket.data.roomId = roomId;
+          socket.data.role = "host";
+          socket.data.hostId = hostId;
+          socket.emit("room:state" as keyof ServerEvents, room);
+          return;
+        }
+
+        if (participantId && room.participants[participantId]) {
+          await store.updateParticipantConnection(
+            roomId,
+            participantId,
+            true
+          );
+          const updatedRoom = await store.getRoom(roomId);
+          if (!updatedRoom) return;
+          socket.join(roomId);
+          socket.data.roomId = roomId;
+          socket.data.role = "participant";
+          socket.data.participantId = participantId;
+          socket.emit("room:state" as keyof ServerEvents, updatedRoom);
+          socket.to(roomId).emit(
+            "room:participant-reconnected" as keyof ServerEvents,
+            updatedRoom.participants[participantId]
+          );
+          const ranking = engine.getRanking(updatedRoom);
+          io.to(roomId).emit("ranking:update" as keyof ServerEvents, ranking);
+        }
+      }
+    );
+
+    socket.on("disconnect", async () => {
+      const roomId = socket.data.roomId as string | undefined;
+      const role = socket.data.role as string | undefined;
+      const effectiveParticipantId =
+        socket.data.participantId ?? participantId;
+
+      if (!roomId) return;
+
+      if (role === "host") {
+        io.to(roomId).emit("room:host-disconnected" as keyof ServerEvents);
+        return;
+      }
+
+      if (effectiveParticipantId) {
+        await store.updateParticipantConnection(
+          roomId,
+          effectiveParticipantId,
+          false
+        );
+        io.to(roomId).emit(
+          "room:participant-disconnected" as keyof ServerEvents,
+          { participantId: effectiveParticipantId }
+        );
+        const updatedRoom = await store.getRoom(roomId);
+        if (updatedRoom) {
+          const ranking = engine.getRanking(updatedRoom);
+          io.to(roomId).emit("ranking:update" as keyof ServerEvents, ranking);
+        }
+      }
+    });
+
+    socket.on(
       "room:create" as keyof ClientEvents,
       async (data: { questions: unknown[] }) => {
         try {

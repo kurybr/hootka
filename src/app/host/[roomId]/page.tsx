@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -136,10 +137,25 @@ export default function HostRoomPage() {
                     {participants.map((p) => (
                       <li
                         key={p.id}
-                        className="flex items-center gap-2 rounded-md border px-3 py-2"
+                        className={cn(
+                          "flex items-center gap-2 rounded-md border px-3 py-2",
+                          p.connected === false && "opacity-60"
+                        )}
                       >
-                        <span className="h-2 w-2 rounded-full bg-green-500" />
+                        <span
+                          className={cn(
+                            "h-2 w-2 shrink-0 rounded-full",
+                            p.connected === false
+                              ? "bg-muted-foreground/50"
+                              : "bg-green-500"
+                          )}
+                        />
                         {p.name}
+                        {p.connected === false && (
+                          <span className="text-xs text-muted-foreground">
+                            (desconectado)
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ul>

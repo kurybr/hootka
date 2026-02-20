@@ -25,6 +25,9 @@ export interface ErrorData {
 export interface IRealTimeProvider {
   connect(roomId: string, role: "host" | "participant"): void;
   disconnect(): void;
+  get isConnected(): boolean;
+  get roomId(): string | null;
+  onConnectionStateChange(callback: (connected: boolean) => void): () => void;
 
   createRoom(questions: Question[]): Promise<{ roomId: string; code: string }>;
   joinRoom(
@@ -40,6 +43,11 @@ export interface IRealTimeProvider {
 
   onRoomState(callback: (room: Room) => void): () => void;
   onParticipantJoined(callback: (participant: Participant) => void): () => void;
+  onParticipantDisconnected(
+    callback: (data: { participantId: string }) => void
+  ): () => void;
+  onParticipantReconnected(callback: (participant: Participant) => void): () => void;
+  onHostDisconnected(callback: () => void): () => void;
   onGameStatusChanged(callback: (data: GameStatusData) => void): () => void;
   onAnswerCount(callback: (data: AnswerCountData) => void): () => void;
   onAnswerResult(callback: (data: AnswerResultData) => void): () => void;

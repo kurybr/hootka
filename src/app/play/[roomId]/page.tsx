@@ -33,6 +33,7 @@ export default function PlayRoomPage() {
   const provider = useRealTime();
   const [participantId, setParticipantId] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [hostDisconnected, setHostDisconnected] = useState(false);
 
   const { room, loading, error } = useRoom({ roomId, role: "participant" });
   const ranking = useRanking();
@@ -66,6 +67,11 @@ export default function PlayRoomPage() {
   }, [status, currentQuestionIndex]);
 
   useEffect(() => {
+    const unsub = provider.onHostDisconnected(() => setHostDisconnected(true));
+    return unsub;
+  }, [provider]);
+
+  useEffect(() => {
     const unsub = provider.onError((err) => {
       if (
         err.code === "RESPOSTA_DUPLICADA" ||
@@ -91,6 +97,13 @@ export default function PlayRoomPage() {
             <Link href="/">Sair</Link>
           </Button>
         </div>
+
+        {hostDisconnected && (
+          <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
+            O host está temporariamente desconectado. A sala permanece ativa.
+            Aguarde a reconexão.
+          </div>
+        )}
 
         {error && (
           <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
@@ -131,11 +144,22 @@ export default function PlayRoomPage() {
                           p.id === participantId
                             ? "border-primary bg-primary/10 font-medium"
                             : ""
-                        }`}
+                        } ${p.connected === false ? "opacity-60" : ""}`}
                       >
-                        <span className="h-2 w-2 rounded-full bg-green-500" />
+                        <span
+                          className={`h-2 w-2 shrink-0 rounded-full ${
+                            p.connected === false
+                              ? "bg-muted-foreground/50"
+                              : "bg-green-500"
+                          }`}
+                        />
                         {p.name}
-                        {p.id === participantId && (
+                        {p.connected === false && (
+                          <span className="text-xs text-muted-foreground">
+                            (desconectado)
+                          </span>
+                        )}
+                        {p.id === participantId && p.connected !== false && (
                           <span className="ml-auto text-xs text-muted-foreground">
                             (você)
                           </span>

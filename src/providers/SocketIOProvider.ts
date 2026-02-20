@@ -25,7 +25,7 @@ function getOrCreateHostId(): string {
 
 export class SocketIOProvider implements IRealTimeProvider {
   private socket: Socket | null = null;
-  private roomId: string | null = null;
+  private _roomId: string | null = null;
   private role: "host" | "participant" | null = null;
   private participantId: string | null = null;
   private lastRoomState: Room | null = null;
@@ -41,6 +41,14 @@ export class SocketIOProvider implements IRealTimeProvider {
   private rankingListeners: Set<(participants: Participant[]) => void> =
     new Set();
   private errorListeners: Set<(error: ErrorData) => void> = new Set();
+  private participantDisconnectedListeners: Set<
+    (data: { participantId: string }) => void
+  > = new Set();
+  private participantReconnectedListeners: Set<(p: Participant) => void> =
+    new Set();
+  private hostDisconnectedListeners: Set<() => void> = new Set();
+  private connectionStateListeners: Set<(connected: boolean) => void> =
+    new Set();
 
   private setupListeners(): void {
     if (!this.socket) return;
@@ -76,6 +84,48 @@ export class SocketIOProvider implements IRealTimeProvider {
     this.socket.on("error", (data: ErrorData) => {
       this.errorListeners.forEach((cb) => cb(data));
     });
+
+    this.socket.on(
+      "room:participant-disconnected",
+      (data: { participantId: string }) => {
+        if (this.lastRoomState?.participants[data.participantId]) {
+          this.lastRoomState.participants[data.participantId].connected = false;
+        }
+        this.participantDisconnectedListeners.forEach((cb) => cb(data));
+        if (this.lastRoomState) {
+          this.roomStateListeners.forEach((cb) => cb(this.lastRoomState!));
+        }
+      }
+    );
+
+    this.socket.on("room:participant-reconnected", (participant: Participant) => {
+      if (this.lastRoomState?.participants[participant.id]) {
+        this.lastRoomState.participants[participant.id] = { ...participant };
+      }
+      this.participantReconnectedListeners.forEach((cb) => cb(participant));
+      if (this.lastRoomState) {
+        this.roomStateListeners.forEach((cb) => cb(this.lastRoomState!));
+      }
+    });
+
+    this.socket.on("room:host-disconnected", () => {
+      this.hostDisconnectedListeners.forEach((cb) => cb());
+    });
+
+    this.socket.on("connect", () => {
+      this.connectionStateListeners.forEach((cb) => cb(true));
+      if (this._roomId && this.role) {
+        this.socket?.emit("room:rejoin" as never, { roomId: this._roomId } as never);
+      }
+    });
+
+    this.socket.on("disconnect", () => {
+      this.connectionStateListeners.forEach((cb) => cb(false));
+    });
+
+    this.socket.on("connect_error", () => {
+      this.connectionStateListeners.forEach((cb) => cb(false));
+    });
   }
 
   private ensureConnected(hostId?: string, participantId?: string): void {
@@ -89,7 +139,7 @@ export class SocketIOProvider implements IRealTimeProvider {
   }
 
   connect(roomId: string, role: "host" | "participant"): void {
-    this.roomId = roomId;
+    this._roomId = roomId;
     this.role = role;
 
     if (role === "host") {
@@ -107,7 +157,7 @@ export class SocketIOProvider implements IRealTimeProvider {
       this.socket.disconnect();
       this.socket = null;
     }
-    this.roomId = null;
+    this._roomId = null;
     this.role = null;
     this.participantId = null;
   }
@@ -125,7 +175,7 @@ export class SocketIOProvider implements IRealTimeProvider {
       const onCreated = (data: { roomId: string; code: string }) => {
         this.socket?.off("room:created", onCreated);
         this.socket?.off("error", onError);
-        this.roomId = data.roomId;
+        this._roomId = data.roomId;
         this.role = "host";
         resolve(data);
       };
@@ -148,7 +198,11 @@ export class SocketIOProvider implements IRealTimeProvider {
     name: string
   ): Promise<{ participantId: string; roomId: string }> {
     return new Promise((resolve, reject) => {
-      this.ensureConnected();
+      const storedParticipantId =
+        typeof window !== "undefined"
+          ? localStorage.getItem(PARTICIPANT_ID_KEY)
+          : null;
+      this.ensureConnected(undefined, storedParticipantId ?? undefined);
 
       if (!this.socket) {
         reject(new Error("Não foi possível conectar"));
@@ -158,7 +212,7 @@ export class SocketIOProvider implements IRealTimeProvider {
       const onJoined = (data: { participantId: string; roomId: string }) => {
         this.socket?.off("room:joined", onJoined);
         this.socket?.off("error", onError);
-        this.roomId = data.roomId;
+        this._roomId = data.roomId;
         this.role = "participant";
         this.participantId = data.participantId;
         localStorage.setItem(PARTICIPANT_ID_KEY, data.participantId);
@@ -232,5 +286,36 @@ export class SocketIOProvider implements IRealTimeProvider {
   onError(callback: (error: ErrorData) => void): () => void {
     this.errorListeners.add(callback);
     return () => this.errorListeners.delete(callback);
+  }
+
+  get isConnected(): boolean {
+    return this.socket?.connected ?? false;
+  }
+
+  get roomId(): string | null {
+    return this._roomId;
+  }
+
+  onConnectionStateChange(callback: (connected: boolean) => void): () => void {
+    callback(this.isConnected);
+    this.connectionStateListeners.add(callback);
+    return () => this.connectionStateListeners.delete(callback);
+  }
+
+  onParticipantDisconnected(
+    callback: (data: { participantId: string }) => void
+  ): () => void {
+    this.participantDisconnectedListeners.add(callback);
+    return () => this.participantDisconnectedListeners.delete(callback);
+  }
+
+  onParticipantReconnected(callback: (participant: Participant) => void): () => void {
+    this.participantReconnectedListeners.add(callback);
+    return () => this.participantReconnectedListeners.delete(callback);
+  }
+
+  onHostDisconnected(callback: () => void): () => void {
+    this.hostDisconnectedListeners.add(callback);
+    return () => this.hostDisconnectedListeners.delete(callback);
   }
 }

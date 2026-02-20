@@ -35,6 +35,18 @@ export class InMemoryStore implements IGameStore {
     room.participants[participant.id] = { ...participant };
   }
 
+  async updateParticipantConnection(
+    roomId: string,
+    participantId: string,
+    connected: boolean
+  ): Promise<void> {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+    const participant = room.participants[participantId];
+    if (!participant) return;
+    participant.connected = connected;
+  }
+
   async addAnswer(
     roomId: string,
     questionIndex: number,

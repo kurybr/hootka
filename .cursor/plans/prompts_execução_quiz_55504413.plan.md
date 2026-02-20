@@ -13,7 +13,7 @@ todos:
     status: completed
   - id: prompt-04
     content: Prompt 4 - Criacao de Sala (Fluxo do Host)
-    status: pending
+    status: completed
   - id: prompt-05
     content: Prompt 5 - Entrada de Participante na Sala
     status: pending

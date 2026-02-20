@@ -1,0 +1,26 @@
+# Cenário A5: 500 participantes (encontrar ponto de saturação)
+config:
+  target: "http://localhost:3000"
+  phases:
+    - name: "500 participants"
+      duration: 90
+      arrivalRate: 15
+  engines:
+    socketio-v3: {}
+  processor: "../functions.js"
+  variables:
+    roomCode: "LOAD01"
+
+scenarios:
+  - name: "Join"
+    engine: socketio-v3
+    flow:
+      - function: "setRoomCodeFromEnv"
+      - function: "generateUniqueName"
+      - emit:
+          - "room:join"
+          - code: "{{ roomCode }}"
+          - name: "{{ participantName }}"
+        response:
+          on: "room:joined"
+      - think: 1

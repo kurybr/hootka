@@ -67,13 +67,13 @@ todos:
     status: cancelled
   - id: prompt-22
     content: Prompt 22 - Setup de Teste de Carga (Artillery + Socket.IO)
-    status: pending
+    status: completed
   - id: prompt-23
     content: Prompt 23 - Cenarios de Teste de Carga (Escalonamento)
-    status: pending
+    status: completed
   - id: prompt-24
     content: Prompt 24 - Dashboard de Resultados + Relatorio de Limites
-    status: pending
+    status: completed
 isProject: false
 ---
 

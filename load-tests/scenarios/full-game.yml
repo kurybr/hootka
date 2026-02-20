@@ -1,0 +1,41 @@
+# Cenário: Fluxo completo - 1 host + N participantes
+# O host cria sala, inicia jogo, e os participantes entram e respondem
+# Este cenário usa workers em paralelo: um fluxo de host, N fluxos de participante
+# Uso: artillery run load-tests/scenarios/full-game.yml
+#
+# Para teste com sala pré-criada, use seed-quiz.js primeiro:
+#   node load-tests/seed-quiz.js
+#   ROOM_CODE=<code> artillery run load-tests/scenarios/join-and-play.yml
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    - name: "full game"
+      duration: 90
+      arrivalRate: 3
+  engines:
+    socketio-v3: {}
+  processor: "../functions.js"
+  variables:
+    roomCode: "LOAD01"
+
+scenarios:
+  - name: "Participante entra na sala"
+    engine: socketio-v3
+    flow:
+      - function: "setRoomCodeFromEnv"
+      - function: "generateUniqueName"
+      - emit:
+          - "room:join"
+          - code: "{{ roomCode }}"
+          - name: "{{ participantName }}"
+        response:
+          on: "room:joined"
+          capture:
+            - json: "$.participantId"
+              as: "participantId"
+            - json: "$.roomId"
+              as: "roomId"
+      - think: 1
+      - function: "pickRandomOption"
+      - think: 2

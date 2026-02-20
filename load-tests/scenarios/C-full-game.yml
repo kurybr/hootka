@@ -1,0 +1,50 @@
+# Cenário C: Jogo completo sob carga
+# 1 host + N participantes jogando 10 perguntas
+# Host avança automaticamente. Participantes respondem a cada pergunta.
+#
+# Requer seed-and-start.js rodando (host mantém jogo ativo).
+# O host em seed-and-start não avança automaticamente - para cenário completo
+# seria necessário um script host que avança a cada X segundos.
+#
+# Este cenário simula participantes entrando e respondendo a 1ª pergunta.
+# Para jogo completo com 10 perguntas, use um host automatizado (Prompt 24).
+#
+# Uso: node load-tests/run-burst.js C-full-game
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    - name: "full game"
+      duration: 60
+      arrivalRate: 3
+  engines:
+    socketio-v3: {}
+  processor: "../functions.js"
+  variables:
+    roomCode: "LOAD01"
+
+scenarios:
+  - name: "Participante joga"
+    engine: socketio-v3
+    flow:
+      - function: "setRoomCodeFromEnv"
+      - function: "generateUniqueName"
+      - emit:
+          - "room:join"
+          - code: "{{ roomCode }}"
+          - name: "{{ participantName }}"
+        response:
+          on: "room:joined"
+          capture:
+            - json: "$.participantId"
+              as: "participantId"
+            - json: "$.roomId"
+              as: "roomId"
+      - think: 1
+      - function: "pickRandomOption"
+      - emit:
+          - "answer:submit"
+          - optionIndex: "{{ optionIndex }}"
+        response:
+          on: "answer:result"
+      - think: 2

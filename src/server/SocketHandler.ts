@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import type { Socket } from "socket.io";
 import { GameEngine } from "./GameEngine";
 import { InMemoryStore } from "./InMemoryStore";
+import { serverMetrics } from "@/lib/serverMetrics";
 import type { ClientEvents, ServerEvents } from "@/types/events";
 
 const QUESTION_TIMEOUT_MS = 120000;
@@ -55,6 +56,7 @@ export function setupSocketHandler(io: TypedServer): void {
   const engine = new GameEngine(store);
 
   io.on("connection", (socket: Socket) => {
+    serverMetrics.incrementConnections();
     const hostId = (socket.handshake.auth as { hostId?: string })?.hostId;
     const participantId = (socket.handshake.auth as { participantId?: string })
       ?.participantId;
@@ -103,6 +105,7 @@ export function setupSocketHandler(io: TypedServer): void {
     );
 
     socket.on("disconnect", async () => {
+      serverMetrics.decrementConnections();
       const roomId = socket.data.roomId as string | undefined;
       const role = socket.data.role as string | undefined;
       const effectiveParticipantId =
@@ -338,6 +341,7 @@ export function setupSocketHandler(io: TypedServer): void {
             questionIndex,
             data.optionIndex
           );
+          serverMetrics.incrementAnswersProcessed();
           socket.emit("answer:result" as keyof ServerEvents, {
             correct: result.correct,
             score: result.score,

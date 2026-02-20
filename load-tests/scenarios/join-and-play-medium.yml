@@ -1,0 +1,31 @@
+# Cenário: Participantes entram - 50 usuários (~60s)
+config:
+  target: "http://localhost:3000"
+  phases:
+    - name: "medium"
+      duration: 60
+      arrivalRate: 2
+  engines:
+    socketio-v3: {}
+  processor: "../functions.js"
+  variables:
+    roomCode: "LOAD01"
+
+scenarios:
+  - name: "Participante entra"
+    engine: socketio-v3
+    flow:
+      - function: "setRoomCodeFromEnv"
+      - function: "generateUniqueName"
+      - emit:
+          - "room:join"
+          - code: "{{ roomCode }}"
+          - name: "{{ participantName }}"
+        response:
+          on: "room:joined"
+          capture:
+            - json: "$.participantId"
+              as: "participantId"
+            - json: "$.roomId"
+              as: "roomId"
+      - think: 2

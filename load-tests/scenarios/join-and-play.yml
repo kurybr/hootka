@@ -1,0 +1,39 @@
+# Cenário: Participante entra na sala e responde todas as perguntas
+# Requer ROOM_CODE definido (via seed-quiz.js ou env)
+# Uso: ROOM_CODE=ABC123 artillery run load-tests/scenarios/join-and-play.yml
+# Ou: artillery run load-tests/scenarios/join-and-play.yml -e join
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    - name: "join and play"
+      duration: 60
+      arrivalRate: 2
+  engines:
+    socketio-v3: {}
+  processor: "../functions.js"
+  variables:
+    roomCode: "LOAD01"
+
+scenarios:
+  - name: "Participante entra e responde"
+    engine: socketio-v3
+    flow:
+      - function: "setRoomCodeFromEnv"
+      - function: "generateUniqueName"
+      - emit:
+          - "room:join"
+          - code: "{{ roomCode }}"
+          - name: "{{ participantName }}"
+        response:
+          on: "room:joined"
+          capture:
+            - json: "$.participantId"
+              as: "participantId"
+            - json: "$.roomId"
+              as: "roomId"
+      - think: 2
+      # Aguarda host iniciar (em cenário real, host inicia separadamente)
+      # Por simplicidade, este cenário só testa o join
+      - function: "pickRandomOption"
+      - think: 1

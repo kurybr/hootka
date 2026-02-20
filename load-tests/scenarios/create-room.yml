@@ -1,0 +1,47 @@
+# Cenário: Host cria sala com 5 perguntas
+# Cada virtual user cria uma sala independente
+# Uso: artillery run load-tests/scenarios/create-room.yml
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    - name: "create rooms"
+      duration: 60
+      arrivalRate: 1
+  engines:
+    socketio-v3: {}
+  processor: "../functions.js"
+
+scenarios:
+  - name: "Host cria sala"
+    engine: socketio-v3
+    flow:
+      - function: "setHostId"
+      - connect:
+          auth:
+            hostId: "{{ hostId }}"
+      - emit:
+          - "room:create"
+          - questions:
+              - text: "Pergunta 1?"
+                options: ["A", "B", "C", "D"]
+                correctOptionIndex: 0
+              - text: "Pergunta 2?"
+                options: ["A", "B", "C", "D"]
+                correctOptionIndex: 1
+              - text: "Pergunta 3?"
+                options: ["A", "B", "C", "D"]
+                correctOptionIndex: 2
+              - text: "Pergunta 4?"
+                options: ["A", "B", "C", "D"]
+                correctOptionIndex: 3
+              - text: "Pergunta 5?"
+                options: ["A", "B", "C", "D"]
+                correctOptionIndex: 0
+        response:
+          on: "room:created"
+          capture:
+            - json: "$.roomId"
+              as: "roomId"
+            - json: "$.code"
+              as: "roomCode"

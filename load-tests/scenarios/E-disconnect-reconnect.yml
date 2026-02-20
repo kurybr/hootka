@@ -1,0 +1,52 @@
+# Cenário E: Desconexão/Reconexão sob carga
+# X% dos participantes desconectam e reconectam durante o jogo
+#
+# O artillery-engine-socketio-v3 suporta "connect" para nova conexão.
+# Fluxo: join -> disconnect (fechar socket) -> connect (rejoin) com participantId
+#
+# Para simular: participante entra, "pensa" 2s, emite disconnect implícito
+# (artillery não tem disconnect explícito fácil). Alternativa: usar think longo
+# e alguns vusers falharem (timeout) para simular desconexão.
+#
+# Simplificado: participantes entram, fazem rejoin (room:rejoin) para simular
+# reconexão. Requer que tenham participantId e roomId do join anterior.
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    - name: "disconnect reconnect"
+      duration: 45
+      arrivalRate: 2
+  engines:
+    socketio-v3: {}
+  processor: "../functions.js"
+  variables:
+    roomCode: "LOAD01"
+
+scenarios:
+  - name: "Join e Rejoin"
+    engine: socketio-v3
+    flow:
+      - function: "setRoomCodeFromEnv"
+      - function: "generateUniqueName"
+      - emit:
+          - "room:join"
+          - code: "{{ roomCode }}"
+          - name: "{{ participantName }}"
+        response:
+          on: "room:joined"
+          capture:
+            - json: "$.participantId"
+              as: "participantId"
+            - json: "$.roomId"
+              as: "roomId"
+      - think: 2
+      - connect:
+          auth:
+            participantId: "{{ participantId }}"
+      - emit:
+          - "room:rejoin"
+          - roomId: "{{ roomId }}"
+        response:
+          on: "room:state"
+      - think: 1

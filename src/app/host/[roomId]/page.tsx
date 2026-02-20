@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -25,6 +25,7 @@ import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
 import { AnswerDistribution } from "@/components/AnswerDistribution";
 import { SoundToggle } from "@/components/SoundToggle";
+import { fireConfettiLight } from "@/lib/confetti";
 import { toast } from "@/hooks/use-toast";
 
 export default function HostRoomPage() {
@@ -76,6 +77,15 @@ export default function HostRoomPage() {
   const isLastQuestion =
     room &&
     currentQuestionIndex >= room.questions.length - 1;
+
+  const lastResultFiredFor = useRef<number>(-1);
+  useEffect(() => {
+    if (status === "result" && lastResultFiredFor.current !== currentQuestionIndex) {
+      lastResultFiredFor.current = currentQuestionIndex;
+      const t = setTimeout(() => fireConfettiLight(), 300);
+      return () => clearTimeout(t);
+    }
+  }, [status, currentQuestionIndex]);
 
   if (!roomId) {
     router.replace("/");

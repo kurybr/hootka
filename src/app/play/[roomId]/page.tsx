@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -25,6 +25,7 @@ import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
 import { ResultCard } from "@/components/ResultCard";
 import { SoundToggle } from "@/components/SoundToggle";
+import { fireConfetti } from "@/lib/confetti";
 import { toast } from "@/hooks/use-toast";
 
 const PARTICIPANT_ID_KEY = "quiz_participantId";
@@ -69,6 +70,20 @@ export default function PlayRoomPage() {
     }
   }, [status, currentQuestionIndex]);
 
+  const lastAnswerCorrectRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    const unsub = provider.onAnswerResult((data) => {
+      lastAnswerCorrectRef.current = data.correct;
+    });
+    return unsub;
+  }, [provider]);
+
+  useEffect(() => {
+    if (status === "playing") {
+      lastAnswerCorrectRef.current = null;
+    }
+  }, [status, currentQuestionIndex]);
+
   useEffect(() => {
     const unsub = provider.onHostDisconnected(() => setHostDisconnected(true));
     return unsub;
@@ -100,6 +115,24 @@ export default function PlayRoomPage() {
     });
     return unsub;
   }, [provider]);
+
+  const confettiFiredForQuestion = useRef<number>(-1);
+  useEffect(() => {
+    if (status !== "result" || confettiFiredForQuestion.current === currentQuestionIndex) return;
+    let correct = false;
+    if (participantId && room && currentQuestion) {
+      const qKey = String(currentQuestionIndex);
+      const answer = room.answers?.[qKey]?.[participantId];
+      if (answer) {
+        correct = answer.optionIndex === currentQuestion.correctOptionIndex;
+      }
+    }
+    if (!correct && lastAnswerCorrectRef.current !== true) return;
+    correct = correct || lastAnswerCorrectRef.current === true;
+    confettiFiredForQuestion.current = currentQuestionIndex;
+    const t = setTimeout(() => fireConfetti(), 400);
+    return () => clearTimeout(t);
+  }, [status, currentQuestionIndex, currentQuestion, participantId, room]);
 
   if (!roomId) {
     router.replace("/");

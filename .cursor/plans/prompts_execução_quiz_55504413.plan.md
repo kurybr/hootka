@@ -45,19 +45,19 @@ todos:
     content: Prompt 14 - Tratamento de Erros e Edge Cases
     status: completed
   - id: prompt-15
-    content: "Prompt 15 - Biblioteca de Quizzes (localStorage)"
+    content: Prompt 15 - Biblioteca de Quizzes (localStorage)
     status: completed
   - id: prompt-16
-    content: "Prompt 16 - Atalhos de Teclado para Respostas (A S D F)"
-    status: pending
+    content: Prompt 16 - Atalhos de Teclado para Respostas (A S D F)
+    status: completed
   - id: prompt-17
-    content: "Prompt 17 - Layout Responsivo e Espacamento"
-    status: pending
+    content: Prompt 17 - Layout Responsivo e Espacamento
+    status: completed
   - id: prompt-18
-    content: "Prompt 18 - Confetti no Resultado de Cada Pergunta"
-    status: pending
+    content: Prompt 18 - Confetti no Resultado de Cada Pergunta
+    status: completed
   - id: prompt-19
-    content: "Prompt 19 - Polimento UX das Telas"
+    content: Prompt 19 - Polimento UX das Telas
     status: pending
   - id: prompt-20
     content: "Prompt 20 - Migracao Firebase: Setup + Provider Firebase"

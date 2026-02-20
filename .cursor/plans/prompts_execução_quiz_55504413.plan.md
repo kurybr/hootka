@@ -61,9 +61,18 @@ todos:
     status: completed
   - id: prompt-20
     content: "Prompt 20 - Migracao Firebase: Setup + Provider Firebase"
-    status: pending
+    status: cancelled
   - id: prompt-21
     content: "Prompt 21 - Migracao Firebase: Cloud Functions + Seguranca"
+    status: cancelled
+  - id: prompt-22
+    content: Prompt 22 - Setup de Teste de Carga (Artillery + Socket.IO)
+    status: pending
+  - id: prompt-23
+    content: Prompt 23 - Cenarios de Teste de Carga (Escalonamento)
+    status: pending
+  - id: prompt-24
+    content: Prompt 24 - Dashboard de Resultados + Relatorio de Limites
     status: pending
 isProject: false
 ---
@@ -892,4 +901,139 @@ export interface SavedQuiz {
 - Regras de seguranca impedem manipulacao indevida
 - Salas finalizadas sao limpas automaticamente
 - Tudo testado com emulador
+
+---
+
+## Fase 8 -- Teste de Carga e Limites de Usuarios Simultaneos (Prompts 22 a 24)
+
+### Prompt 22 -- Setup de Teste de Carga (Artillery + Socket.IO)
+
+**Escopo:** Configurar infraestrutura de testes de carga usando Artillery com suporte a Socket.IO para simular centenas/milhares de participantes simultaneos.
+
+**Instrucoes de execucao:**
+
+- Instalar dependencias de teste (devDependencies):
+  - `artillery` -- ferramenta de teste de carga
+  - `artillery-engine-socketio-v3` -- plugin para Socket.IO v4+
+- Criar diretorio `load-tests/` na raiz do projeto
+- Criar `load-tests/artillery.yml` (config base):
+  - Target: `http://localhost:3000`
+  - Engine: `socketio-v3`
+  - Variaveis: numero de participantes por sala, duracao do teste
+  - Phases: warmup (ramp-up gradual) e sustained (carga constante)
+- Criar `load-tests/functions.js` com helpers:
+  - `generateUniqueName(ctx)` -- gera nome aleatorio para participante
+  - `generateRoomCode(ctx)` -- armazena codigo de sala para reuso
+  - `randomDelay(ctx)` -- simula tempo humano de resposta (1-10s)
+  - `pickRandomOption(ctx)` -- escolhe alternativa aleatoria (0-3)
+- Criar `load-tests/scenarios/` com cenarios base:
+  - `create-room.yml` -- host cria sala com 5 perguntas
+  - `join-and-play.yml` -- participante entra, responde todas as perguntas
+  - `full-game.yml` -- fluxo completo: 1 host + N participantes
+- Criar `load-tests/seed-quiz.js`:
+  - Script que pre-cria uma sala via API/Socket para os testes usarem
+  - Exporta roomId e code para os cenarios de participante
+- Adicionar scripts no `package.json`:
+  - `"test:load:setup"` -- inicia servidor + cria sala seed
+  - `"test:load:small"` -- 10 usuarios simultaneos
+  - `"test:load:medium"` -- 50 usuarios simultaneos
+  - `"test:load:large"` -- 200 usuarios simultaneos
+  - `"test:load:stress"` -- 500+ usuarios (encontrar ponto de quebra)
+
+**Criterios de aceite:**
+
+- `yarn test:load:small` executa sem erros com 10 usuarios
+- Metricas de latencia (p50, p95, p99) sao reportadas
+- Taxa de erro e reportada
+- Cenarios reutilizaveis e parametrizaveis
+- Documentacao clara sobre como rodar os testes
+
+---
+
+### Prompt 23 -- Cenarios de Teste de Carga (Escalonamento)
+
+**Escopo:** Criar cenarios progressivos que identifiquem o ponto de saturacao do servidor e os gargalos.
+
+**Instrucoes de execucao:**
+
+- Criar cenarios escalonados em `load-tests/scenarios/`:
+  - **Cenario A -- Conexao massiva:**
+    - N participantes entram na mesma sala simultaneamente
+    - Metricas: tempo de join, taxa de sucesso, memoria do servidor
+    - Testar: 10, 25, 50, 100, 200, 500 participantes
+  - **Cenario B -- Resposta simultanea:**
+    - Todos os participantes respondem ao mesmo tempo (burst)
+    - Metricas: latencia de submitAnswer, taxa de respostas aceitas, respostas perdidas
+    - Simular: todos respondem em janela de 1-2 segundos
+  - **Cenario C -- Jogo completo sob carga:**
+    - 1 host + N participantes jogando 10 perguntas
+    - Host avanca automaticamente entre perguntas
+    - Metricas: latencia media por pergunta, drift do timer, consistencia do ranking
+  - **Cenario D -- Multiplas salas:**
+    - K salas simultaneas, cada uma com M participantes
+    - Metricas: isolamento entre salas, uso de memoria, CPU
+    - Testar: 5 salas x 20 usuarios, 10 salas x 50 usuarios
+  - **Cenario E -- Desconexao/Reconexao sob carga:**
+    - X% dos participantes desconectam e reconectam durante o jogo
+    - Metricas: taxa de reconexao bem-sucedida, estado consistente apos reconexao
+- Criar `load-tests/monitor.js`:
+  - Script que coleta metricas do servidor durante o teste:
+    - Uso de memoria (RSS, heap)
+    - Conexoes Socket.IO ativas
+    - Event loop delay (lag)
+    - Respostas processadas por segundo
+  - Expor endpoint `/api/metrics` no servidor (apenas em dev/test)
+- Adicionar ao `server/SocketHandler.ts` ou middleware:
+  - Contador de conexoes ativas
+  - Contador de mensagens processadas/segundo
+  - Hook para exportar metricas
+
+**Criterios de aceite:**
+
+- Cada cenario executa e gera relatorio com metricas
+- Ponto de saturacao identificado (quando latencia p99 > 2s ou taxa de erro > 5%)
+- Metricas do servidor coletadas durante cada teste
+- Testes reproduziveis em maquina local e CI
+
+---
+
+### Prompt 24 -- Dashboard de Resultados + Relatorio de Limites
+
+**Escopo:** Consolidar resultados dos testes em um relatorio claro e criar scripts de analise automatizada.
+
+**Instrucoes de execucao:**
+
+- Criar `load-tests/analyze.js`:
+  - Le os relatorios JSON do Artillery (`load-tests/results/`)
+  - Gera tabela resumo:
+    - | Cenario | Usuarios | p50 (ms) | p95 (ms) | p99 (ms) | Erros (%) | Memoria (MB) |
+  - Identifica automaticamente o ponto de quebra:
+    - "O servidor suporta ate X usuarios simultaneos com p99 < 500ms"
+    - "A partir de Y usuarios, a taxa de erro ultrapassa 5%"
+  - Exporta resultados em Markdown para `load-tests/RESULTS.md`
+- Criar `load-tests/run-all.sh`:
+  - Script que executa todos os cenarios em sequencia
+  - Aguarda cooldown entre testes (30s)
+  - Coleta metricas do servidor em cada teste
+  - Gera relatorio consolidado ao final
+- Criar `load-tests/RESULTS.md` (template):
+  - Secao: Ambiente de teste (hardware, OS, Node.js version)
+  - Secao: Resultados por cenario (tabela)
+  - Secao: Gargalos identificados
+  - Secao: Recomendacoes de otimizacao
+  - Secao: Limites recomendados para producao
+- Documentar no `load-tests/README.md`:
+  - Como rodar os testes
+  - Pre-requisitos
+  - Interpretacao dos resultados
+  - Como ajustar parametros (numero de usuarios, duracao)
+
+**Criterios de aceite:**
+
+- Script `run-all.sh` executa todos os cenarios e gera relatorio
+- Relatorio `RESULTS.md` gerado automaticamente com dados reais
+- Ponto de quebra claramente documentado
+- Recomendacoes de otimizacao baseadas nos gargalos encontrados
+- README com instrucoes claras para reproduzir os testes
+- Limites recomendados para producao documentados (ex: "maximo de X usuarios por sala, Y salas simultaneas")
 

@@ -15,6 +15,7 @@ interface QuestionCardProps {
   onAnswer: (optionIndex: number) => void;
   disabled?: boolean;
   selectedIndex?: number | null;
+  awaitingResult?: boolean;
 }
 
 export function QuestionCard({
@@ -22,10 +23,16 @@ export function QuestionCard({
   onAnswer,
   disabled = false,
   selectedIndex = null,
+  awaitingResult = false,
 }: QuestionCardProps) {
   return (
     <div className="space-y-4">
       <p className="text-lg font-medium">{question.text}</p>
+      {awaitingResult && (
+        <p className="text-center text-sm text-muted-foreground">
+          Aguardando resultado...
+        </p>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
         {question.options.map((option, index) => (
           <button

@@ -195,8 +195,7 @@ export class SocketIOProvider implements IRealTimeProvider {
   }
 
   submitAnswer(optionIndex: number): void {
-    void optionIndex;
-    throw new Error("submitAnswer será implementado no Prompt 9");
+    this.socket?.emit("answer:submit" as never, { optionIndex } as never);
   }
 
   onRoomState(callback: (room: Room) => void): () => void {

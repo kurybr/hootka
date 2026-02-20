@@ -28,10 +28,10 @@ todos:
     status: completed
   - id: prompt-09
     content: Prompt 9 - Envio de Resposta + Validacao Server-side
-    status: pending
+    status: completed
   - id: prompt-10
     content: Prompt 10 - Pontuacao + Ranking Dinamico
-    status: pending
+    status: completed
   - id: prompt-11
     content: Prompt 11 - Tela de Resultado da Rodada + Ranking
     status: pending

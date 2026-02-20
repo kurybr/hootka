@@ -14,10 +14,14 @@ import {
 } from "@/components/ui/card";
 import { QuestionCard } from "@/components/QuestionCard";
 import { Timer } from "@/components/Timer";
+import { useRealTime } from "@/hooks/useRealTime";
 import { useRoom } from "@/hooks/useRoom";
 import { useParticipants } from "@/hooks/useParticipants";
 import { useGameState } from "@/hooks/useGameState";
 import { useTimer } from "@/hooks/useTimer";
+import { useRanking } from "@/hooks/useRanking";
+import { Ranking } from "@/components/Ranking";
+import { FinalRanking } from "@/components/FinalRanking";
 
 const PARTICIPANT_ID_KEY = "quiz_participantId";
 
@@ -25,10 +29,12 @@ export default function PlayRoomPage() {
   const params = useParams();
   const router = useRouter();
   const roomId = params.roomId as string;
+  const provider = useRealTime();
   const [participantId, setParticipantId] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const { room, loading, error } = useRoom({ roomId, role: "participant" });
+  const ranking = useRanking();
   const participants = useParticipants(room);
   const {
     status,
@@ -49,6 +55,7 @@ export default function PlayRoomPage() {
 
   const handleAnswer = (optionIndex: number) => {
     setSelectedIndex(optionIndex);
+    provider.submitAnswer(optionIndex);
   };
 
   useEffect(() => {
@@ -56,6 +63,18 @@ export default function PlayRoomPage() {
       setSelectedIndex(null);
     }
   }, [status, currentQuestionIndex]);
+
+  useEffect(() => {
+    const unsub = provider.onError((err) => {
+      if (
+        err.code === "RESPOSTA_DUPLICADA" ||
+        err.code === "TEMPO_ESGOTADO"
+      ) {
+        setSelectedIndex(null);
+      }
+    });
+    return unsub;
+  }, [provider]);
 
   if (!roomId) {
     router.replace("/");
@@ -137,8 +156,9 @@ export default function PlayRoomPage() {
               <QuestionCard
                 question={currentQuestion}
                 onAnswer={handleAnswer}
-                disabled={isExpired}
+                disabled={isExpired || selectedIndex !== null}
                 selectedIndex={selectedIndex}
+                awaitingResult={selectedIndex !== null}
               />
               {isExpired && (
                 <p className="text-center font-medium text-destructive">
@@ -152,10 +172,16 @@ export default function PlayRoomPage() {
             <CardHeader>
               <CardTitle>Resultado da Rodada</CardTitle>
               <CardDescription>
-                Seu resultado e ranking serão exibidos no Prompt 11
+                Seu resultado será exibido no Prompt 11
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {ranking.length > 0 && (
+                <Ranking
+                  participants={ranking}
+                  currentParticipantId={participantId}
+                />
+              )}
               <p className="text-center text-muted-foreground">
                 Aguardando próxima pergunta...
               </p>
@@ -166,10 +192,16 @@ export default function PlayRoomPage() {
             <CardHeader>
               <CardTitle>Jogo Encerrado</CardTitle>
               <CardDescription>
-                Ranking final será exibido no Prompt 11
+                Parabéns aos participantes!
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
+              {ranking.length > 0 && (
+                <FinalRanking
+                  participants={ranking}
+                  currentParticipantId={participantId}
+                />
+              )}
               <Button asChild className="w-full">
                 <Link href="/">Voltar ao Início</Link>
               </Button>

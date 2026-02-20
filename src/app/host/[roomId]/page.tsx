@@ -17,7 +17,10 @@ import { useRoom } from "@/hooks/useRoom";
 import { useParticipants } from "@/hooks/useParticipants";
 import { useGameState } from "@/hooks/useGameState";
 import { useAnswerCount } from "@/hooks/useAnswerCount";
+import { useRanking } from "@/hooks/useRanking";
 import { Timer } from "@/components/Timer";
+import { Ranking } from "@/components/Ranking";
+import { FinalRanking } from "@/components/FinalRanking";
 
 export default function HostRoomPage() {
   const params = useParams();
@@ -34,6 +37,7 @@ export default function HostRoomPage() {
     questionStartTimestamp,
   } = useGameState(room);
   const { count, total } = useAnswerCount();
+  const ranking = useRanking();
 
   const copyCode = () => {
     if (room?.code) {
@@ -177,10 +181,13 @@ export default function HostRoomPage() {
             <CardHeader>
               <CardTitle>Resultado da Rodada</CardTitle>
               <CardDescription>
-                Resposta correta e ranking serão exibidos no Prompt 11
+                Resposta correta e distribuição serão exibidos no Prompt 11
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {ranking.length > 0 && (
+                <Ranking participants={ranking} />
+              )}
               {isLastQuestion ? (
                 <Button size="lg" className="w-full" onClick={handleEndGame}>
                   Ver Ranking Final
@@ -201,10 +208,13 @@ export default function HostRoomPage() {
             <CardHeader>
               <CardTitle>Jogo Encerrado</CardTitle>
               <CardDescription>
-                Ranking final será exibido no Prompt 11
+                Parabéns aos participantes!
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-6">
+              {ranking.length > 0 && (
+                <FinalRanking participants={ranking} />
+              )}
               <Button asChild className="w-full">
                 <Link href="/">Voltar ao Início</Link>
               </Button>

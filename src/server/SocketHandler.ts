@@ -101,6 +101,7 @@ export function setupSocketHandler(io: TypedServer): void {
           room,
           room.currentQuestionIndex
         );
+        const ranking = engine.getRanking(room);
         socket.emit("game:status-changed" as keyof ServerEvents, {
           status: room.status,
           questionIndex: room.currentQuestionIndex,
@@ -117,6 +118,7 @@ export function setupSocketHandler(io: TypedServer): void {
           count,
           total,
         });
+        io.to(roomId).emit("ranking:update" as keyof ServerEvents, ranking);
       } catch (err) {
         socket.emit("error", {
           message: err instanceof Error ? err.message : "Erro ao iniciar jogo",
@@ -131,12 +133,14 @@ export function setupSocketHandler(io: TypedServer): void {
       if (!roomId || !effectiveHostId) return;
       try {
         const room = await engine.forceResult(roomId, effectiveHostId);
+        const ranking = engine.getRanking(room);
         io.to(roomId).emit("game:status-changed" as keyof ServerEvents, {
           status: room.status,
           questionIndex: room.currentQuestionIndex,
           timestamp: null,
         });
         io.to(roomId).emit("room:state" as keyof ServerEvents, room);
+        io.to(roomId).emit("ranking:update" as keyof ServerEvents, ranking);
       } catch (err) {
         socket.emit("error", {
           message:
@@ -235,12 +239,14 @@ export function setupSocketHandler(io: TypedServer): void {
               await engine.transitionToResult(roomId);
               const finalRoom = await store.getRoom(roomId);
               if (finalRoom) {
+                const ranking = engine.getRanking(finalRoom);
                 io.to(roomId).emit("game:status-changed" as keyof ServerEvents, {
                   status: finalRoom.status,
                   questionIndex: finalRoom.currentQuestionIndex,
                   timestamp: null,
                 });
                 io.to(roomId).emit("room:state" as keyof ServerEvents, finalRoom);
+                io.to(roomId).emit("ranking:update" as keyof ServerEvents, ranking);
               }
             }
           }

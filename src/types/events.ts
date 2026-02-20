@@ -5,6 +5,7 @@ export interface ClientEvents {
   "room:join": (data: { code: string; name: string }) => void;
   "game:start": () => void;
   "game:next-question": () => void;
+  "game:force-result": () => void;
   "game:end": () => void;
   "answer:submit": (data: { optionIndex: number }) => void;
 }

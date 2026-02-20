@@ -22,7 +22,7 @@ todos:
     status: completed
   - id: prompt-07
     content: Prompt 7 - Maquina de Estados + Inicio do Jogo
-    status: pending
+    status: completed
   - id: prompt-08
     content: Prompt 8 - Tela de Pergunta + Timer Visual
     status: pending

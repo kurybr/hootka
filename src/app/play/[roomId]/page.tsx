@@ -14,10 +14,11 @@ import {
 } from "@/components/ui/card";
 import { useRoom } from "@/hooks/useRoom";
 import { useParticipants } from "@/hooks/useParticipants";
+import { useGameState } from "@/hooks/useGameState";
 
 const PARTICIPANT_ID_KEY = "quiz_participantId";
 
-export default function PlayWaitingPage() {
+export default function PlayRoomPage() {
   const params = useParams();
   const router = useRouter();
   const roomId = params.roomId as string;
@@ -25,12 +26,15 @@ export default function PlayWaitingPage() {
 
   const { room, loading, error } = useRoom({ roomId, role: "participant" });
   const participants = useParticipants(room);
+  const { status, currentQuestionIndex } = useGameState(room);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       setParticipantId(localStorage.getItem(PARTICIPANT_ID_KEY));
     }
   }, []);
+
+  const currentQuestion = room?.questions[currentQuestionIndex];
 
   if (!roomId) {
     router.replace("/");
@@ -41,7 +45,7 @@ export default function PlayWaitingPage() {
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="mx-auto max-w-lg space-y-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Aguardando o jogo</h1>
+          <h1 className="text-2xl font-bold">Quiz</h1>
           <Button variant="outline" asChild>
             <Link href="/">Sair</Link>
           </Button>
@@ -55,7 +59,7 @@ export default function PlayWaitingPage() {
 
         {loading ? (
           <p className="text-center text-muted-foreground">Carregando...</p>
-        ) : (
+        ) : status === "waiting" ? (
           <Card>
             <CardHeader>
               <CardTitle>Aguardando o Host iniciar o jogo...</CardTitle>
@@ -102,7 +106,49 @@ export default function PlayWaitingPage() {
               </div>
             </CardContent>
           </Card>
-        )}
+        ) : status === "playing" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Pergunta {currentQuestionIndex + 1}</CardTitle>
+              <CardDescription>
+                {currentQuestion?.text ?? "Carregando..."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Alternativas e timer serão exibidos no Prompt 8
+              </p>
+            </CardContent>
+          </Card>
+        ) : status === "result" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Resultado da Rodada</CardTitle>
+              <CardDescription>
+                Seu resultado e ranking serão exibidos no Prompt 11
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground">
+                Aguardando próxima pergunta...
+              </p>
+            </CardContent>
+          </Card>
+        ) : status === "finished" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Jogo Encerrado</CardTitle>
+              <CardDescription>
+                Ranking final será exibido no Prompt 11
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link href="/">Voltar ao Início</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
     </main>
   );

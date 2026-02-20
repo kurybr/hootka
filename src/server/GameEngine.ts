@@ -214,6 +214,22 @@ export class GameEngine {
     return updated;
   }
 
+  async forceResult(roomId: string, hostId: string): Promise<Room> {
+    const room = await this.store.getRoom(roomId);
+    if (!room) throw new Error("SALA_NAO_ENCONTRADA");
+    if (room.hostId !== hostId) throw new Error("APENAS_HOST_PODE_ENCERRAR");
+    if (room.status !== "playing") throw new Error("STATUS_INVALIDO");
+
+    await this.store.updateRoom(roomId, {
+      status: "result",
+      questionStartTimestamp: null,
+    });
+
+    const updated = await this.store.getRoom(roomId);
+    if (!updated) throw new Error("SALA_NAO_ENCONTRADA");
+    return updated;
+  }
+
   async transitionToResult(roomId: string): Promise<Room> {
     const room = await this.store.getRoom(roomId);
     if (!room) throw new Error("SALA_NAO_ENCONTRADA");

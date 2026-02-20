@@ -49,6 +49,18 @@ export function useRoom({ roomId, role }: UseRoomOptions): UseRoomResult {
       });
     });
 
+    const unsubGameStatus = provider.onGameStatusChanged((data) => {
+      setRoom((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: data.status,
+          currentQuestionIndex: data.questionIndex,
+          questionStartTimestamp: data.timestamp,
+        };
+      });
+    });
+
     const unsubError = provider.onError((err) => {
       setError(err.message);
       setLoading(false);
@@ -57,6 +69,7 @@ export function useRoom({ roomId, role }: UseRoomOptions): UseRoomResult {
     return () => {
       unsubState();
       unsubParticipant();
+      unsubGameStatus();
       unsubError();
     };
   }, [roomId, role, provider]);

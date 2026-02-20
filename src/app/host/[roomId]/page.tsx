@@ -12,17 +12,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useRealTime } from "@/hooks/useRealTime";
 import { useRoom } from "@/hooks/useRoom";
 import { useParticipants } from "@/hooks/useParticipants";
+import { useGameState } from "@/hooks/useGameState";
 
-export default function HostLobbyPage() {
+export default function HostRoomPage() {
   const params = useParams();
   const router = useRouter();
   const roomId = params.roomId as string;
+  const provider = useRealTime();
   const [copied, setCopied] = useState(false);
 
   const { room, loading, error } = useRoom({ roomId, role: "host" });
   const participants = useParticipants(room);
+  const { status, currentQuestionIndex } = useGameState(room);
 
   const copyCode = () => {
     if (room?.code) {
@@ -31,6 +35,27 @@ export default function HostLobbyPage() {
       setTimeout(() => setCopied(false), 2000);
     }
   };
+
+  const handleStartGame = () => {
+    provider.startGame();
+  };
+
+  const handleNextQuestion = () => {
+    provider.nextQuestion();
+  };
+
+  const handleForceResult = () => {
+    provider.forceResult();
+  };
+
+  const handleEndGame = () => {
+    provider.endGame();
+  };
+
+  const currentQuestion = room?.questions[currentQuestionIndex];
+  const isLastQuestion =
+    room &&
+    currentQuestionIndex >= room.questions.length - 1;
 
   if (!roomId) {
     router.replace("/");
@@ -41,7 +66,7 @@ export default function HostLobbyPage() {
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="mx-auto max-w-lg space-y-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Lobby</h1>
+          <h1 className="text-2xl font-bold">Sala do Host</h1>
           <Button variant="outline" asChild>
             <Link href="/">Sair</Link>
           </Button>
@@ -55,7 +80,7 @@ export default function HostLobbyPage() {
 
         {loading ? (
           <p className="text-center text-muted-foreground">Carregando...</p>
-        ) : (
+        ) : status === "waiting" ? (
           <>
             <Card>
               <CardHeader>
@@ -110,14 +135,71 @@ export default function HostLobbyPage() {
               </CardContent>
             </Card>
 
-            <Button size="lg" className="w-full" disabled>
+            <Button
+              size="lg"
+              className="w-full"
+              onClick={handleStartGame}
+              disabled={participants.length < 1}
+            >
               Iniciar Jogo
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              (Será habilitado no Prompt 7)
-            </p>
           </>
-        )}
+        ) : status === "playing" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Pergunta {currentQuestionIndex + 1}</CardTitle>
+              <CardDescription>
+                {currentQuestion?.text ?? "Carregando..."}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-4 text-muted-foreground">
+                Timer e alternativas serão exibidos no Prompt 8
+              </p>
+              <Button variant="outline" onClick={handleForceResult}>
+                Encerrar Pergunta
+              </Button>
+            </CardContent>
+          </Card>
+        ) : status === "result" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Resultado da Rodada</CardTitle>
+              <CardDescription>
+                Resposta correta e ranking serão exibidos no Prompt 11
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isLastQuestion ? (
+                <Button size="lg" className="w-full" onClick={handleEndGame}>
+                  Ver Ranking Final
+                </Button>
+              ) : (
+                <Button
+                  size="lg"
+                  className="w-full"
+                  onClick={handleNextQuestion}
+                >
+                  Próxima Pergunta
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : status === "finished" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Jogo Encerrado</CardTitle>
+              <CardDescription>
+                Ranking final será exibido no Prompt 11
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link href="/">Voltar ao Início</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
     </main>
   );

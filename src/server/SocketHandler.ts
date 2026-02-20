@@ -117,6 +117,29 @@ export function setupSocketHandler(io: TypedServer): void {
       }
     });
 
+    socket.on("game:force-result" as keyof ClientEvents, async () => {
+      const roomId = socket.data.roomId as string | undefined;
+      const effectiveHostId = socket.data.hostId ?? hostId;
+      if (!roomId || !effectiveHostId) return;
+      try {
+        const room = await engine.forceResult(roomId, effectiveHostId);
+        io.to(roomId).emit("game:status-changed" as keyof ServerEvents, {
+          status: room.status,
+          questionIndex: room.currentQuestionIndex,
+          timestamp: null,
+        });
+        io.to(roomId).emit("room:state" as keyof ServerEvents, room);
+      } catch (err) {
+        socket.emit("error", {
+          message:
+            err instanceof Error
+              ? err.message
+              : "Erro ao encerrar pergunta",
+          code: "ERRO_ENCERRAR_PERGUNTA",
+        });
+      }
+    });
+
     socket.on("game:next-question" as keyof ClientEvents, async () => {
       const roomId = socket.data.roomId as string | undefined;
       const effectiveHostId = socket.data.hostId ?? hostId;

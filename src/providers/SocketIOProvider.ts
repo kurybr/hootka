@@ -186,6 +186,10 @@ export class SocketIOProvider implements IRealTimeProvider {
     this.socket?.emit("game:next-question" as never);
   }
 
+  forceResult(): void {
+    this.socket?.emit("game:force-result" as never);
+  }
+
   endGame(): void {
     this.socket?.emit("game:end" as never);
   }

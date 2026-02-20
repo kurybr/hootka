@@ -34,6 +34,7 @@ export interface IRealTimeProvider {
 
   startGame(): void;
   nextQuestion(): void;
+  forceResult(): void;
   endGame(): void;
   submitAnswer(optionIndex: number): void;
 

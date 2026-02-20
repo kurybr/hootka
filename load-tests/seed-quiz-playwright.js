@@ -13,6 +13,18 @@ const { chromium } = require("playwright");
 
 const TARGET = process.env.TARGET || "http://localhost:3000";
 
+/** Fecha o banner de cookies se estiver visível (não bloqueia cliques no conteúdo) */
+async function dismissCookieBanner(page) {
+  const acceptBtn = page.getByRole("button", { name: "Aceitar" });
+  try {
+    await acceptBtn.waitFor({ state: "visible", timeout: 3000 });
+    await acceptBtn.click();
+    await new Promise((r) => setTimeout(r, 400));
+  } catch {
+    // Banner não apareceu ou já foi fechado
+  }
+}
+
 async function createRoomViaUI() {
   const browser = await chromium.launch({
     headless: process.env.HEADLESS !== "false",
@@ -24,18 +36,18 @@ async function createRoomViaUI() {
   const page = await context.newPage();
 
   try {
-    // Aceitar cookies se aparecer
+    // Definir consentimento no localStorage antes de carregar (evita banner bloquear cliques)
+    await page.addInitScript(() => {
+      window.localStorage.setItem("hootka_analytics_consent", "accepted");
+    });
+
     await page.goto(TARGET);
-    const acceptBtn = page.getByRole("button", { name: "Aceitar" });
-    try {
-      await acceptBtn.click({ timeout: 2000 });
-    } catch {
-      // Banner não apareceu
-    }
+    await page.waitForLoadState("domcontentloaded");
+    await dismissCookieBanner(page);
 
     // Ir para criar sala (direto para o formulário)
     await page.goto(`${TARGET}/host/create`);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Preencher pergunta mínima (primeira pergunta do formulário)
     await page.getByPlaceholder("Digite a pergunta...").first().fill("P1?");
@@ -43,6 +55,8 @@ async function createRoomViaUI() {
     await page.getByPlaceholder("Alternativa 2").fill("B");
     await page.getByPlaceholder("Alternativa 3").fill("C");
     await page.getByPlaceholder("Alternativa 4").fill("D");
+
+    await dismissCookieBanner(page);
 
     // Criar sala
     await page.getByRole("button", { name: "Criar Sala" }).click();

@@ -37,18 +37,13 @@ async function joinRoomFlow(page, vuContext, events, test) {
     ? (name, fn) => step(name, fn)
     : async (_, fn) => fn();
 
-  await runStep("home", async () => {
-    await page.goto("/");
+  // Evitar banner de cookies bloquear cliques (ConsentProvider usa hootka_analytics_consent)
+  await page.addInitScript(() => {
+    window.localStorage.setItem("hootka_analytics_consent", "accepted");
   });
 
-  // Aceitar cookies se o banner aparecer (primeira visita)
-  await runStep("accept_cookies", async () => {
-    const acceptBtn = page.getByRole("button", { name: "Aceitar" });
-    try {
-      await acceptBtn.click({ timeout: 2000 });
-    } catch {
-      // Banner não apareceu ou já foi fechado
-    }
+  await runStep("home", async () => {
+    await page.goto("/");
   });
 
   await runStep("click_entrar_em_sala", async () => {

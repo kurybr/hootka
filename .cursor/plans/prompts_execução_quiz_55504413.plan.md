@@ -4,10 +4,10 @@ overview: Divisao das fases de implementacao do Quiz em Tempo Real em prompts de
 todos:
   - id: prompt-01
     content: Prompt 1 - Setup Next.js + Tailwind + Shadcn
-    status: in_progress
+    status: completed
   - id: prompt-02
     content: Prompt 2 - Tipos TypeScript + Camada de Abstracao (Provider Pattern)
-    status: pending
+    status: completed
   - id: prompt-03
     content: Prompt 3 - Servidor Socket.IO + Custom Server Next.js
     status: pending

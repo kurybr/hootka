@@ -37,18 +37,21 @@ todos:
     status: completed
   - id: prompt-12
     content: Prompt 12 - Tratamento de Desconexao
-    status: pending
+    status: completed
   - id: prompt-13
     content: Prompt 13 - Feedback Visual e Animacoes
-    status: pending
+    status: completed
   - id: prompt-14
     content: Prompt 14 - Tratamento de Erros e Edge Cases
-    status: pending
+    status: completed
   - id: prompt-15
-    content: "Prompt 15 - Migracao Firebase: Setup + Provider Firebase"
+    content: "Prompt 15 - Biblioteca de Quizzes (localStorage)"
     status: pending
   - id: prompt-16
-    content: "Prompt 16 - Migracao Firebase: Cloud Functions + Seguranca"
+    content: "Prompt 16 - Migracao Firebase: Setup + Provider Firebase"
+    status: pending
+  - id: prompt-17
+    content: "Prompt 17 - Migracao Firebase: Cloud Functions + Seguranca"
     status: pending
 isProject: false
 ---
@@ -630,9 +633,70 @@ const score = Math.round(120 * (tempoRestante / 120000));
 
 ---
 
-## Fase 5 -- Migracao para Firebase (Prompts 15 a 16)
+## Fase 5 -- Biblioteca de Quizzes (Prompt 15)
 
-### Prompt 15 -- Setup Firebase + Provider Firebase
+### Prompt 15 -- Biblioteca de Quizzes (localStorage)
+
+**Escopo:** Permitir que o Host salve, liste, edite e reutilize conjuntos de perguntas, evitando recriar tudo a cada sessao.
+
+**Instrucoes de execucao:**
+
+- Criar tipo `SavedQuiz` em `types/quiz.ts`:
+
+```typescript
+export interface SavedQuiz {
+  id: string;
+  title: string;
+  questions: Question[];
+  createdAt: number;
+  updatedAt: number;
+}
+```
+
+- Criar `lib/quizStorage.ts` com funcoes utilitarias para CRUD no localStorage:
+  - `getQuizzes(): SavedQuiz[]` -- retorna todos os quizzes salvos, ordenados por `updatedAt` desc
+  - `getQuiz(id: string): SavedQuiz | null`
+  - `saveQuiz(quiz: Omit<SavedQuiz, 'id' | 'createdAt' | 'updatedAt'>): SavedQuiz` -- cria novo
+  - `updateQuiz(id: string, updates: Partial<Pick<SavedQuiz, 'title' | 'questions'>>): SavedQuiz`
+  - `deleteQuiz(id: string): void`
+  - `duplicateQuiz(id: string): SavedQuiz` -- cria copia com titulo "Copia de ..."
+  - Chave localStorage: `quiz_library`
+- Criar pagina `app/host/page.tsx` -- Dashboard do Host / Biblioteca de Quizzes:
+  - Lista de quizzes salvos em cards (titulo, quantidade de perguntas, data de atualizacao)
+  - Cada card com acoes: "Iniciar Sala", "Editar", "Duplicar", "Excluir"
+  - Botao "Criar Novo Quiz" -> redireciona para `app/host/create/page.tsx`
+  - Se nao houver quizzes salvos, exibir estado vazio com CTA para criar
+  - Confirmacao (Dialog) ao excluir
+- Atualizar `app/host/create/page.tsx`:
+  - Ao criar sala, oferecer opcao "Salvar quiz na biblioteca" (checkbox ou botao separado)
+  - Se veio de edicao de quiz existente (query param `?quizId=xxx`), pre-carregar perguntas
+  - Apos salvar/criar: redirecionar para lobby normalmente
+- Criar pagina `app/host/edit/[quizId]/page.tsx` -- Edicao de quiz salvo:
+  - Mesmo formulario do create, mas pre-carregado com dados do quiz
+  - Botao "Salvar Alteracoes" (atualiza no localStorage)
+  - Botao "Iniciar Sala com este Quiz" (cria sala + redireciona ao lobby)
+- Fluxo "Iniciar Sala" a partir da biblioteca:
+  - Ao clicar "Iniciar Sala" no card, carregar as perguntas do quiz salvo
+  - Chamar `provider.createRoom(questions)` diretamente
+  - Redirecionar para o lobby (`app/host/[roomId]/page.tsx`)
+- Atualizar pagina inicial (`app/page.tsx`):
+  - Link "Criar Sala" agora aponta para `app/host` (dashboard) em vez de `app/host/create`
+
+**Criterios de aceite:**
+
+- Host consegue salvar um quiz e ve-lo na lista
+- Host consegue iniciar uma sala a partir de um quiz salvo (sem recriar perguntas)
+- Edicao de quiz salvo funciona corretamente
+- Duplicar quiz cria copia independente
+- Excluir quiz pede confirmacao e remove
+- Dados persistem entre recarregamentos da pagina (localStorage)
+- Formulario de criacao pode opcionalmente salvar o quiz na biblioteca
+
+---
+
+## Fase 6 -- Migracao para Firebase (Prompts 16 a 17)
+
+### Prompt 16 -- Setup Firebase + Provider Firebase
 
 **Escopo:** Implementar o provider Firebase e o store Firebase, substituindo WebSocket.
 
@@ -660,7 +724,7 @@ const score = Math.round(120 * (tempoRestante / 120000));
 
 ---
 
-### Prompt 16 -- Cloud Functions + Regras de Seguranca
+### Prompt 17 -- Cloud Functions + Regras de Seguranca
 
 **Escopo:** Mover validacao critica para Cloud Functions e configurar seguranca.
 

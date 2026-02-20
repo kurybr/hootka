@@ -35,7 +35,7 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <Button asChild size="lg" className="w-full">
-                <Link href="/host/create">Criar Sala</Link>
+                <Link href="/host">Criar Sala</Link>
               </Button>
             </CardContent>
           </Card>

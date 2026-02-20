@@ -25,6 +25,7 @@ import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
 import { AnswerDistribution } from "@/components/AnswerDistribution";
 import { SoundToggle } from "@/components/SoundToggle";
+import { toast } from "@/hooks/use-toast";
 
 export default function HostRoomPage() {
   const params = useParams();
@@ -48,6 +49,10 @@ export default function HostRoomPage() {
       navigator.clipboard.writeText(room.code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      toast({
+        title: "Código copiado!",
+        description: "Compartilhe com os participantes.",
+      });
     }
   };
 

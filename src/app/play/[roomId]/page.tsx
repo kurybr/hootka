@@ -25,6 +25,7 @@ import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
 import { ResultCard } from "@/components/ResultCard";
 import { SoundToggle } from "@/components/SoundToggle";
+import { toast } from "@/hooks/use-toast";
 
 const PARTICIPANT_ID_KEY = "quiz_participantId";
 
@@ -74,12 +75,27 @@ export default function PlayRoomPage() {
   }, [provider]);
 
   useEffect(() => {
+    const unsub = provider.onAccessDenied(() => {
+      router.replace("/join");
+    });
+    return unsub;
+  }, [provider, router]);
+
+  useEffect(() => {
     const unsub = provider.onError((err) => {
       if (
         err.code === "RESPOSTA_DUPLICADA" ||
         err.code === "TEMPO_ESGOTADO"
       ) {
         setSelectedIndex(null);
+        toast({
+          variant: "destructive",
+          title:
+            err.code === "RESPOSTA_DUPLICADA"
+              ? "Você já respondeu"
+              : "Tempo esgotado",
+          description: err.message,
+        });
       }
     });
     return unsub;

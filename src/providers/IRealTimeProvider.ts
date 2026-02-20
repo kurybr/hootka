@@ -48,6 +48,7 @@ export interface IRealTimeProvider {
   ): () => void;
   onParticipantReconnected(callback: (participant: Participant) => void): () => void;
   onHostDisconnected(callback: () => void): () => void;
+  onAccessDenied(callback: (data: { reason: string }) => void): () => void;
   onGameStatusChanged(callback: (data: GameStatusData) => void): () => void;
   onAnswerCount(callback: (data: AnswerCountData) => void): () => void;
   onAnswerResult(callback: (data: AnswerResultData) => void): () => void;

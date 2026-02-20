@@ -4,6 +4,45 @@ import { GameEngine } from "./GameEngine";
 import { InMemoryStore } from "./InMemoryStore";
 import type { ClientEvents, ServerEvents } from "@/types/events";
 
+const QUESTION_TIMEOUT_MS = 120000;
+
+const questionTimers = new Map<string, NodeJS.Timeout>();
+
+function scheduleQuestionTimeout(
+  io: TypedServer,
+  roomId: string,
+  engine: GameEngine,
+  store: InstanceType<typeof InMemoryStore>
+): void {
+  const existing = questionTimers.get(roomId);
+  if (existing) clearTimeout(existing);
+
+  const timeoutId = setTimeout(async () => {
+    questionTimers.delete(roomId);
+    try {
+      const room = await store.getRoom(roomId);
+      if (!room || room.status !== "playing") return;
+
+      await engine.transitionToResult(roomId);
+      const finalRoom = await store.getRoom(roomId);
+      if (finalRoom) {
+        const ranking = engine.getRanking(finalRoom);
+        io.to(roomId).emit("game:status-changed" as keyof ServerEvents, {
+          status: finalRoom.status,
+          questionIndex: finalRoom.currentQuestionIndex,
+          timestamp: null,
+        });
+        io.to(roomId).emit("room:state" as keyof ServerEvents, finalRoom);
+        io.to(roomId).emit("ranking:update" as keyof ServerEvents, ranking);
+      }
+    } catch {
+      // Ignore
+    }
+  }, QUESTION_TIMEOUT_MS);
+
+  questionTimers.set(roomId, timeoutId);
+}
+
 type TypedServer = Server & {
   on(
     event: keyof ClientEvents,
@@ -55,6 +94,10 @@ export function setupSocketHandler(io: TypedServer): void {
           );
           const ranking = engine.getRanking(updatedRoom);
           io.to(roomId).emit("ranking:update" as keyof ServerEvents, ranking);
+        } else if (participantId || room.hostId !== hostId) {
+          socket.emit("room:access-denied" as keyof ServerEvents, {
+            reason: "Você precisa entrar na sala primeiro. Digite o código da sala.",
+          });
         }
       }
     );
@@ -189,6 +232,7 @@ export function setupSocketHandler(io: TypedServer): void {
           total,
         });
         io.to(roomId).emit("ranking:update" as keyof ServerEvents, ranking);
+        scheduleQuestionTimeout(io, roomId, engine, store);
       } catch (err) {
         socket.emit("error", {
           message: err instanceof Error ? err.message : "Erro ao iniciar jogo",
@@ -202,6 +246,11 @@ export function setupSocketHandler(io: TypedServer): void {
       const effectiveHostId = socket.data.hostId ?? hostId;
       if (!roomId || !effectiveHostId) return;
       try {
+        const existingTimer = questionTimers.get(roomId);
+        if (existingTimer) {
+          clearTimeout(existingTimer);
+          questionTimers.delete(roomId);
+        }
         const room = await engine.forceResult(roomId, effectiveHostId);
         const ranking = engine.getRanking(room);
         io.to(roomId).emit("game:status-changed" as keyof ServerEvents, {
@@ -242,6 +291,7 @@ export function setupSocketHandler(io: TypedServer): void {
           count,
           total,
         });
+        scheduleQuestionTimeout(io, roomId, engine, store);
       } catch (err) {
         socket.emit("error", {
           message:
@@ -306,6 +356,11 @@ export function setupSocketHandler(io: TypedServer): void {
             const ranking = engine.getRanking(updatedRoom);
             io.to(roomId).emit("ranking:update" as keyof ServerEvents, ranking);
             if (result.shouldTransitionToResult) {
+              const existingTimer = questionTimers.get(roomId);
+              if (existingTimer) {
+                clearTimeout(existingTimer);
+                questionTimers.delete(roomId);
+              }
               await engine.transitionToResult(roomId);
               const finalRoom = await store.getRoom(roomId);
               if (finalRoom) {

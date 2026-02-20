@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,20 +36,42 @@ export default function JoinPage() {
       return;
     }
     if (trimmedCode.length !== 6) {
-      setError("O código deve ter 6 caracteres");
+      setError("O código deve ter exatamente 6 caracteres");
+      return;
+    }
+    if (!/^[A-Z0-9]+$/.test(trimmedCode)) {
+      setError("O código deve conter apenas letras e números");
       return;
     }
     if (!trimmedName) {
       setError("Informe seu nome");
       return;
     }
+    if (trimmedName.length < 2) {
+      setError("O nome deve ter pelo menos 2 caracteres");
+      return;
+    }
+    if (trimmedName.length > 30) {
+      setError("O nome deve ter no máximo 30 caracteres");
+      return;
+    }
 
     setLoading(true);
     try {
       const { roomId } = await provider.joinRoom(trimmedCode, trimmedName);
+      toast({
+        title: "Entrou na sala!",
+        description: "Redirecionando...",
+      });
       router.push(`/play/${roomId}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao entrar na sala");
+      const msg = e instanceof Error ? e.message : "Erro ao entrar na sala";
+      setError(msg);
+      toast({
+        variant: "destructive",
+        title: "Erro ao entrar",
+        description: msg,
+      });
     } finally {
       setLoading(false);
     }

@@ -47,6 +47,8 @@ export class SocketIOProvider implements IRealTimeProvider {
   private participantReconnectedListeners: Set<(p: Participant) => void> =
     new Set();
   private hostDisconnectedListeners: Set<() => void> = new Set();
+  private accessDeniedListeners: Set<(data: { reason: string }) => void> =
+    new Set();
   private connectionStateListeners: Set<(connected: boolean) => void> =
     new Set();
 
@@ -112,6 +114,13 @@ export class SocketIOProvider implements IRealTimeProvider {
       this.hostDisconnectedListeners.forEach((cb) => cb());
     });
 
+    this.socket.on(
+      "room:access-denied",
+      (data: { reason: string }) => {
+        this.accessDeniedListeners.forEach((cb) => cb(data));
+      }
+    );
+
     this.socket.on("connect", () => {
       this.connectionStateListeners.forEach((cb) => cb(true));
       if (this._roomId && this.role) {
@@ -173,21 +182,34 @@ export class SocketIOProvider implements IRealTimeProvider {
       }
 
       const onCreated = (data: { roomId: string; code: string }) => {
-        this.socket?.off("room:created", onCreated);
-        this.socket?.off("error", onError);
         this._roomId = data.roomId;
         this.role = "host";
         resolve(data);
       };
 
       const onError = (data: ErrorData) => {
-        this.socket?.off("room:created", onCreated);
-        this.socket?.off("error", onError);
         reject(new Error(data.message));
       };
 
-      this.socket.once("room:created", onCreated);
-      this.socket.once("error", onError);
+      const cleanup = () => {
+        clearTimeout(timeoutId);
+        this.socket?.off("room:created", onCreated);
+        this.socket?.off("error", onError);
+      };
+
+      const timeoutId = setTimeout(() => {
+        cleanup();
+        reject(new Error("Servidor indisponível. Tente novamente."));
+      }, 15000);
+
+      this.socket.once("room:created", (data) => {
+        cleanup();
+        onCreated(data);
+      });
+      this.socket.once("error", (data: ErrorData) => {
+        cleanup();
+        onError(data);
+      });
 
       this.socket.emit("room:create" as never, { questions } as never);
     });
@@ -209,9 +231,14 @@ export class SocketIOProvider implements IRealTimeProvider {
         return;
       }
 
-      const onJoined = (data: { participantId: string; roomId: string }) => {
+      const cleanup = () => {
+        clearTimeout(timeoutId);
         this.socket?.off("room:joined", onJoined);
         this.socket?.off("error", onError);
+      };
+
+      const onJoined = (data: { participantId: string; roomId: string }) => {
+        cleanup();
         this._roomId = data.roomId;
         this.role = "participant";
         this.participantId = data.participantId;
@@ -220,10 +247,14 @@ export class SocketIOProvider implements IRealTimeProvider {
       };
 
       const onError = (data: ErrorData) => {
-        this.socket?.off("room:joined", onJoined);
-        this.socket?.off("error", onError);
+        cleanup();
         reject(new Error(data.message));
       };
+
+      const timeoutId = setTimeout(() => {
+        cleanup();
+        reject(new Error("Servidor indisponível. Tente novamente."));
+      }, 15000);
 
       this.socket.once("room:joined", onJoined);
       this.socket.once("error", onError);
@@ -317,5 +348,10 @@ export class SocketIOProvider implements IRealTimeProvider {
   onHostDisconnected(callback: () => void): () => void {
     this.hostDisconnectedListeners.add(callback);
     return () => this.hostDisconnectedListeners.delete(callback);
+  }
+
+  onAccessDenied(callback: (data: { reason: string }) => void): () => void {
+    this.accessDeniedListeners.add(callback);
+    return () => this.accessDeniedListeners.delete(callback);
   }
 }

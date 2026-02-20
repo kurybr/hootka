@@ -19,6 +19,7 @@ export interface ServerEvents {
   "room:participant-disconnected": (data: { participantId: string }) => void;
   "room:participant-reconnected": (data: Participant) => void;
   "room:host-disconnected": () => void;
+  "room:access-denied": (data: { reason: string }) => void;
   "game:status-changed": (data: {
     status: Room["status"];
     questionIndex: number;

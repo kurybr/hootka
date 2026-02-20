@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,9 +101,19 @@ export default function CreateRoomPage() {
     setLoading(true);
     try {
       const { roomId } = await provider.createRoom(validQuestions);
+      toast({
+        title: "Sala criada!",
+        description: "Redirecionando...",
+      });
       router.push(`/host/${roomId}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erro ao criar sala");
+      const msg = e instanceof Error ? e.message : "Erro ao criar sala";
+      setError(msg);
+      toast({
+        variant: "destructive",
+        title: "Erro ao criar sala",
+        description: msg,
+      });
     } finally {
       setLoading(false);
     }

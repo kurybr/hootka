@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { RealTimeProvider } from "@/providers/RealTimeContext";
 import { SoundProvider } from "@/providers/SoundProvider";
 import { ReconnectingOverlay } from "@/components/ReconnectingOverlay";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,13 +33,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <RealTimeProvider>
-          <SoundProvider>
-            {children}
-            <ReconnectingOverlay />
-            <Toaster />
-          </SoundProvider>
-        </RealTimeProvider>
+        <ErrorBoundary>
+          <RealTimeProvider>
+            <SoundProvider>
+              {children}
+              <ReconnectingOverlay />
+              <Toaster />
+            </SoundProvider>
+          </RealTimeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

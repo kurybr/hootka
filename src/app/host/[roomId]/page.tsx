@@ -28,6 +28,7 @@ import { SoundToggle } from "@/components/SoundToggle";
 import { fireConfettiLight } from "@/lib/confetti";
 import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
+import { AdSense } from "@/components/AdSense";
 
 export default function HostRoomPage() {
   const params = useParams();
@@ -340,6 +341,13 @@ export default function HostRoomPage() {
               </motion.div>
             )}
           </AnimatePresence>
+        )}
+        {!loading && status !== "playing" && (
+          <AdSense
+            slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_RECTANGLE}
+            format="rectangle"
+            className="mt-8"
+          />
         )}
       </div>
     </main>

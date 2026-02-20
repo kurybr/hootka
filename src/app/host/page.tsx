@@ -32,6 +32,7 @@ import { getQuizzes, deleteQuiz, duplicateQuiz } from "@/lib/quizStorage";
 import type { SavedQuiz } from "@/types/quiz";
 import { useRealTime } from "@/providers/RealTimeContext";
 import { trackEvent } from "@/lib/gtag";
+import { AdSense } from "@/components/AdSense";
 import { toast } from "@/hooks/use-toast";
 
 function formatDate(ts: number): string {
@@ -268,6 +269,12 @@ export default function HostDashboardPage() {
             ))}
           </div>
         )}
+
+        <AdSense
+          slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BANNER}
+          format="horizontal"
+          className="mt-8"
+        />
       </div>
 
       <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>

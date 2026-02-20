@@ -82,7 +82,7 @@ todos:
     status: completed
   - id: prompt-27
     content: Prompt 27 - Google AdSense
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -1233,10 +1233,14 @@ LICENSE
 - Implementar mecanismo de consentimento (cookie banner ou preferencias) antes de ativar o tracking
 - Opcional: usar `react-consent-manager` ou solucao leve (estado localStorage + modal)
 - Adicionar ao `.env.example`:
-  ```
+
+```
   NEXT_PUBLIC_GA_MEASUREMENT_ID=
   NEXT_PUBLIC_GA_ENABLED=false
-  ```
+  
+
+```
+
 - Permitir desabilitar GA via env para desenvolvimento e testes
 
 **Criterios de aceite:**
@@ -1266,10 +1270,14 @@ LICENSE
 - Respeitar limite de anuncios por pagina (max 3-4 blocos visiveis)
 - Adicionar `ads.txt` em `public/ads.txt` para verificacao do dominio
 - Adicionar ao `.env.example`:
-  ```
+
+```
   NEXT_PUBLIC_ADSENSE_CLIENT_ID=
   NEXT_PUBLIC_ADSENSE_ENABLED=false
-  ```
+  
+
+```
+
 - Permitir desabilitar AdSense via env para desenvolvimento e testes
 
 **Criterios de aceite:**

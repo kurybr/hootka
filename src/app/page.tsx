@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AdSense } from "@/components/AdSense";
 
 export default function HomePage() {
   return (
@@ -81,6 +82,12 @@ export default function HomePage() {
           </Card>
           </motion.div>
         </div>
+
+        <AdSense
+          slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BANNER}
+          format="horizontal"
+          className="my-6"
+        />
 
         <p className="text-center text-sm text-muted-foreground">
           <Link href="/privacy" className="underline hover:text-foreground">

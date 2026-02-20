@@ -30,10 +30,12 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold">1. Coleta de informações</h2>
           <p className="text-muted-foreground leading-relaxed">
             O Quiz em Tempo Real coleta informações de uso através do Google
-            Analytics (GA4) para entender como os visitantes utilizam o site. Isso
-            inclui dados como páginas visitadas, tempo de permanência e eventos
+            Analytics (GA4) e exibe anúncios via Google AdSense. O Analytics
+            coleta dados como páginas visitadas, tempo de permanência e eventos
             interativos (criação de sala, entrada em sala, início e fim de
-            partidas). Esses dados são anônimos e agregados.
+            partidas). O AdSense exibe anúncios personalizados com base em
+            cookies e dados de navegação. Esses dados são processados conforme
+            as políticas do Google.
           </p>
         </section>
 
@@ -41,9 +43,10 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-semibold">2. Uso de cookies</h2>
           <p className="text-muted-foreground leading-relaxed">
             Utilizamos cookies para armazenar sua preferência de consentimento
-            (aceitar ou recusar análises) e para que o Google Analytics possa
-            rastrear visitas de forma anônima. Você pode aceitar ou recusar o uso
-            de cookies analíticos através do banner exibido na primeira visita.
+            (aceitar ou recusar análises e anúncios) e para que o Google
+            Analytics e o Google AdSense possam funcionar. Você pode aceitar ou
+            recusar o uso de cookies através do banner exibido na primeira
+            visita.
           </p>
         </section>
 

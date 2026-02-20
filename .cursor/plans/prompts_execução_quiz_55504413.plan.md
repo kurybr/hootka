@@ -79,7 +79,7 @@ todos:
     status: completed
   - id: prompt-26
     content: Prompt 26 - Google Analytics (GA4)
-    status: pending
+    status: completed
   - id: prompt-27
     content: Prompt 27 - Google AdSense
     status: pending

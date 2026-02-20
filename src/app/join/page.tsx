@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useRealTime } from "@/providers/RealTimeContext";
+import { trackEvent } from "@/lib/gtag";
 
 export default function JoinPage() {
   const router = useRouter();
@@ -60,6 +61,7 @@ export default function JoinPage() {
     setLoading(true);
     try {
       const { roomId } = await provider.joinRoom(trimmedCode, trimmedName);
+      trackEvent("room_joined", { room_id: roomId });
       toast({
         title: "Entrou na sala!",
         description: "Redirecionando...",

@@ -81,6 +81,12 @@ export default function HomePage() {
           </Card>
           </motion.div>
         </div>
+
+        <p className="text-center text-sm text-muted-foreground">
+          <Link href="/privacy" className="underline hover:text-foreground">
+            Política de privacidade
+          </Link>
+        </p>
       </motion.div>
     </main>
   );

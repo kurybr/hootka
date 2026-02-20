@@ -26,6 +26,7 @@ import { FinalRanking } from "@/components/FinalRanking";
 import { AnswerDistribution } from "@/components/AnswerDistribution";
 import { SoundToggle } from "@/components/SoundToggle";
 import { fireConfettiLight } from "@/lib/confetti";
+import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
 
 export default function HostRoomPage() {
@@ -58,6 +59,7 @@ export default function HostRoomPage() {
   };
 
   const handleStartGame = () => {
+    trackEvent("game_started", { room_id: roomId });
     provider.startGame();
   };
 
@@ -70,6 +72,7 @@ export default function HostRoomPage() {
   };
 
   const handleEndGame = () => {
+    trackEvent("game_finished", { room_id: roomId });
     provider.endGame();
   };
 

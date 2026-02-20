@@ -26,6 +26,7 @@ import { FinalRanking } from "@/components/FinalRanking";
 import { ResultCard } from "@/components/ResultCard";
 import { SoundToggle } from "@/components/SoundToggle";
 import { fireConfetti } from "@/lib/confetti";
+import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
 
 const PARTICIPANT_ID_KEY = "quiz_participantId";
@@ -77,6 +78,14 @@ export default function PlayRoomPage() {
     });
     return unsub;
   }, [provider]);
+
+  const gameFinishedFiredRef = useRef(false);
+  useEffect(() => {
+    if (status === "finished" && !gameFinishedFiredRef.current) {
+      gameFinishedFiredRef.current = true;
+      trackEvent("game_finished", { room_id: roomId });
+    }
+  }, [status, roomId]);
 
   useEffect(() => {
     if (status === "playing") {

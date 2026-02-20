@@ -31,6 +31,7 @@ import {
 import { getQuizzes, deleteQuiz, duplicateQuiz } from "@/lib/quizStorage";
 import type { SavedQuiz } from "@/types/quiz";
 import { useRealTime } from "@/providers/RealTimeContext";
+import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
 
 function formatDate(ts: number): string {
@@ -94,6 +95,7 @@ export default function HostDashboardPage() {
     setStartingQuizId(quiz.id);
     try {
       const { roomId } = await provider.createRoom(validQuestions);
+      trackEvent("room_created", { room_id: roomId });
       toast({
         title: "Sala criada!",
         description: "Redirecionando...",

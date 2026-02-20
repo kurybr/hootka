@@ -5,8 +5,11 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { RealTimeProvider } from "@/providers/RealTimeContext";
 import { SoundProvider } from "@/providers/SoundProvider";
+import { ConsentProvider } from "@/providers/ConsentProvider";
 import { ReconnectingOverlay } from "@/components/ReconnectingOverlay";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,13 +37,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ErrorBoundary>
-          <RealTimeProvider>
-            <SoundProvider>
-              {children}
-              <ReconnectingOverlay />
-              <Toaster />
-            </SoundProvider>
-          </RealTimeProvider>
+          <ConsentProvider>
+            <GoogleAnalytics />
+            <RealTimeProvider>
+              <SoundProvider>
+                {children}
+                <ReconnectingOverlay />
+                <Toaster />
+                <CookieConsentBanner />
+              </SoundProvider>
+            </RealTimeProvider>
+          </ConsentProvider>
         </ErrorBoundary>
       </body>
     </html>

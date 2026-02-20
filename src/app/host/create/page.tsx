@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { useRealTime } from "@/providers/RealTimeContext";
 import { getQuiz, saveQuiz } from "@/lib/quizStorage";
+import { trackEvent } from "@/lib/gtag";
 import type { Question } from "@/types/quiz";
 
 const EMPTY_QUESTION: Question = {
@@ -131,6 +132,7 @@ function CreateRoomContent() {
       }
 
       const { roomId } = await provider.createRoom(validQuestions);
+      trackEvent("room_created", { room_id: roomId });
       toast({
         title: "Sala criada!",
         description: "Redirecionando...",

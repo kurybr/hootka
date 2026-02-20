@@ -11,6 +11,7 @@ import type {
 import type { Participant, Question, Room } from "@/types/quiz";
 
 const HOST_ID_KEY = "quiz_hostId";
+const PARTICIPANT_ID_KEY = "quiz_participantId";
 
 function getOrCreateHostId(): string {
   if (typeof window === "undefined") return "";
@@ -95,7 +96,7 @@ export class SocketIOProvider implements IRealTimeProvider {
       const hostId = getOrCreateHostId();
       this.ensureConnected(hostId);
     } else {
-      const participantId = localStorage.getItem("quiz_participantId");
+      const participantId = localStorage.getItem(PARTICIPANT_ID_KEY);
       this.ensureConnected(undefined, participantId ?? undefined);
     }
 
@@ -146,9 +147,35 @@ export class SocketIOProvider implements IRealTimeProvider {
     code: string,
     name: string
   ): Promise<{ participantId: string; roomId: string }> {
-    void code;
-    void name;
-    throw new Error("joinRoom será implementado no Prompt 5");
+    return new Promise((resolve, reject) => {
+      this.ensureConnected();
+
+      if (!this.socket) {
+        reject(new Error("Não foi possível conectar"));
+        return;
+      }
+
+      const onJoined = (data: { participantId: string; roomId: string }) => {
+        this.socket?.off("room:joined", onJoined);
+        this.socket?.off("error", onError);
+        this.roomId = data.roomId;
+        this.role = "participant";
+        this.participantId = data.participantId;
+        localStorage.setItem(PARTICIPANT_ID_KEY, data.participantId);
+        resolve(data);
+      };
+
+      const onError = (data: ErrorData) => {
+        this.socket?.off("room:joined", onJoined);
+        this.socket?.off("error", onError);
+        reject(new Error(data.message));
+      };
+
+      this.socket.once("room:joined", onJoined);
+      this.socket.once("error", onError);
+
+      this.socket.emit("room:join" as never, { code, name } as never);
+    });
   }
 
   startGame(): void {

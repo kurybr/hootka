@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: prompt-05
     content: Prompt 5 - Entrada de Participante na Sala
-    status: pending
+    status: completed
   - id: prompt-06
     content: Prompt 6 - Hooks de Sincronizacao via Provider
     status: pending

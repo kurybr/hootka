@@ -76,7 +76,7 @@ export function QuestionCard({
   return (
     <div className="space-y-4">
       <motion.p
-        className="text-lg font-medium"
+        className="text-xl font-medium"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
@@ -117,7 +117,7 @@ export function QuestionCard({
                 : { type: "spring", stiffness: 400, damping: 25 }
             }
             className={cn(
-              "relative flex min-h-[60px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-medium transition-colors",
+              "relative flex min-h-[80px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-medium transition-colors",
               OPTION_COLORS[index],
               disabled && "cursor-not-allowed opacity-70",
               selectedIndex === index &&

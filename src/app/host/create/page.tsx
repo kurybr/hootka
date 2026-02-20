@@ -150,8 +150,8 @@ function CreateRoomContent() {
   };
 
   return (
-    <main className="min-h-screen p-8">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <main className="min-h-screen p-8 lg:p-12">
+      <div className="mx-auto w-full max-w-4xl space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Criar Sala</h1>
           <Button variant="outline" asChild>

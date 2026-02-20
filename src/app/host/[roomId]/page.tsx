@@ -83,8 +83,8 @@ export default function HostRoomPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <div className="mx-auto max-w-lg space-y-8">
+    <main className="flex min-h-screen flex-col items-center justify-center p-8 lg:p-12">
+      <div className="mx-auto w-full max-w-4xl space-y-8">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-2xl font-bold">Sala do Host</h1>
           <div className="flex items-center gap-2">
@@ -115,13 +115,13 @@ export default function HostRoomPage() {
                 className="space-y-8"
               >
             <Card>
-              <CardHeader>
+              <CardHeader className="p-6 lg:p-8">
                 <CardTitle>Código da Sala</CardTitle>
                 <CardDescription>
                   Compartilhe este código para os participantes entrarem
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6 pt-0 lg:p-8 lg:pt-0">
                 <div className="flex items-center gap-4">
                   <div className="flex flex-1 items-center justify-center rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 py-8">
                     <span className="font-mono text-4xl font-bold tracking-[0.5em]">
@@ -140,13 +140,13 @@ export default function HostRoomPage() {
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="p-6 lg:p-8">
                 <CardTitle>Participantes ({participants.length})</CardTitle>
                 <CardDescription>
                   Aguardando participantes entrarem na sala
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6 lg:p-8 lg:pt-0">
                 {participants.length === 0 ? (
                   <p className="py-8 text-center text-muted-foreground">
                     Nenhum participante ainda. Compartilhe o código da sala!
@@ -201,18 +201,19 @@ export default function HostRoomPage() {
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
           <Card>
-            <CardHeader>
-              <CardTitle>Pergunta {currentQuestionIndex + 1}</CardTitle>
-              <CardDescription>
+            <CardHeader className="p-6 lg:p-8">
+              <CardTitle className="text-xl lg:text-2xl">Pergunta {currentQuestionIndex + 1}</CardTitle>
+              <CardDescription className="text-base">
                 {currentQuestion?.text ?? "Carregando..."}
               </CardDescription>
               <Timer
                 questionStartTimestamp={questionStartTimestamp}
                 className="mt-4"
+                size="large"
               />
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-center font-medium">
+            <CardContent className="space-y-4 p-6 pt-0 lg:p-8 lg:pt-0">
+              <p className="text-center text-lg font-medium lg:text-xl">
                 {count} de {total} responderam
               </p>
               <Button variant="outline" onClick={handleForceResult}>
@@ -231,13 +232,13 @@ export default function HostRoomPage() {
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
           <Card>
-            <CardHeader>
+            <CardHeader className="p-6 lg:p-8">
               <CardTitle>Resultado da Rodada</CardTitle>
               <CardDescription>
                 Resposta correta e distribuição de respostas
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 p-6 lg:p-8 lg:pt-0">
               {(() => {
                 const qKey = String(currentQuestionIndex);
                 const answers = room?.answers?.[qKey] ?? {};
@@ -257,7 +258,7 @@ export default function HostRoomPage() {
                 );
               })()}
               {ranking.length > 0 && (
-                <Ranking participants={ranking} />
+                <Ranking participants={ranking} size="large" />
               )}
               {isLastQuestion ? (
                 <Button size="lg" className="w-full" onClick={handleEndGame}>
@@ -285,13 +286,13 @@ export default function HostRoomPage() {
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
           <Card>
-            <CardHeader>
+            <CardHeader className="p-6 lg:p-8">
               <CardTitle>Jogo Encerrado</CardTitle>
               <CardDescription>
                 Parabéns aos participantes!
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 p-6 lg:p-8 lg:pt-0">
               {ranking.length > 0 && (
                 <FinalRanking participants={ranking} />
               )}

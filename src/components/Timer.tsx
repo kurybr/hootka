@@ -9,11 +9,13 @@ import { cn } from "@/lib/utils";
 interface TimerProps {
   questionStartTimestamp: number | null;
   className?: string;
+  size?: "default" | "large";
 }
 
 export function Timer({
   questionStartTimestamp,
   className,
+  size = "default",
 }: TimerProps) {
   const { timeLeft, isExpired, progress } = useTimer(questionStartTimestamp);
   const { playTick } = useSound();
@@ -39,12 +41,13 @@ export function Timer({
   }, [timeLeft, isExpired, questionStartTimestamp, playTick]);
 
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-2", size === "large" && "space-y-3", className)}>
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">Tempo restante</span>
+        <span className={cn("font-medium", size === "large" ? "text-base lg:text-lg" : "text-sm")}>Tempo restante</span>
         <motion.span
           className={cn(
-            "font-mono text-2xl font-bold",
+            "font-mono font-bold",
+            size === "large" ? "text-3xl lg:text-4xl" : "text-2xl",
             isExpired && "text-destructive"
           )}
           animate={
@@ -63,7 +66,7 @@ export function Timer({
           {questionStartTimestamp === null ? "—" : displayText}
         </motion.span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-muted">
+      <div className={cn("overflow-hidden rounded-full bg-muted", size === "large" ? "h-3" : "h-2")}>
         <motion.div
           className={cn(
             "h-full transition-colors duration-300",

@@ -107,8 +107,8 @@ export default function PlayRoomPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <div className="mx-auto max-w-lg space-y-8">
+    <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-8">
+      <div className="mx-auto w-full max-w-2xl space-y-8">
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-2xl font-bold">Quiz</h1>
           <div className="flex items-center gap-2">
@@ -213,8 +213,8 @@ export default function PlayRoomPage() {
               >
           <Card>
             <CardHeader>
-              <CardTitle>Pergunta {currentQuestionIndex + 1}</CardTitle>
-              <Timer questionStartTimestamp={questionStartTimestamp} />
+              <CardTitle className="text-lg sm:text-xl">Pergunta {currentQuestionIndex + 1}</CardTitle>
+              <Timer questionStartTimestamp={questionStartTimestamp} size="large" />
             </CardHeader>
             <CardContent className="space-y-6">
               <QuestionCard

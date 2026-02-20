@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: prompt-03
     content: Prompt 3 - Servidor Socket.IO + Custom Server Next.js
-    status: pending
+    status: completed
   - id: prompt-04
     content: Prompt 4 - Criacao de Sala (Fluxo do Host)
     status: pending

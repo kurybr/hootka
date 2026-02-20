@@ -11,7 +11,7 @@ export interface ClientEvents {
 
 export interface ServerEvents {
   "room:created": (data: { roomId: string; code: string }) => void;
-  "room:joined": (data: { participantId: string }) => void;
+  "room:joined": (data: { participantId: string; roomId: string }) => void;
   "room:state": (data: Room) => void;
   "room:participant-joined": (data: Participant) => void;
   "game:status-changed": (data: {

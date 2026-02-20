@@ -27,7 +27,10 @@ export interface IRealTimeProvider {
   disconnect(): void;
 
   createRoom(questions: Question[]): Promise<{ roomId: string; code: string }>;
-  joinRoom(code: string, name: string): Promise<{ participantId: string }>;
+  joinRoom(
+    code: string,
+    name: string
+  ): Promise<{ participantId: string; roomId: string }>;
 
   startGame(): void;
   nextQuestion(): void;

@@ -83,6 +83,9 @@ todos:
   - id: prompt-27
     content: Prompt 27 - Google AdSense
     status: completed
+  - id: prompt-28
+    content: Prompt 28 - Exportar e Importar Quizzes na Biblioteca
+    status: completed
 isProject: false
 ---
 
@@ -1286,4 +1289,74 @@ LICENSE
 - Anuncios so carregam apos consentimento do usuario
 - Experiencia do quiz nao degradada (anuncios fora do fluxo principal do jogo)
 - Arquivo `ads.txt` configurado para o dominio
+
+---
+
+## Fase 11 -- Importacao e Exportacao de Quizzes (Prompt 28)
+
+### Prompt 28 -- Exportar e Importar Quizzes na Biblioteca
+
+**Escopo:** Permitir que o Host exporte quizzes salvos como arquivo JSON e importe quizzes a partir de arquivos, facilitando compartilhamento e backup.
+
+**Instrucoes de execucao:**
+
+- Definir formato de exportacao em `types/quiz.ts`:
+
+```typescript
+export interface ExportedQuiz {
+  version: 1;
+  title: string;
+  questions: Question[];
+  exportedAt: number;
+}
+```
+
+- Criar `lib/quizExportImport.ts` com funcoes utilitarias:
+  - `exportQuiz(quiz: SavedQuiz): ExportedQuiz` -- converte quiz salvo para formato de exportacao (sem `id`, `createdAt`, `updatedAt` internos)
+  - `exportQuizToFile(quiz: SavedQuiz): void` -- gera arquivo JSON e dispara download no navegador (`quiz-<titulo-slug>.json`)
+  - `exportMultipleQuizzes(quizzes: SavedQuiz[]): void` -- exporta multiplos quizzes em um unico arquivo JSON (array de `ExportedQuiz`)
+  - `parseImportFile(file: File): Promise<ExportedQuiz | ExportedQuiz[]>` -- le arquivo JSON, valida estrutura e retorna quiz(zes) parseados
+  - `validateExportedQuiz(data: unknown): ExportedQuiz` -- valida que o JSON tem a estrutura correta (`version`, `title`, `questions` com 4 opcoes e `correctOptionIndex` valido), lanca erro descritivo se invalido
+  - `importQuiz(exported: ExportedQuiz): SavedQuiz` -- converte formato de exportacao para `SavedQuiz` e salva no localStorage via `quizStorage.saveQuiz()`
+  - `importMultipleQuizzes(exported: ExportedQuiz[]): SavedQuiz[]` -- importa multiplos quizzes de uma vez
+- Atualizar pagina `app/host/page.tsx` (Biblioteca de Quizzes):
+  - Adicionar botao "Importar Quiz" no topo da pagina (ao lado de "Criar Novo Quiz"):
+    - Ao clicar, abre seletor de arquivo (`<input type="file" accept=".json">` oculto)
+    - Aceita arquivos `.json`
+    - Apos selecionar arquivo, valida e importa
+    - Exibe toast de sucesso com nome do quiz importado ou toast de erro se formato invalido
+    - Se o arquivo contem multiplos quizzes, importa todos e exibe toast com quantidade
+  - Em cada card de quiz na lista, adicionar acao "Exportar" (icone de download):
+    - Ao clicar, chama `exportQuizToFile(quiz)` e dispara download do arquivo JSON
+  - Adicionar opcao de selecao multipla (checkbox em cada card) com botao "Exportar Selecionados":
+    - Aparece quando pelo menos 1 quiz esta selecionado
+    - Exporta todos os selecionados em um unico arquivo JSON
+- Criar componente `components/ImportQuizDialog.tsx`:
+  - Dialog/modal que aparece ao importar com preview do quiz:
+    - Titulo do quiz
+    - Quantidade de perguntas
+    - Preview das primeiras 3 perguntas (truncado)
+  - Botao "Importar" para confirmar
+  - Botao "Cancelar" para desistir
+  - Se multiplos quizzes, exibir lista com checkbox para selecionar quais importar
+- Tratamento de erros na importacao:
+  - Arquivo nao e JSON valido -> "Arquivo invalido. Selecione um arquivo .json exportado pelo Karoot."
+  - JSON nao tem estrutura esperada -> "Formato incompativel. O arquivo nao contem um quiz valido."
+  - Pergunta com menos de 4 alternativas -> "Quiz invalido: a pergunta X tem menos de 4 alternativas."
+  - `correctOptionIndex` fora do range 0-3 -> "Quiz invalido: indice de resposta correta invalido na pergunta X."
+  - Arquivo vazio -> "Arquivo vazio."
+- Adicionar suporte a drag-and-drop na pagina da biblioteca:
+  - Area de drop visual (borda tracejada) ao arrastar arquivo sobre a pagina
+  - Ao soltar arquivo `.json`, inicia fluxo de importacao
+
+**Criterios de aceite:**
+
+- Host exporta quiz individual como arquivo `.json` com um clique
+- Host exporta multiplos quizzes selecionados em um unico arquivo
+- Host importa quiz(zes) a partir de arquivo `.json` (via botao ou drag-and-drop)
+- Dialog de preview exibido antes de confirmar importacao
+- Validacao robusta do arquivo importado com mensagens de erro claras
+- Quiz importado aparece na biblioteca com titulo original e data de importacao
+- Formato de exportacao e versionado (`version: 1`) para compatibilidade futura
+- Ciclo completo funciona: exportar quiz -> importar em outro navegador/dispositivo -> quiz identico disponivel
 

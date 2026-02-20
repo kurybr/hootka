@@ -3,12 +3,17 @@
  * Usado via config.processor no artillery.yml
  */
 
+const MAX_NAME_LENGTH = 30;
+
 /**
- * Gera nome único para participante (evita NOME_DUPLICADO)
+ * Gera nome único para participante (evita NOME_DUPLICADO).
+ * O nome tem no máximo 30 caracteres (regra do app).
  */
 function generateUniqueName(context) {
-  const id = context.vars.$uuid || Math.random().toString(36).slice(2, 10);
-  context.vars.participantName = `User_${id}_${Date.now()}`;
+  const id = (context.vars.$uuid || Math.random().toString(36).slice(2, 10)).slice(0, 12);
+  const suffix = Date.now().toString(36).slice(-6);
+  const name = `User_${id}_${suffix}`;
+  context.vars.participantName = name.slice(0, MAX_NAME_LENGTH);
   return context.vars.participantName;
 }
 

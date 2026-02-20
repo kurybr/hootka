@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,6 +10,8 @@ import {
   Trash2,
   Plus,
   FileQuestion,
+  Download,
+  Upload,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -29,11 +31,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getQuizzes, deleteQuiz, duplicateQuiz } from "@/lib/quizStorage";
-import type { SavedQuiz } from "@/types/quiz";
+import {
+  exportQuizToFile,
+  exportMultipleQuizzes,
+  parseImportFile,
+  importMultipleQuizzes,
+} from "@/lib/quizExportImport";
+import type { SavedQuiz, ExportedQuiz } from "@/types/quiz";
 import { useRealTime } from "@/providers/RealTimeContext";
 import { trackEvent } from "@/lib/gtag";
 import { AdSense } from "@/components/AdSense";
 import { toast } from "@/hooks/use-toast";
+import { ImportQuizDialog } from "@/components/ImportQuizDialog";
+import { cn } from "@/lib/utils";
 
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString("pt-BR", {
@@ -48,9 +58,13 @@ function formatDate(ts: number): string {
 export default function HostDashboardPage() {
   const router = useRouter();
   const provider = useRealTime();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [quizzes, setQuizzes] = useState<SavedQuiz[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<SavedQuiz | null>(null);
   const [startingQuizId, setStartingQuizId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [importDialogData, setImportDialogData] = useState<ExportedQuiz[] | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     setQuizzes(getQuizzes());
@@ -142,14 +156,133 @@ export default function HostDashboardPage() {
     });
   };
 
+  const handleExport = (quiz: SavedQuiz) => {
+    exportQuizToFile(quiz);
+    toast({
+      title: "Quiz exportado",
+      description: `"${quiz.title}" foi baixado.`,
+    });
+  };
+
+  const handleExportSelected = () => {
+    const toExport = quizzes.filter((q) => selectedIds.has(q.id));
+    if (toExport.length === 0) return;
+    exportMultipleQuizzes(toExport);
+    setSelectedIds(new Set());
+    toast({
+      title: "Quizzes exportados",
+      description: `${toExport.length} quiz(zes) foram baixados.`,
+    });
+  };
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const processImportFile = async (file: File) => {
+    try {
+      const parsed = await parseImportFile(file);
+      const items = Array.isArray(parsed) ? parsed : [parsed];
+      setImportDialogData(items);
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao importar",
+        description: e instanceof Error ? e.message : "Arquivo inválido.",
+      });
+    }
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file?.name.endsWith(".json")) {
+      processImportFile(file);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Arquivo inválido",
+        description: "Selecione um arquivo .json exportado pelo Karoot.",
+      });
+    }
+    e.target.value = "";
+  };
+
+  const handleImportConfirm = (selected: ExportedQuiz[]) => {
+    const imported = importMultipleQuizzes(selected);
+    setQuizzes(getQuizzes());
+    setImportDialogData(null);
+    toast({
+      title: "Quiz(zes) importado(s)",
+      description:
+        selected.length === 1
+          ? `"${imported[0].title}" foi adicionado à biblioteca.`
+          : `${selected.length} quizzes foram adicionados à biblioteca.`,
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.types.includes("Files")) setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file?.name.endsWith(".json")) {
+      processImportFile(file);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Arquivo inválido",
+        description: "Arraste um arquivo .json exportado pelo Karoot.",
+      });
+    }
+  };
+
   return (
-    <main className="min-h-screen p-8 lg:p-12">
-      <div className="mx-auto w-full max-w-4xl space-y-6">
+    <main
+      className="min-h-screen p-8 lg:p-12"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      <div
+        className={cn(
+          "mx-auto w-full max-w-4xl space-y-6 transition-all",
+          isDragging && "ring-2 ring-primary ring-dashed rounded-lg p-2 -m-2"
+        )}
+      >
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Biblioteca de Quizzes</h1>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
               <Link href="/">Voltar</Link>
+            </Button>
+            <Button variant="outline" onClick={handleImportClick}>
+              <Upload className="mr-2 h-4 w-4" />
+              Importar Quiz
             </Button>
             <Button asChild>
               <Link href="/host/create">
@@ -165,7 +298,7 @@ export default function HostDashboardPage() {
         </p>
 
         {quizzes.length > 0 && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
             <Button
               variant={sortBy === "recent" ? "default" : "outline"}
               size="sm"
@@ -180,6 +313,17 @@ export default function HostDashboardPage() {
             >
               Por título
             </Button>
+            {selectedIds.size > 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleExportSelected}
+                className="ml-2"
+              >
+                <Download className="mr-1 h-4 w-4" />
+                Exportar Selecionados ({selectedIds.size})
+              </Button>
+            )}
           </div>
         )}
 
@@ -192,14 +336,20 @@ export default function HostDashboardPage() {
               </h3>
               <p className="mb-6 text-center text-sm text-muted-foreground">
                 Crie seu primeiro quiz e salve-o na biblioteca para reutilizar
-                quantas vezes quiser.
+                quantas vezes quiser. Ou importe um arquivo .json.
               </p>
-              <Button asChild size="lg">
-                <Link href="/host/create">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Criar Novo Quiz
-                </Link>
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="lg" onClick={handleImportClick}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Importar Quiz
+                </Button>
+                <Button asChild size="lg">
+                  <Link href="/host/create">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Criar Novo Quiz
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : (
@@ -213,7 +363,14 @@ export default function HostDashboardPage() {
               >
               <Card>
                 <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:space-y-0 pb-2">
-                  <div>
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(quiz.id)}
+                      onChange={() => handleToggleSelect(quiz.id)}
+                      className="mt-1.5 h-4 w-4 rounded border-gray-300 shrink-0"
+                    />
+                    <div className="min-w-0">
                     <CardTitle className="text-lg">{quiz.title}</CardTitle>
                     <CardDescription>
                       {quiz.questions.length} pergunta
@@ -225,6 +382,7 @@ export default function HostDashboardPage() {
                         {quiz.questions.slice(0, 2).map((q) => q.text).join(" • ")}
                       </p>
                     )}
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -252,6 +410,14 @@ export default function HostDashboardPage() {
                     >
                       <Copy className="mr-1 h-4 w-4" />
                       Duplicar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExport(quiz)}
+                    >
+                      <Download className="mr-1 h-4 w-4" />
+                      Exportar
                     </Button>
                     <Button
                       variant="outline"
@@ -299,6 +465,13 @@ export default function HostDashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ImportQuizDialog
+        open={!!importDialogData}
+        onOpenChange={(open) => !open && setImportDialogData(null)}
+        quizzes={importDialogData ?? []}
+        onConfirm={handleImportConfirm}
+      />
     </main>
   );
 }

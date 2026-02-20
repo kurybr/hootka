@@ -78,7 +78,10 @@ todos:
     content: Prompt 25 - Imagem Docker para Producao (Standalone + Custom Server)
     status: completed
   - id: prompt-26
-    content: Prompt 26 - Google Analytics e Google AdSense
+    content: Prompt 26 - Google Analytics (GA4)
+    status: pending
+  - id: prompt-27
+    content: Prompt 27 - Google AdSense
     status: pending
 isProject: false
 ---
@@ -1214,54 +1217,65 @@ LICENSE
 
 ---
 
-## Fase 10 -- Monetizacao e Analise (Prompt 26)
+## Fase 10 -- Monetizacao e Analise (Prompts 26 e 27)
 
-### Prompt 26 -- Google Analytics e Google AdSense
+### Prompt 26 -- Google Analytics (GA4)
 
-**Escopo:** Integrar Google Analytics (GA4) para metricas de uso e Google AdSense para monetizacao via anuncios, respeitando privacidade (LGPD/GDPR) e UX.
+**Escopo:** Integrar Google Analytics 4 para metricas de uso e comportamento, respeitando privacidade (LGPD/GDPR).
 
 **Instrucoes de execucao:**
 
-- **Google Analytics (GA4):**
-  - Criar componente `components/GoogleAnalytics.tsx` que carrega o script do GA4 via `next/script` com estrategia `afterInteractive`
-  - Usar variavel de ambiente `NEXT_PUBLIC_GA_MEASUREMENT_ID` (ex: `G-XXXXXXXXXX`)
-  - Incluir o componente no `app/layout.tsx` para rastrear todas as paginas
-  - Configurar eventos customizados opcionais: `room_created`, `room_joined`, `game_started`, `game_finished`
-  - Adicionar banner ou link de politica de privacidade antes de ativar o tracking (consentimento)
-  - Documentar no `.env.example` as variaveis necessarias
-
-- **Google AdSense:**
-  - Criar componente `components/AdSense.tsx` que renderiza blocos de anuncio
-  - Usar variavel de ambiente `NEXT_PUBLIC_ADSENSE_CLIENT_ID` (ex: `ca-pub-XXXXXXXXXXXXXXXX`)
-  - Carregar script do AdSense via `next/script` com estrategia `lazyOnload`
-  - Definir slots de anuncio em posicoes estrategicas:
-    - Banner horizontal na pagina inicial (abaixo dos botoes Criar/Entrar)
-    - Banner ou retangulo lateral nas telas do Host (lobby, durante jogo)
-    - Banner na tela de espera do participante
-  - Garantir que anuncios nao aparecem durante perguntas ativas (evitar distracao)
-  - Respeitar limite de anuncios por pagina (max 3-4 blocos visiveis)
-  - Adicionar `ads.txt` na raiz do projeto (public/ads.txt) para verificacao do dominio
-
-- **Politica de Privacidade e Consentimento:**
-  - Criar pagina `app/privacy/page.tsx` com politica de privacidade
-  - Implementar mecanismo de consentimento (cookie banner ou preferencias) antes de carregar GA e AdSense
-  - Opcional: usar `react-consent-manager` ou solucao leve (estado localStorage + modal)
-
-- **Configuracao:**
-  - Adicionar ao `.env.example`:
-    ```
-    NEXT_PUBLIC_GA_MEASUREMENT_ID=
-    NEXT_PUBLIC_ADSENSE_CLIENT_ID=
-    NEXT_PUBLIC_ADSENSE_ENABLED=false
-    ```
-  - Permitir desabilitar GA e AdSense via env para desenvolvimento e testes
+- Criar componente `components/GoogleAnalytics.tsx` que carrega o script do GA4 via `next/script` com estrategia `afterInteractive`
+- Usar variavel de ambiente `NEXT_PUBLIC_GA_MEASUREMENT_ID` (ex: `G-XXXXXXXXXX`)
+- Incluir o componente no `app/layout.tsx` para rastrear todas as paginas
+- Configurar eventos customizados opcionais: `room_created`, `room_joined`, `game_started`, `game_finished`
+- Criar pagina `app/privacy/page.tsx` com politica de privacidade
+- Implementar mecanismo de consentimento (cookie banner ou preferencias) antes de ativar o tracking
+- Opcional: usar `react-consent-manager` ou solucao leve (estado localStorage + modal)
+- Adicionar ao `.env.example`:
+  ```
+  NEXT_PUBLIC_GA_MEASUREMENT_ID=
+  NEXT_PUBLIC_GA_ENABLED=false
+  ```
+- Permitir desabilitar GA via env para desenvolvimento e testes
 
 **Criterios de aceite:**
 
 - Google Analytics rastreia pageviews em todas as rotas
-- AdSense exibe anuncios nas posicoes definidas (quando habilitado e aprovado)
-- Nenhum script de terceiros carrega sem consentimento do usuario (ou em modo dev com flags desabilitadas)
+- Nenhum script carrega sem consentimento do usuario (ou em modo dev com flag desabilitada)
 - Pagina de politica de privacidade acessivel
 - Variaveis de ambiente documentadas
+
+---
+
+### Prompt 27 -- Google AdSense
+
+**Escopo:** Integrar Google AdSense para monetizacao via anuncios, utilizando o mecanismo de consentimento do Prompt 26.
+
+**Instrucoes de execucao:**
+
+- Criar componente `components/AdSense.tsx` que renderiza blocos de anuncio
+- Usar variavel de ambiente `NEXT_PUBLIC_ADSENSE_CLIENT_ID` (ex: `ca-pub-XXXXXXXXXXXXXXXX`)
+- Carregar script do AdSense via `next/script` com estrategia `lazyOnload`
+- Respeitar o consentimento do usuario (usar mesmo mecanismo do GA) antes de exibir anuncios
+- Definir slots de anuncio em posicoes estrategicas:
+  - Banner horizontal na pagina inicial (abaixo dos botoes Criar/Entrar)
+  - Banner ou retangulo lateral nas telas do Host (lobby, durante jogo)
+  - Banner na tela de espera do participante
+- Garantir que anuncios nao aparecem durante perguntas ativas (evitar distracao)
+- Respeitar limite de anuncios por pagina (max 3-4 blocos visiveis)
+- Adicionar `ads.txt` em `public/ads.txt` para verificacao do dominio
+- Adicionar ao `.env.example`:
+  ```
+  NEXT_PUBLIC_ADSENSE_CLIENT_ID=
+  NEXT_PUBLIC_ADSENSE_ENABLED=false
+  ```
+- Permitir desabilitar AdSense via env para desenvolvimento e testes
+
+**Criterios de aceite:**
+
+- AdSense exibe anuncios nas posicoes definidas (quando habilitado e aprovado)
+- Anuncios so carregam apos consentimento do usuario
 - Experiencia do quiz nao degradada (anuncios fora do fluxo principal do jogo)
+- Arquivo `ads.txt` configurado para o dominio
 

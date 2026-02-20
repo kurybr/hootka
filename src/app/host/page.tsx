@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,6 +11,7 @@ import {
   Plus,
   FileQuestion,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -52,6 +53,17 @@ export default function HostDashboardPage() {
   useEffect(() => {
     setQuizzes(getQuizzes());
   }, []);
+
+  const [sortBy, setSortBy] = useState<"recent" | "title">("recent");
+  const sortedQuizzes = useMemo(() => {
+    const list = [...quizzes];
+    if (sortBy === "recent") {
+      list.sort((a, b) => b.updatedAt - a.updatedAt);
+    } else {
+      list.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return list;
+  }, [quizzes, sortBy]);
 
   const handleStartRoom = async (quiz: SavedQuiz) => {
     if (quiz.questions.length === 0) {
@@ -149,6 +161,25 @@ export default function HostDashboardPage() {
           Gerencie seus quizzes e inicie salas com apenas um clique.
         </p>
 
+        {quizzes.length > 0 && (
+          <div className="flex gap-2">
+            <Button
+              variant={sortBy === "recent" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("recent")}
+            >
+              Mais recentes
+            </Button>
+            <Button
+              variant={sortBy === "title" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSortBy("title")}
+            >
+              Por título
+            </Button>
+          </div>
+        )}
+
         {quizzes.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-16">
@@ -170,8 +201,14 @@ export default function HostDashboardPage() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {quizzes.map((quiz) => (
-              <Card key={quiz.id}>
+            {sortedQuizzes.map((quiz, index) => (
+              <motion.div
+                key={quiz.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+              <Card>
                 <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:space-y-0 pb-2">
                   <div>
                     <CardTitle className="text-lg">{quiz.title}</CardTitle>
@@ -180,6 +217,11 @@ export default function HostDashboardPage() {
                       {quiz.questions.length !== 1 ? "s" : ""} · Atualizado em{" "}
                       {formatDate(quiz.updatedAt)}
                     </CardDescription>
+                    {quiz.questions.length > 0 && (
+                      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                        {quiz.questions.slice(0, 2).map((q) => q.text).join(" • ")}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button
@@ -220,6 +262,7 @@ export default function HostDashboardPage() {
                   </div>
                 </CardHeader>
               </Card>
+              </motion.div>
             ))}
           </div>
         )}

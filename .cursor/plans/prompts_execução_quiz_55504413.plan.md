@@ -58,7 +58,7 @@ todos:
     status: completed
   - id: prompt-19
     content: Prompt 19 - Polimento UX das Telas
-    status: pending
+    status: completed
   - id: prompt-20
     content: "Prompt 20 - Migracao Firebase: Setup + Provider Firebase"
     status: pending

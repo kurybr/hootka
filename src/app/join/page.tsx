@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
@@ -19,6 +19,7 @@ import { useRealTime } from "@/providers/RealTimeContext";
 export default function JoinPage() {
   const router = useRouter();
   const provider = useRealTime();
+  const codeInputRef = useRef<HTMLInputElement>(null);
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -77,6 +78,15 @@ export default function JoinPage() {
     }
   };
 
+  useEffect(() => {
+    codeInputRef.current?.focus();
+  }, []);
+
+  const formatCodeDisplay = (val: string) => {
+    const upper = val.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    return upper.split("").join(" ");
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="mx-auto w-full max-w-md space-y-6">
@@ -101,12 +111,16 @@ export default function JoinPage() {
                   Código da sala
                 </label>
                 <Input
+                  ref={codeInputRef}
                   id="code"
-                  placeholder="Ex: ABC123"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
-                  maxLength={6}
-                  className="font-mono text-lg tracking-widest uppercase"
+                  placeholder="A B C 1 2 3"
+                  value={formatCodeDisplay(code)}
+                  onChange={(e) => setCode(e.target.value.replace(/\s/g, "").toUpperCase().slice(0, 6))}
+                  onKeyDown={(e) => {
+                    if (e.key === " ") e.preventDefault();
+                  }}
+                  maxLength={11}
+                  className="font-mono text-xl tracking-[0.4em] uppercase"
                 />
               </div>
               <div>

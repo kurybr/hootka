@@ -238,15 +238,19 @@ export default function PlayRoomPage() {
             )}
             {status === "playing" && currentQuestion && (
               <motion.div
-                key="playing"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
+                key={`playing-${currentQuestionIndex}`}
+                initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -16, scale: 0.98 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               >
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg sm:text-xl">Pergunta {currentQuestionIndex + 1}</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <span className="rounded-lg bg-primary px-2.5 py-0.5 font-mono text-sm font-bold text-primary-foreground">
+                  Pergunta {currentQuestionIndex + 1} de {room?.questions.length ?? 0}
+                </span>
+              </CardTitle>
               <Timer questionStartTimestamp={questionStartTimestamp} size="large" />
             </CardHeader>
             <CardContent className="space-y-6">
@@ -300,12 +304,26 @@ export default function PlayRoomPage() {
                   />
                 );
               })()}
-              {ranking.length > 0 && (
-                <Ranking
-                  participants={ranking}
-                  currentParticipantId={participantId}
-                />
-              )}
+              {ranking.length > 0 && (() => {
+                const myRank = ranking.find((p) => p.id === participantId);
+                return (
+                  <div className="space-y-2">
+                    {myRank && (
+                      <motion.p
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-lg bg-primary/15 px-4 py-2 text-center font-medium text-primary"
+                      >
+                        Você ficou em {myRank.position}º lugar!
+                      </motion.p>
+                    )}
+                    <Ranking
+                      participants={ranking}
+                      currentParticipantId={participantId}
+                    />
+                  </div>
+                );
+              })()}
               <p className="text-center text-muted-foreground">
                 Aguardando próxima pergunta...
               </p>

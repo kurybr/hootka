@@ -8,16 +8,20 @@ import {
   type ReactNode,
 } from "react";
 import { SocketIOProvider } from "./SocketIOProvider";
+import { FirebaseProvider } from "./FirebaseProvider";
 import type { IRealTimeProvider } from "./IRealTimeProvider";
 
 const RealTimeContext = createContext<IRealTimeProvider | null>(null);
+
+const PROVIDER = process.env.NEXT_PUBLIC_PROVIDER || "websocket";
 
 export function RealTimeProvider({ children }: { children: ReactNode }) {
   const providerRef = useRef<IRealTimeProvider | null>(null);
 
   const provider = useMemo(() => {
     if (providerRef.current) return providerRef.current;
-    providerRef.current = new SocketIOProvider();
+    providerRef.current =
+      PROVIDER === "firebase" ? new FirebaseProvider() : new SocketIOProvider();
     return providerRef.current;
   }, []);
 

@@ -50,3 +50,7 @@ export interface ExportedQuiz {
   questions: Question[];
   exportedAt: number;
 }
+
+export interface CloudSavedQuiz extends SavedQuiz {
+  ownerId: string;
+}

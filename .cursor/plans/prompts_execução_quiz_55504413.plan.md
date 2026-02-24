@@ -61,7 +61,7 @@ todos:
     status: completed
   - id: prompt-20
     content: "Prompt 20 - Migracao Firebase: Setup + Provider Firebase"
-    status: cancelled
+    status: completed
   - id: prompt-21
     content: "Prompt 21 - Migracao Firebase: Cloud Functions + Seguranca"
     status: cancelled
@@ -86,6 +86,9 @@ todos:
   - id: prompt-28
     content: Prompt 28 - Exportar e Importar Quizzes na Biblioteca
     status: completed
+  - id: prompt-29
+    content: "Prompt 29 - Login com Google + Biblioteca de Quizzes na Nuvem"
+    status: pending
 isProject: false
 ---
 
@@ -1359,4 +1362,170 @@ export interface ExportedQuiz {
 - Quiz importado aparece na biblioteca com titulo original e data de importacao
 - Formato de exportacao e versionado (`version: 1`) para compatibilidade futura
 - Ciclo completo funciona: exportar quiz -> importar em outro navegador/dispositivo -> quiz identico disponivel
+
+---
+
+## Fase 12 -- Autenticacao e Persistencia na Nuvem (Prompt 29)
+
+### Prompt 29 -- Login com Google + Biblioteca de Quizzes na Nuvem
+
+**Escopo:** Permitir que o Host faca login com conta Google via Firebase Authentication, persistindo sua biblioteca de quizzes no Firebase Realtime Database. Quizzes ficam associados a conta do usuario e sincronizados entre dispositivos. Usuarios nao logados continuam usando localStorage.
+
+**Contexto tecnico:**
+
+Atualmente a biblioteca de quizzes (`SavedQuiz[]`) e armazenada no `localStorage` via `lib/quizStorage.ts`. O objetivo e criar uma camada de persistencia na nuvem (Firebase Realtime Database) que:
+
+1. Substitui localStorage quando o usuario esta logado
+2. Mantém localStorage como fallback para usuarios anonimos
+3. Sincroniza quizzes em tempo real entre abas/dispositivos
+4. Migra quizzes locais para a nuvem no primeiro login
+
+```mermaid
+graph TD
+  subgraph auth [Autenticacao]
+    Google[Google Sign-In]
+    FireAuth[Firebase Authentication]
+    Google --> FireAuth
+  end
+
+  subgraph storage [Persistencia de Quizzes]
+    AuthCtx[AuthContext - uid]
+    QS[quizStorage.ts - interface unificada]
+    LS[localStorage - anonimo]
+    FB[Firebase RTDB - logado]
+    AuthCtx --> QS
+    QS -->|uid == null| LS
+    QS -->|uid != null| FB
+  end
+
+  subgraph sync [Sincronizacao]
+    FB -->|on value| Listener[Listener tempo real]
+    Listener --> UI[Atualiza UI automaticamente]
+  end
+```
+
+**Instrucoes de execucao:**
+
+- Ativar **Firebase Authentication** no Console Firebase:
+  - Ir em Authentication > Sign-in method > Adicionar provedor > Google
+  - Habilitar e salvar
+
+- Criar `providers/AuthProvider.tsx` -- contexto de autenticacao:
+  - Usar `firebase/auth` com `GoogleAuthProvider` e `signInWithPopup`
+  - Estado: `{ user: User | null, loading: boolean }`
+  - Expor: `signInWithGoogle()`, `signOut()`, `user`, `loading`
+  - Escutar `onAuthStateChanged` para persistir sessao entre recarregamentos
+  - Envolver a aplicacao no `app/layout.tsx` (acima do `RealTimeProvider`)
+
+- Criar `hooks/useAuth.ts`:
+  - Retorna `{ user, loading, signInWithGoogle, signOut, isLoggedIn }`
+  - Derivado do `AuthProvider`
+
+- Criar tipo `CloudSavedQuiz` em `types/quiz.ts`:
+
+```typescript
+export interface CloudSavedQuiz extends SavedQuiz {
+  ownerId: string;
+}
+```
+
+- Atualizar `lib/quizStorage.ts` para suportar dois backends:
+  - Manter todas as funcoes existentes (`getQuizzes`, `getQuiz`, `saveQuiz`, `updateQuiz`, `deleteQuiz`, `duplicateQuiz`)
+  - Adicionar versoes async que operam no Firebase quando `uid` e fornecido:
+    - `getQuizzesCloud(uid: string): Promise<SavedQuiz[]>` -- le de `users/{uid}/quizzes`
+    - `getQuizCloud(uid: string, quizId: string): Promise<SavedQuiz | null>`
+    - `saveQuizCloud(uid: string, quiz: ...): Promise<SavedQuiz>` -- escreve em `users/{uid}/quizzes/{quizId}`
+    - `updateQuizCloud(uid: string, quizId: string, updates: ...): Promise<SavedQuiz>`
+    - `deleteQuizCloud(uid: string, quizId: string): Promise<void>`
+    - `duplicateQuizCloud(uid: string, quizId: string): Promise<SavedQuiz>`
+  - Criar funcao `migrateLocalToCloud(uid: string): Promise<number>`:
+    - Le todos os quizzes do localStorage
+    - Salva cada um no Firebase com `ownerId = uid`
+    - Retorna quantidade migrada
+    - Limpa localStorage apos migracao bem-sucedida
+  - Alternativa (mais limpa): criar `lib/quizStorageCloud.ts` separado com as funcoes cloud, e um `lib/quizStorageUnified.ts` que escolhe o backend com base no uid
+
+- Criar `hooks/useQuizLibrary.ts` -- hook unificado para a biblioteca:
+  - Recebe `uid` do `useAuth`
+  - Se `uid` existe: usa funcoes cloud + listener Firebase em `users/{uid}/quizzes` para atualizacao em tempo real
+  - Se `uid` e null: usa funcoes localStorage (comportamento atual)
+  - Retorna: `{ quizzes, loading, saveQuiz, updateQuiz, deleteQuiz, duplicateQuiz, importQuiz }`
+  - Ao fazer login pela primeira vez: detectar quizzes locais e oferecer migracao
+
+- Atualizar pagina `app/host/page.tsx` (Biblioteca de Quizzes):
+  - Adicionar botao "Entrar com Google" no topo (quando nao logado):
+    - Icone do Google + texto "Entrar com Google para salvar na nuvem"
+    - Ao clicar, chama `signInWithGoogle()`
+    - Apos login, se houver quizzes locais, exibir dialog de migracao:
+      - "Encontramos X quizzes salvos localmente. Deseja migra-los para sua conta?"
+      - Botoes: "Migrar" e "Ignorar"
+  - Quando logado:
+    - Exibir avatar + nome do usuario no topo
+    - Botao "Sair" discreto
+    - Badge "Nuvem" nos cards de quiz (indicando que estao sincronizados)
+    - Indicador de sincronizacao (icone de nuvem com check)
+  - Substituir chamadas diretas a `quizStorage` por `useQuizLibrary`
+
+- Atualizar paginas que usam `quizStorage` diretamente:
+  - `app/host/create/page.tsx` -- usar `useQuizLibrary.saveQuiz` ao salvar
+  - `app/host/edit/[quizId]/page.tsx` -- usar `useQuizLibrary.updateQuiz` ao editar
+  - `app/host/page.tsx` -- usar `useQuizLibrary` para listar, deletar, duplicar, importar/exportar
+
+- Estrutura no Firebase Realtime Database:
+
+```
+users/
+  {uid}/
+    profile/
+      displayName: string
+      email: string
+      photoURL: string
+    quizzes/
+      {quizId}/
+        id: string
+        title: string
+        questions: Question[]
+        createdAt: number
+        updatedAt: number
+        ownerId: string
+```
+
+- Regras de seguranca (Firebase Realtime Database Rules):
+
+```json
+{
+  "rules": {
+    "rooms": {
+      ".read": true,
+      ".write": true
+    },
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    }
+  }
+}
+```
+
+- Adicionar ao `.env.example`:
+
+```
+# Firebase Authentication (habilitado automaticamente com o SDK)
+# Nenhuma variavel adicional necessaria -- usa as mesmas NEXT_PUBLIC_FIREBASE_* do Prompt 20
+```
+
+**Criterios de aceite:**
+
+- Host consegue fazer login com Google em um clique
+- Apos login, quizzes sao salvos no Firebase (nao mais no localStorage)
+- Quizzes aparecem em qualquer dispositivo onde o usuario fizer login
+- Quizzes locais existentes sao migrados para a nuvem no primeiro login (com confirmacao)
+- Usuario nao logado continua usando localStorage normalmente (sem regressao)
+- Logout limpa a sessao mas nao apaga quizzes da nuvem
+- Regras de seguranca impedem que um usuario acesse quizzes de outro
+- Sincronizacao em tempo real: criar quiz em uma aba aparece na outra instantaneamente
+- Nenhum componente de UI do jogo (pergunta, resposta, ranking) foi alterado
+- Fluxo de criar sala a partir de quiz salvo funciona identicamente para ambos os backends
 

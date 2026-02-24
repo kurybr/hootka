@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "rooms": {
+      "$roomId": {
+        ".read": true,
+        ".write": true,
+        "participants": {
+          "$participantId": {
+            ".write": true,
+            "totalScore": {
+              ".write": "auth != null || data.parent().parent().parent().child('hostId').val() != null"
+            }
+          }
+        },
+        "answers": {
+          "$questionIndex": {
+            "$participantId": {
+              ".write": "!data.exists()",
+              ".validate": "newData.hasChildren(['participantId', 'optionIndex', 'timestamp', 'responseTime', 'score'])"
+            }
+          }
+        }
+      }
+    },
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    }
+  }
+}

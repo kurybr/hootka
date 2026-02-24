@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,15 +11,11 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { AdSenseScript } from "@/components/AdSense";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { AuthProvider } from "@/providers/AuthProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
@@ -37,14 +33,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.variable} font-sans antialiased`}>
         <ErrorBoundary>
           <ConsentProvider>
             <GoogleAnalytics />
             <AdSenseScript />
-            <RealTimeProvider>
+            <AuthProvider>
+              <RealTimeProvider>
               <SoundProvider>
                 {children}
                 <ReconnectingOverlay />
@@ -52,6 +47,7 @@ export default function RootLayout({
                 <CookieConsentBanner />
               </SoundProvider>
             </RealTimeProvider>
+            </AuthProvider>
           </ConsentProvider>
         </ErrorBoundary>
       </body>

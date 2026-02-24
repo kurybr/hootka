@@ -42,7 +42,7 @@ export function useRoom({ roomId, role }: UseRoomOptions): UseRoomResult {
         return {
           ...prev,
           participants: {
-            ...prev.participants,
+            ...(prev.participants ?? {}),
             [participant.id]: participant,
           },
         };

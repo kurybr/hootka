@@ -40,13 +40,13 @@ export default function RootLayout({
             <AdSenseScript />
             <AuthProvider>
               <RealTimeProvider>
-              <SoundProvider>
-                {children}
-                <ReconnectingOverlay />
-                <Toaster />
-                <CookieConsentBanner />
-              </SoundProvider>
-            </RealTimeProvider>
+                <SoundProvider>
+                  {children}
+                  <ReconnectingOverlay />
+                  <Toaster />
+                  <CookieConsentBanner />
+                </SoundProvider>
+              </RealTimeProvider>
             </AuthProvider>
           </ConsentProvider>
         </ErrorBoundary>

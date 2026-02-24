@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useRealTime } from "@/providers/RealTimeContext";
-import { getQuiz, saveQuiz } from "@/lib/quizStorage";
+import { useQuizLibrary } from "@/hooks/useQuizLibrary";
 import { trackEvent } from "@/lib/gtag";
 import type { Question } from "@/types/quiz";
 
@@ -29,6 +29,7 @@ function CreateRoomContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const provider = useRealTime();
+  const { saveQuiz: libSaveQuiz, quizzes } = useQuizLibrary();
   const [questions, setQuestions] = useState<Question[]>([{ ...EMPTY_QUESTION }]);
   const [quizTitle, setQuizTitle] = useState("");
   const [saveToLibrary, setSaveToLibrary] = useState(false);
@@ -39,7 +40,7 @@ function CreateRoomContent() {
 
   useEffect(() => {
     if (quizId) {
-      const quiz = getQuiz(quizId);
+      const quiz = quizzes.find((q) => q.id === quizId);
       if (quiz) {
         setQuestions(
           quiz.questions.length > 0
@@ -49,7 +50,7 @@ function CreateRoomContent() {
         setQuizTitle(quiz.title);
       }
     }
-  }, [quizId]);
+  }, [quizId, quizzes]);
 
   const addQuestion = () => {
     setQuestions((q) => [...q, { ...EMPTY_QUESTION }]);
@@ -124,7 +125,7 @@ function CreateRoomContent() {
     try {
       if (saveToLibrary) {
         const title = quizTitle.trim() || "Quiz sem título";
-        saveQuiz({ title, questions: validQuestions });
+        await libSaveQuiz({ title, questions: validQuestions });
         toast({
           title: "Quiz salvo na biblioteca",
           description: `"${title}" foi adicionado.`,

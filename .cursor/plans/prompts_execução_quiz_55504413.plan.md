@@ -64,7 +64,7 @@ todos:
     status: completed
   - id: prompt-21
     content: "Prompt 21 - Migracao Firebase: Cloud Functions + Seguranca"
-    status: cancelled
+    status: completed
   - id: prompt-22
     content: Prompt 22 - Setup de Teste de Carga (Artillery + Socket.IO)
     status: completed
@@ -88,7 +88,7 @@ todos:
     status: completed
   - id: prompt-29
     content: "Prompt 29 - Login com Google + Biblioteca de Quizzes na Nuvem"
-    status: pending
+    status: completed
 isProject: false
 ---
 

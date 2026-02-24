@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useRealTime } from "@/providers/RealTimeContext";
-import { getQuiz, updateQuiz } from "@/lib/quizStorage";
+import { useQuizLibrary } from "@/hooks/useQuizLibrary";
 import { trackEvent } from "@/lib/gtag";
 import type { Question } from "@/types/quiz";
 
@@ -30,16 +30,19 @@ export default function EditQuizPage() {
   const router = useRouter();
   const quizId = params.quizId as string;
   const provider = useRealTime();
+  const { quizzes, loading: quizzesLoading, updateQuiz: libUpdateQuiz } = useQuizLibrary();
   const [title, setTitle] = useState("");
   const [questions, setQuestions] = useState<Question[]>([{ ...EMPTY_QUESTION }]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    const quiz = getQuiz(quizId);
+    if (quizzesLoading || initialized) return;
+    const quiz = quizzes.find((q) => q.id === quizId);
     if (!quiz) {
-      router.replace("/host");
+      if (quizzes.length > 0) router.replace("/host");
       return;
     }
     setTitle(quiz.title);
@@ -48,7 +51,8 @@ export default function EditQuizPage() {
         ? quiz.questions.map((q) => ({ ...q, options: [...q.options] }))
         : [{ ...EMPTY_QUESTION }]
     );
-  }, [quizId, router]);
+    setInitialized(true);
+  }, [quizId, quizzes, quizzesLoading, router, initialized]);
 
   const addQuestion = () => {
     setQuestions((q) => [...q, { ...EMPTY_QUESTION }]);
@@ -117,7 +121,7 @@ export default function EditQuizPage() {
     return null;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setError(null);
     const err = validateQuestions();
     if (err) {
@@ -143,7 +147,7 @@ export default function EditQuizPage() {
 
     setSaving(true);
     try {
-      updateQuiz(quizId, { title: title.trim(), questions: validQuestions });
+      await libUpdateQuiz(quizId, { title: title.trim(), questions: validQuestions });
       toast({
         title: "Alterações salvas",
         description: "O quiz foi atualizado na biblioteca.",

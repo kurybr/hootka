@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,6 +13,9 @@ import {
   FileQuestion,
   Download,
   Upload,
+  Cloud,
+  LogOut,
+  LogIn,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -30,14 +34,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getQuizzes, deleteQuiz, duplicateQuiz } from "@/lib/quizStorage";
 import {
   exportQuizToFile,
   exportMultipleQuizzes,
   parseImportFile,
-  importMultipleQuizzes,
 } from "@/lib/quizExportImport";
 import type { SavedQuiz, ExportedQuiz } from "@/types/quiz";
+import { useQuizLibrary } from "@/hooks/useQuizLibrary";
+import { useAuth } from "@/providers/AuthProvider";
 import { useRealTime } from "@/providers/RealTimeContext";
 import { trackEvent } from "@/lib/gtag";
 import { AdSense } from "@/components/AdSense";
@@ -59,16 +63,20 @@ export default function HostDashboardPage() {
   const router = useRouter();
   const provider = useRealTime();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [quizzes, setQuizzes] = useState<SavedQuiz[]>([]);
+  const {
+    quizzes,
+    loading: libraryLoading,
+    saveQuiz: libSaveQuiz,
+    deleteQuiz: libDeleteQuiz,
+    duplicateQuiz: libDuplicateQuiz,
+    refresh,
+  } = useQuizLibrary();
+  const { user, signInWithGoogle, signOut, loading: authLoading } = useAuth();
   const [deleteTarget, setDeleteTarget] = useState<SavedQuiz | null>(null);
   const [startingQuizId, setStartingQuizId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [importDialogData, setImportDialogData] = useState<ExportedQuiz[] | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-
-  useEffect(() => {
-    setQuizzes(getQuizzes());
-  }, []);
 
   const [sortBy, setSortBy] = useState<"recent" | "title">("recent");
   const sortedQuizzes = useMemo(() => {
@@ -128,10 +136,9 @@ export default function HostDashboardPage() {
     }
   };
 
-  const handleDuplicate = (quiz: SavedQuiz) => {
+  const handleDuplicate = async (quiz: SavedQuiz) => {
     try {
-      duplicateQuiz(quiz.id);
-      setQuizzes(getQuizzes());
+      await libDuplicateQuiz(quiz.id);
       toast({
         title: "Quiz duplicado",
         description: `"Cópia de ${quiz.title}" foi criado.`,
@@ -145,14 +152,14 @@ export default function HostDashboardPage() {
     }
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
-    deleteQuiz(deleteTarget.id);
-    setQuizzes(getQuizzes());
+    await libDeleteQuiz(deleteTarget.id);
+    const title = deleteTarget.title;
     setDeleteTarget(null);
     toast({
       title: "Quiz excluído",
-      description: `"${deleteTarget.title}" foi removido.`,
+      description: `"${title}" foi removido.`,
     });
   };
 
@@ -216,15 +223,17 @@ export default function HostDashboardPage() {
     e.target.value = "";
   };
 
-  const handleImportConfirm = (selected: ExportedQuiz[]) => {
-    const imported = importMultipleQuizzes(selected);
-    setQuizzes(getQuizzes());
+  const handleImportConfirm = async (selected: ExportedQuiz[]) => {
+    for (const q of selected) {
+      await libSaveQuiz({ title: q.title, questions: q.questions });
+    }
+    await refresh();
     setImportDialogData(null);
     toast({
       title: "Quiz(zes) importado(s)",
       description:
         selected.length === 1
-          ? `"${imported[0].title}" foi adicionado à biblioteca.`
+          ? `"${selected[0].title}" foi adicionado à biblioteca.`
           : `${selected.length} quizzes foram adicionados à biblioteca.`,
     });
   };
@@ -276,28 +285,75 @@ export default function HostDashboardPage() {
       >
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Biblioteca de Quizzes</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/">Voltar</Link>
-            </Button>
-            <Button variant="outline" onClick={handleImportClick}>
-              <Upload className="mr-2 h-4 w-4" />
-              Importar Quiz
-            </Button>
-            <Button asChild>
-              <Link href="/host/create">
-                <Plus className="mr-2 h-4 w-4" />
-                Criar Novo Quiz
-              </Link>
-            </Button>
+          <div className="flex items-center gap-4">
+            {user && (
+              <div className="flex items-center gap-3">
+                {user.photoURL && (
+                  <img
+                    src={user.photoURL}
+                    alt=""
+                    className="h-8 w-8 rounded-full"
+                    referrerPolicy="no-referrer"
+                  />
+                )}
+                <span className="text-sm text-muted-foreground">
+                  {user.displayName}
+                </span>
+                <Button variant="ghost" size="sm" onClick={signOut}>
+                  <LogOut className="mr-1 h-4 w-4" />
+                  Sair
+                </Button>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <Link href="/">Voltar</Link>
+              </Button>
+              <Button variant="outline" onClick={handleImportClick}>
+                <Upload className="mr-2 h-4 w-4" />
+                Importar Quiz
+              </Button>
+              <Button asChild>
+                <Link href="/host/create">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Criar Novo Quiz
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
+
+        {!user && !authLoading && (
+          <Card className="border-dashed bg-muted/50">
+            <CardContent className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-3">
+                <Cloud className="h-5 w-5 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  Entre com Google para salvar seus quizzes na nuvem e acessar de
+                  qualquer dispositivo.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={signInWithGoogle}>
+                <LogIn className="mr-2 h-4 w-4" />
+                Entrar com Google
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         <p className="text-muted-foreground">
           Gerencie seus quizzes e inicie salas com apenas um clique.
         </p>
 
-        {quizzes.length > 0 && (
+        {libraryLoading && (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <p className="text-sm text-muted-foreground">Carregando...</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {!libraryLoading && quizzes.length > 0 && (
           <div className="flex flex-wrap gap-2 items-center">
             <Button
               variant={sortBy === "recent" ? "default" : "outline"}
@@ -327,7 +383,7 @@ export default function HostDashboardPage() {
           </div>
         )}
 
-        {quizzes.length === 0 ? (
+        {!libraryLoading && quizzes.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <FileQuestion className="mb-4 h-16 w-16 text-muted-foreground" />
@@ -352,7 +408,7 @@ export default function HostDashboardPage() {
               </div>
             </CardContent>
           </Card>
-        ) : (
+        ) : !libraryLoading ? (
           <div className="space-y-4">
             {sortedQuizzes.map((quiz, index) => (
               <motion.div
@@ -434,7 +490,7 @@ export default function HostDashboardPage() {
               </motion.div>
             ))}
           </div>
-        )}
+        ) : null}
 
         <AdSense
           slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BANNER}

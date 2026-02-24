@@ -6,7 +6,7 @@ import type { Room } from "@/types/quiz";
 
 export function useParticipants(room: Room | null): Participant[] {
   return useMemo(() => {
-    if (!room) return [];
+    if (!room?.participants) return [];
     return Object.values(room.participants).sort(
       (a, b) => a.joinedAt - b.joinedAt
     );

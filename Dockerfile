@@ -17,6 +17,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/firebase-service-account.json
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -30,6 +31,9 @@ COPY --from=builder /app/public ./public
 # Substituir server.js do Next.js pelo nosso custom server (Socket.IO)
 COPY --from=builder /app/dist/server.js ./server.js
 COPY --from=builder /app/dist/src ./src
+
+# Copiar credenciais do Firebase para o container final
+COPY --from=builder /app/firebase-service-account.json ./firebase-service-account.json
 
 # socket.io não é traçado pelo standalone (usado apenas no custom server)
 RUN npm install socket.io --omit=dev

@@ -63,13 +63,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleSignInWithGoogle = async () => {
+    console.log("[Auth] Iniciando signInWithGoogle");
     const app = getFirebaseApp();
-    if (!app) return;
+    if (!app) {
+      console.error("[Auth] getFirebaseApp() retornou null/undefined");
+      return;
+    }
 
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
-    await saveUserProfile(result.user);
+    console.log("[Auth] Chamando signInWithPopup");
+    try {
+      const result = await signInWithPopup(auth, provider);
+      console.log("[Auth] signInWithPopup resolvido", {
+        uid: result.user.uid,
+        email: result.user.email,
+      });
+      await saveUserProfile(result.user);
+      console.log("[Auth] Perfil salvo com sucesso no Realtime Database");
+    } catch (error) {
+      console.error("[Auth] Erro em signInWithGoogle", error);
+      throw error;
+    }
   };
 
   const handleSignOut = async () => {

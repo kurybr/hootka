@@ -333,7 +333,20 @@ export default function HostDashboardPage() {
                   qualquer dispositivo.
                 </p>
               </div>
-              <Button variant="outline" size="sm" onClick={signInWithGoogle}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  console.log("[Google Login] Botão clicado");
+                  signInWithGoogle()
+                    .then(() => {
+                      console.log("[Google Login] Login concluído com sucesso");
+                    })
+                    .catch((error) => {
+                      console.error("[Google Login] Erro durante login", error);
+                    });
+                }}
+              >
                 <LogIn className="mr-2 h-4 w-4" />
                 Entrar com Google
               </Button>

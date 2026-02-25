@@ -6,9 +6,9 @@ WORKDIR /app
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
 
 RUN \
-  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
-  else npm ci; fi
+  if [ -f yarn.lock ]; then yarn install --frozen-lockfile --production=true --ignore-engines; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile --prod; \
+  else npm ci --omit=dev; fi
 
 COPY . .
 

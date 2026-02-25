@@ -1,21 +1,16 @@
-# Build stage
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+COPY package.json package-lock.json ./
 
-RUN \
-  if [ -f yarn.lock ]; then yarn install --frozen-lockfile --production=true --ignore-engines; \
-  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile --prod; \
-  else npm ci --omit=dev; fi
+RUN npm ci
 
 COPY . .
 
 RUN mkdir -p public
 RUN npm run build:all
 
-# Production stage
 FROM node:20-alpine AS runner
 
 WORKDIR /app

@@ -40,3 +40,5 @@ next-env.d.ts
 
 *-firebase-adminsdk-*.json
 firebase-*.json
+test-results/
+playwright-report/

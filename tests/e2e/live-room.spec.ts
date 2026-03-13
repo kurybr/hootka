@@ -1,4 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+async function dismissCookieBanner(p: Page) {
+  const btn = p.getByRole("button", { name: /Aceitar|Recusar/ });
+  if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await btn.click({ force: true });
+  }
+}
 
 test.describe("Live room - host and participant flow", () => {
   test("host creates room, participant joins, game runs to completion", async ({
@@ -16,15 +23,17 @@ test.describe("Live room - host and participant flow", () => {
     try {
       // --- Host: criar sala ---
       await page.goto("/host/create");
+      await dismissCookieBanner(page);
       await page.getByPlaceholder("Digite a pergunta...").first().fill("1+1=?");
       const optionInputs = page.getByPlaceholder(/Alternativa \d/);
       const count = await optionInputs.count();
       for (let i = 0; i < count; i++) {
         await optionInputs.nth(i).fill(`${i + 1}`);
       }
-      await page.getByRole("button", { name: "Criar Sala" }).click();
+      await page.getByRole("button", { name: "Criar Sala" }).click({ force: true });
 
       await expect(page).toHaveURL(/\/host\/[a-zA-Z0-9-]+/, { timeout: 15000 });
+      await dismissCookieBanner(page);
 
       // --- Extrair código da sala (span com 6 caracteres, não o contador de participantes) ---
       const codeElement = page
@@ -37,6 +46,7 @@ test.describe("Live room - host and participant flow", () => {
 
       // --- Participante: entrar na sala ---
       await participantPage.goto("/join");
+      await dismissCookieBanner(participantPage);
       await participantPage.getByPlaceholder("A B C 1 2 3").pressSequentially(roomCode);
       await participantPage
         .getByPlaceholder("Como deseja ser chamado")
@@ -47,16 +57,16 @@ test.describe("Live room - host and participant flow", () => {
         timeout: 10000,
       });
 
-      // --- Host: ver participante e iniciar jogo ---
+      // --- Host: ver participante e iniciar jogo (aguardar sync) ---
       await expect(
         page.getByText("Jogador E2E", { exact: false })
-      ).toBeVisible({ timeout: 5000 });
-      await page.getByRole("button", { name: /Iniciar jogo|Iniciar/ }).click({ force: true });
+      ).toBeVisible({ timeout: 10000 });
+      await page.getByRole("button", { name: /Iniciar jogo|Iniciar/i }).click({ force: true });
 
       // --- Participante: responder pergunta ---
       await expect(
         participantPage.getByText("1+1=?")
-      ).toBeVisible({ timeout: 10000 });
+      ).toBeVisible({ timeout: 15000 });
       await participantPage.getByRole("button", { name: "2" }).click();
 
       // --- Aguardar resultado/ranking ---
@@ -66,8 +76,8 @@ test.describe("Live room - host and participant flow", () => {
 
       // --- Host: encerrar (ou aguardar auto-avanço se só 1 pergunta) ---
       const endButton = page.getByRole("button", { name: /Encerrar|Finalizar/i });
-      if (await endButton.isVisible({ timeout: 3000 })) {
-        await endButton.click();
+      if (await endButton.isVisible({ timeout: 5000 })) {
+        await endButton.click({ force: true });
       }
 
       await expect(

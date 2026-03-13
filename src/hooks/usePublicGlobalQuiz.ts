@@ -10,9 +10,9 @@ export function usePublicGlobalQuiz(slug: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (silent = false) => {
     if (!slug) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
       const data = await getPublicGlobalQuizBySlug(slug);
       setQuiz(data.quiz);
@@ -21,7 +21,7 @@ export function usePublicGlobalQuiz(slug: string) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar o quiz");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [slug]);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -64,23 +64,31 @@ export default function HostRoomPage() {
     provider.startGame();
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = useCallback(() => {
     provider.nextQuestion();
-  };
+  }, [provider]);
 
   const handleForceResult = () => {
     provider.forceResult();
   };
 
-  const handleEndGame = () => {
+  const handleEndGame = useCallback(() => {
     trackEvent("game_finished", { room_id: roomId });
     provider.endGame();
-  };
+  }, [provider, roomId]);
 
   const currentQuestion = room?.questions[currentQuestionIndex];
   const isLastQuestion =
     room &&
     currentQuestionIndex >= room.questions.length - 1;
+
+  const previousRankingRef = useRef<typeof ranking>([]);
+
+  useEffect(() => {
+    if (status === "playing" && ranking.length > 0) {
+      previousRankingRef.current = [...ranking];
+    }
+  }, [status, ranking]);
 
   const lastResultFiredFor = useRef<number>(-1);
   useEffect(() => {
@@ -90,6 +98,19 @@ export default function HostRoomPage() {
       return () => clearTimeout(t);
     }
   }, [status, currentQuestionIndex]);
+
+  const LEADERBOARD_DISPLAY_SECONDS = 4;
+  useEffect(() => {
+    if (status !== "result") return;
+    const t = setTimeout(() => {
+      if (isLastQuestion) {
+        handleEndGame();
+      } else {
+        handleNextQuestion();
+      }
+    }, LEADERBOARD_DISPLAY_SECONDS * 1000);
+    return () => clearTimeout(t);
+  }, [status, currentQuestionIndex, isLastQuestion, handleEndGame, handleNextQuestion]);
 
   if (!roomId) {
     router.replace("/");
@@ -301,7 +322,11 @@ export default function HostRoomPage() {
                 );
               })()}
               {ranking.length > 0 && (
-                <Ranking participants={ranking} size="large" />
+                <Ranking
+                  participants={ranking}
+                  size="large"
+                  previousParticipants={previousRankingRef.current}
+                />
               )}
               {isLastQuestion ? (
                 <Button size="lg" className="w-full" onClick={handleEndGame}>

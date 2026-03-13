@@ -17,6 +17,25 @@ import {
 import { useRealTime } from "@/providers/RealTimeContext";
 import { trackEvent } from "@/lib/gtag";
 
+function mapJoinError(raw: string): string {
+  const lower = raw.toLowerCase();
+  if (lower.includes("sala não encontrada") || raw === "SALA_NAO_ENCONTRADA") {
+    return "Sala não encontrada";
+  }
+  if (lower.includes("sala cheia") || raw === "SALA_CHEIA") {
+    return "Sala cheia";
+  }
+  if (
+    lower.includes("não foi possível conectar") ||
+    lower.includes("servidor indisponível") ||
+    lower.includes("conexão perdida") ||
+    lower.includes("timeout")
+  ) {
+    return "Conexão perdida. Tente novamente.";
+  }
+  return raw;
+}
+
 export default function JoinPage() {
   const router = useRouter();
   const provider = useRealTime();
@@ -68,11 +87,12 @@ export default function JoinPage() {
       });
       router.push(`/play/${roomId}`);
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Erro ao entrar na sala";
+      const rawMsg = e instanceof Error ? e.message : "Erro ao entrar na sala";
+      const msg = mapJoinError(rawMsg);
       setError(msg);
       toast({
         variant: "destructive",
-        title: "Erro ao entrar",
+        title: "Erro ao entrar na sala",
         description: msg,
       });
     } finally {
@@ -124,6 +144,9 @@ export default function JoinPage() {
                   maxLength={11}
                   className="font-mono text-xl tracking-[0.4em] uppercase"
                 />
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  O código da sala aparece na tela do host quando a sala é criada.
+                </p>
               </div>
               <div>
                 <label htmlFor="name" className="mb-1 block text-sm font-medium">

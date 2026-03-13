@@ -5,6 +5,7 @@ import type {
   GlobalQuizAttempt,
   GlobalQuizAttemptAnswer,
   GlobalQuizLeaderboardEntry,
+  PublicGlobalQuiz,
   Question,
 } from "@/types/quiz";
 
@@ -29,18 +30,18 @@ async function parseJson<T>(response: Response): Promise<T> {
 
 export async function listPublishedGlobalQuizzes() {
   const response = await fetch("/api/global-quizzes");
-  return parseJson<{ quizzes: GlobalQuiz[] }>(response);
+  return parseJson<{ quizzes: PublicGlobalQuiz[] }>(response);
 }
 
 export async function listMyGlobalQuizzes() {
   const response = await authFetch("/api/global-quizzes?mine=1");
-  return parseJson<{ quizzes: GlobalQuiz[] }>(response);
+  return parseJson<{ quizzes: PublicGlobalQuiz[] }>(response);
 }
 
 export async function getPublicGlobalQuizBySlug(slug: string) {
   const response = await fetch(`/api/global-quizzes/slug/${slug}`);
   return parseJson<{
-    quiz: GlobalQuiz;
+    quiz: PublicGlobalQuiz;
     leaderboard: GlobalQuizLeaderboardEntry[];
   }>(response);
 }
@@ -80,7 +81,7 @@ export async function startGlobalQuizAttempt(quizId: string) {
     method: "POST",
   });
   return parseJson<{
-    quiz: GlobalQuiz;
+    quiz: PublicGlobalQuiz;
     attempt: GlobalQuizAttempt;
     remainingAttempts: number | null;
   }>(response);
@@ -98,7 +99,7 @@ export async function submitGlobalQuizAnswer(
     body: JSON.stringify({ optionIndex }),
   });
   return parseJson<{
-    quiz: GlobalQuiz;
+    quiz: PublicGlobalQuiz;
     attempt: GlobalQuizAttempt;
     answer: GlobalQuizAttemptAnswer;
     completed: boolean;

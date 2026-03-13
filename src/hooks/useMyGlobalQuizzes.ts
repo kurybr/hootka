@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { listMyGlobalQuizzes } from "@/lib/globalQuizClient";
-import type { GlobalQuiz } from "@/types/quiz";
+import type { PublicGlobalQuiz } from "@/types/quiz";
 
 export function useMyGlobalQuizzes(enabled: boolean) {
-  const [quizzes, setQuizzes] = useState<GlobalQuiz[]>([]);
+  const [quizzes, setQuizzes] = useState<PublicGlobalQuiz[]>([]);
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 

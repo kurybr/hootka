@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGlobalQuizEngine } from "@/lib/globalQuizEngine";
 import { globalQuizErrorResponse } from "@/lib/globalQuizApi";
+import { isValidSlug } from "@/lib/globalQuizUtils";
 
 export async function GET(
   _request: NextRequest,
@@ -10,6 +11,12 @@ export async function GET(
 
   try {
     const { slug } = await params;
+    if (!isValidSlug(slug)) {
+      return NextResponse.json(
+        { error: "Slug inválido.", code: "INVALID_SLUG" },
+        { status: 400 }
+      );
+    }
     const payload = await engine.getPublicQuizBySlug(slug);
     return NextResponse.json(payload);
   } catch (error) {

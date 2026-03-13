@@ -3,6 +3,7 @@ import type {
   GlobalQuizAttempt,
   GlobalQuizLeaderboardEntry,
   GlobalQuizUserStats,
+  PublicGlobalQuiz,
   Question,
 } from "@/types/quiz";
 import {
@@ -11,6 +12,28 @@ import {
   trimQuestion,
   validateQuestions,
 } from "@/lib/questionUtils";
+
+/** Remove correctOptionIndex das perguntas para não expor ao jogador. */
+export function toPublicQuiz(quiz: GlobalQuiz): PublicGlobalQuiz {
+  return {
+    ...quiz,
+    questions: quiz.questions.map((q) => ({ text: q.text, options: q.options })),
+  };
+}
+
+const SAFE_SLUG_REGEX = /^[a-z0-9-]+$/;
+
+/** Valida slug contra path traversal e caracteres perigosos. */
+export function isValidSlug(slug: string): boolean {
+  return (
+    typeof slug === "string" &&
+    slug.length > 0 &&
+    slug.length <= 60 &&
+    !slug.includes("..") &&
+    !slug.includes("/") &&
+    SAFE_SLUG_REGEX.test(slug)
+  );
+}
 
 export function slugifyQuizTitle(title: string): string {
   return title

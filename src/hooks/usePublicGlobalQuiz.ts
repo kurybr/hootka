@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getPublicGlobalQuizBySlug } from "@/lib/globalQuizClient";
-import type { GlobalQuiz, GlobalQuizLeaderboardEntry } from "@/types/quiz";
+import type { GlobalQuizLeaderboardEntry, PublicGlobalQuiz } from "@/types/quiz";
 
 export function usePublicGlobalQuiz(slug: string) {
-  const [quiz, setQuiz] = useState<GlobalQuiz | null>(null);
+  const [quiz, setQuiz] = useState<PublicGlobalQuiz | null>(null);
   const [leaderboard, setLeaderboard] = useState<GlobalQuizLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

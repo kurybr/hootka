@@ -12,6 +12,7 @@ import {
   sanitizeGlobalQuizInput,
   shouldReplaceLeaderboardEntry,
   slugifyQuizTitle,
+  toPublicQuiz,
 } from "@/lib/globalQuizUtils";
 import {
   calculateTimedScore,
@@ -25,6 +26,7 @@ import type {
   GlobalQuizLeaderboardEntry,
   GlobalQuizUserStats,
   GlobalQuizVisibility,
+  PublicGlobalQuiz,
   Question,
 } from "@/types/quiz";
 
@@ -98,7 +100,7 @@ export class GlobalQuizEngine {
     return snapshot.exists() ? (snapshot.val() as GlobalQuizLeaderboardEntry) : null;
   }
 
-  async listPublishedQuizzes(): Promise<GlobalQuiz[]> {
+  async listPublishedQuizzes(): Promise<PublicGlobalQuiz[]> {
     const db = this.getDb();
     const snapshot = await db.ref(GLOBAL_QUIZZES_PATH).get();
     const quizzes = snapshot.val() as Record<string, GlobalQuiz> | null;
@@ -106,6 +108,7 @@ export class GlobalQuizEngine {
 
     return Object.values(quizzes)
       .filter((quiz) => quiz.status === "published")
+      .map(toPublicQuiz)
       .sort((a, b) => {
         if (a.visibility !== b.visibility) {
           return a.visibility === "official" ? -1 : 1;
@@ -114,7 +117,7 @@ export class GlobalQuizEngine {
       });
   }
 
-  async listQuizzesByOwner(uid: string): Promise<GlobalQuiz[]> {
+  async listQuizzesByOwner(uid: string): Promise<PublicGlobalQuiz[]> {
     const db = this.getDb();
     const snapshot = await db.ref(GLOBAL_QUIZZES_PATH).get();
     const quizzes = snapshot.val() as Record<string, GlobalQuiz> | null;
@@ -122,6 +125,7 @@ export class GlobalQuizEngine {
 
     return Object.values(quizzes)
       .filter((quiz) => quiz.createdBy === uid)
+      .map(toPublicQuiz)
       .sort((a, b) => b.updatedAt - a.updatedAt);
   }
 
@@ -240,7 +244,7 @@ export class GlobalQuizEngine {
   }
 
   async getPublicQuizBySlug(slug: string): Promise<{
-    quiz: GlobalQuiz;
+    quiz: PublicGlobalQuiz;
     leaderboard: GlobalQuizLeaderboardEntry[];
   }> {
     const quiz = await this.getQuizBySlug(slug);
@@ -249,11 +253,11 @@ export class GlobalQuizEngine {
     }
 
     const leaderboard = await this.getLeaderboard(quiz.id);
-    return { quiz, leaderboard };
+    return { quiz: toPublicQuiz(quiz), leaderboard };
   }
 
   async startAttempt(user: EngineUser, quizId: string): Promise<{
-    quiz: GlobalQuiz;
+    quiz: PublicGlobalQuiz;
     attempt: GlobalQuizAttempt;
     remainingAttempts: number | null;
   }> {
@@ -271,7 +275,7 @@ export class GlobalQuizEngine {
       const activeAttempt = await this.getAttempt(quizId, existingStats.activeAttemptId);
       if (activeAttempt && activeAttempt.status === "in_progress") {
         return {
-          quiz,
+          quiz: toPublicQuiz(quiz),
           attempt: activeAttempt,
           remainingAttempts: getRemainingAttempts(quiz, existingStats),
         };
@@ -316,7 +320,7 @@ export class GlobalQuizEngine {
     await db.ref(`${GLOBAL_QUIZ_USER_STATS_PATH}/${quizId}/${user.uid}`).set(stats);
 
     return {
-      quiz,
+      quiz: toPublicQuiz(quiz),
       attempt,
       remainingAttempts:
         remainingAttempts === null ? null : Math.max(0, remainingAttempts - 1),
@@ -328,7 +332,7 @@ export class GlobalQuizEngine {
     quizId: string,
     optionIndex: number | null
   ): Promise<{
-    quiz: GlobalQuiz;
+    quiz: PublicGlobalQuiz;
     attempt: GlobalQuizAttempt;
     answer: GlobalQuizAttemptAnswer;
     completed: boolean;
@@ -413,7 +417,7 @@ export class GlobalQuizEngine {
 
     if (!isLastQuestion) {
       return {
-        quiz,
+        quiz: toPublicQuiz(quiz),
         attempt: nextAttempt,
         answer,
         completed: false,
@@ -464,7 +468,7 @@ export class GlobalQuizEngine {
     }
 
     return {
-      quiz,
+      quiz: toPublicQuiz(quiz),
       attempt: nextAttempt,
       answer,
       completed: true,

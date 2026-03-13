@@ -31,6 +31,17 @@ export interface Question {
   correctOptionIndex: number;
 }
 
+/** Pergunta sem a resposta correta - para exibição ao jogador. */
+export interface PublicQuestion {
+  text: string;
+  options: string[];
+}
+
+/** Quiz global sem respostas corretas - para exibição ao jogador. */
+export interface PublicGlobalQuiz extends Omit<GlobalQuiz, "questions"> {
+  questions: PublicQuestion[];
+}
+
 export interface Answer {
   participantId: string;
   optionIndex: number;

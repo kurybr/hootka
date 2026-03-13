@@ -3,11 +3,13 @@ import { NextResponse } from "next/server";
 export function globalQuizErrorResponse(error: unknown) {
   const code = error instanceof Error ? error.message : "UNKNOWN_ERROR";
 
-  console.error("[globalQuiz] Erro:", {
-    code,
-    message: error instanceof Error ? error.message : String(error),
-    stack: error instanceof Error ? error.stack : undefined,
-  });
+  if (process.env.NODE_ENV !== "production") {
+    console.error("[globalQuiz] Erro:", {
+      code,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+  }
 
   const status =
     code === "AUTH_REQUIRED"

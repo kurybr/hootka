@@ -7,7 +7,7 @@ import {
   QUESTION_OPTION_COLORS,
   QUESTION_SHORTCUT_KEYS,
 } from "@/lib/questionUtils";
-import type { Question } from "@/types/quiz";
+import type { PublicQuestion } from "@/types/quiz";
 import { useSound } from "@/providers/SoundProvider";
 
 const containerVariants = {
@@ -24,7 +24,7 @@ const itemVariants = {
 };
 
 interface QuestionCardProps {
-  question: Question;
+  question: PublicQuestion;
   onAnswer: (optionIndex: number) => void;
   disabled?: boolean;
   selectedIndex?: number | null;

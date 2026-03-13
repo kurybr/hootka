@@ -115,7 +115,6 @@ export class GameEngine {
   ): Promise<{
     correct: boolean;
     score: number;
-    correctIndex: number;
     shouldTransitionToResult: boolean;
   }> {
     const room = await this.store.getRoom(roomId);
@@ -175,7 +174,6 @@ export class GameEngine {
     return {
       correct,
       score,
-      correctIndex: question.correctOptionIndex,
       shouldTransitionToResult,
     };
   }

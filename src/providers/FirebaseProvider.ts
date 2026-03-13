@@ -311,7 +311,7 @@ export class FirebaseProvider implements IRealTimeProvider {
             cb({
               correct: data.correct,
               score: data.score,
-              correctIndex: data.correctIndex,
+              correctIndex: -1,
             })
           );
         } else {

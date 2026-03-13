@@ -19,20 +19,18 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
     const optionIndex = typeof body?.optionIndex === "number" ? body.optionIndex : null;
 
-    console.log("[globalQuiz/submit] Request:", {
-      quizId,
-      optionIndex,
-      userId: user.uid,
-    });
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[globalQuiz/submit] Request:", { quizId, optionIndex });
+    }
 
     const payload = await engine.submitAnswer(user, quizId, optionIndex);
 
-    console.log("[globalQuiz/submit] Success:", {
-      quizId,
-      attemptId: payload.attempt.id,
-      completed: payload.completed,
-      totalScore: payload.attempt.totalScore,
-    });
+    if (process.env.NODE_ENV !== "production") {
+      console.log("[globalQuiz/submit] Success:", {
+        quizId,
+        completed: payload.completed,
+      });
+    }
 
     return NextResponse.json(payload);
   } catch (error) {

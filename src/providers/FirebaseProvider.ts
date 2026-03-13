@@ -1,6 +1,6 @@
 "use client";
 
-import { ref, onValue, off, type Unsubscribe } from "firebase/database";
+import { ref, onValue, type Unsubscribe } from "firebase/database";
 import type {
   AnswerCountData,
   AnswerResultData,

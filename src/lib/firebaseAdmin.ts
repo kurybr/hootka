@@ -1,5 +1,6 @@
 import { resolve } from "path";
 import { getApps, initializeApp, cert, type App } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { getDatabase } from "firebase-admin/database";
 
 let adminApp: App | null = null;
@@ -59,4 +60,15 @@ export function getFirebaseAdminDatabase() {
   return getDatabase(app);
 }
 
+export function getFirebaseAdminAuth() {
+  const app = getFirebaseAdminApp();
+  if (!app) return null;
+  return getAuth(app);
+}
+
 export const ROOMS_PATH = "rooms";
+export const GLOBAL_QUIZZES_PATH = "globalQuizzes";
+export const GLOBAL_QUIZ_SLUGS_PATH = "globalQuizSlugs";
+export const GLOBAL_QUIZ_ATTEMPTS_PATH = "globalQuizAttempts";
+export const GLOBAL_QUIZ_USER_STATS_PATH = "globalQuizUserStats";
+export const GLOBAL_QUIZ_LEADERBOARD_PATH = "globalQuizLeaderboard";

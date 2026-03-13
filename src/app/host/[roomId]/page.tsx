@@ -279,9 +279,15 @@ export default function HostRoomPage() {
               {(() => {
                 const qKey = String(currentQuestionIndex);
                 const answers = room?.answers?.[qKey] ?? {};
-                const counts: [number, number, number, number] = [0, 0, 0, 0];
+                const counts = Array.from(
+                  { length: currentQuestion.options.length },
+                  () => 0
+                );
                 for (const answer of Object.values(answers)) {
-                  if (answer.optionIndex >= 0 && answer.optionIndex <= 3) {
+                  if (
+                    answer.optionIndex >= 0 &&
+                    answer.optionIndex < currentQuestion.options.length
+                  ) {
                     counts[answer.optionIndex]++;
                   }
                 }

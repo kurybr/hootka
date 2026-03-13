@@ -1,10 +1,14 @@
 import type { Answer, Participant, Question, Room } from "../types/quiz";
 import type { IGameStore } from "./IGameStore";
+import {
+  DEFAULT_QUESTION_TIME_LIMIT_MS,
+  calculateTimedScore,
+  validateQuestions,
+} from "../lib/questionUtils";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 6;
-const QUESTION_TIMEOUT_MS = 120000;
-const MAX_SCORE = 120;
+const QUESTION_TIMEOUT_MS = DEFAULT_QUESTION_TIME_LIMIT_MS;
 
 function generateCode(): string {
   let code = "";
@@ -22,6 +26,11 @@ export class GameEngine {
   constructor(private store: IGameStore) {}
 
   async createRoom(questions: Question[], hostId: string): Promise<Room> {
+    const validationError = validateQuestions(questions);
+    if (validationError) {
+      throw new Error(validationError);
+    }
+
     const roomId = generateId();
     let code = generateCode();
 
@@ -115,6 +124,9 @@ export class GameEngine {
 
     const question = room.questions[questionIndex];
     if (!question) throw new Error("PERGUNTA_INVALIDA");
+    if (optionIndex < 0 || optionIndex >= question.options.length) {
+      throw new Error("ALTERNATIVA_INVALIDA");
+    }
 
     const qKey = String(questionIndex);
     const existingAnswers = room.answers[qKey] ?? {};
@@ -131,10 +143,7 @@ export class GameEngine {
     }
 
     const correct = optionIndex === question.correctOptionIndex;
-    const tempoRestante = Math.max(0, QUESTION_TIMEOUT_MS - responseTime);
-    const score = correct
-      ? Math.round(MAX_SCORE * (tempoRestante / QUESTION_TIMEOUT_MS))
-      : 0;
+    const score = calculateTimedScore(correct, responseTime, QUESTION_TIMEOUT_MS);
 
     const answer: Answer = {
       participantId,

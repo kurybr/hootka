@@ -1,18 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { QUESTION_OPTION_COLORS } from "@/lib/questionUtils";
 import type { Question } from "@/types/quiz";
-
-const OPTION_COLORS = [
-  "bg-red-500",
-  "bg-blue-500",
-  "bg-yellow-500",
-  "bg-green-500",
-] as const;
 
 interface AnswerDistributionProps {
   question: Question;
-  counts: [number, number, number, number];
+  counts: number[];
   total: number;
 }
 
@@ -55,7 +49,7 @@ export function AnswerDistribution({
                 <div
                   className={cn(
                     "h-full transition-all",
-                    OPTION_COLORS[index],
+                    QUESTION_OPTION_COLORS[index],
                     isCorrect && "ring-2 ring-green-500"
                   )}
                   style={{ width: `${barWidth}%` }}

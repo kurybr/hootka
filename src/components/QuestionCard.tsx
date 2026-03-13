@@ -3,17 +3,12 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import {
+  QUESTION_OPTION_COLORS,
+  QUESTION_SHORTCUT_KEYS,
+} from "@/lib/questionUtils";
 import type { Question } from "@/types/quiz";
 import { useSound } from "@/providers/SoundProvider";
-
-const KEY_MAP = ["a", "s", "d", "f"] as const;
-
-const OPTION_COLORS = [
-  "bg-red-500 hover:bg-red-600 border-red-600",
-  "bg-blue-500 hover:bg-blue-600 border-blue-600",
-  "bg-yellow-500 hover:bg-yellow-600 border-yellow-600 text-yellow-950",
-  "bg-green-500 hover:bg-green-600 border-green-600",
-] as const;
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -59,7 +54,9 @@ export function QuestionCard({
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
 
       const key = e.key.toLowerCase();
-      const index = KEY_MAP.indexOf(key as (typeof KEY_MAP)[number]);
+      const index = QUESTION_SHORTCUT_KEYS.indexOf(
+        key as (typeof QUESTION_SHORTCUT_KEYS)[number]
+      );
       if (index === -1 || index >= question.options.length) return;
 
       e.preventDefault();
@@ -118,7 +115,7 @@ export function QuestionCard({
             }
             className={cn(
               "relative flex min-h-[80px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-medium transition-colors",
-              OPTION_COLORS[index],
+              QUESTION_OPTION_COLORS[index],
               disabled && "cursor-not-allowed opacity-70",
               selectedIndex === index &&
                 "ring-4 ring-white ring-offset-2 ring-offset-background",
@@ -128,7 +125,7 @@ export function QuestionCard({
             )}
           >
             <span className="absolute left-2 top-2 rounded bg-white/80 px-1.5 py-0.5 font-mono text-xs font-bold text-black/80">
-              {KEY_MAP[index].toUpperCase()}
+              {QUESTION_SHORTCUT_KEYS[index].toUpperCase()}
             </span>
             {option}
           </motion.button>

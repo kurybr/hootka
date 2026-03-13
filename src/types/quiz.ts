@@ -1,4 +1,7 @@
 export type RoomStatus = "waiting" | "playing" | "result" | "finished";
+export type GlobalQuizVisibility = "official" | "community";
+export type GlobalQuizStatus = "draft" | "published" | "archived";
+export type GlobalQuizAttemptStatus = "in_progress" | "completed" | "abandoned";
 
 export interface Room {
   id: string;
@@ -24,7 +27,7 @@ export interface Participant {
 
 export interface Question {
   text: string;
-  options: [string, string, string, string];
+  options: string[];
   correctOptionIndex: number;
 }
 
@@ -53,4 +56,78 @@ export interface ExportedQuiz {
 
 export interface CloudSavedQuiz extends SavedQuiz {
   ownerId: string;
+}
+
+export interface GlobalQuiz {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  topic: string;
+  questions: Question[];
+  visibility: GlobalQuizVisibility;
+  status: GlobalQuizStatus;
+  attemptLimit: number | null;
+  questionTimeLimitMs: number;
+  createdBy: string;
+  createdByUsername: string;
+  createdAt: number;
+  updatedAt: number;
+  publishedAt: number | null;
+}
+
+export interface GlobalQuizAttemptAnswer {
+  questionIndex: number;
+  optionIndex: number | null;
+  timestamp: number;
+  responseTime: number;
+  score: number;
+  correct: boolean;
+}
+
+export interface GlobalQuizAttempt {
+  id: string;
+  quizId: string;
+  userId: string;
+  username: string;
+  email: string;
+  status: GlobalQuizAttemptStatus;
+  currentQuestionIndex: number;
+  questionStartTimestamp: number | null;
+  answers: Record<string, GlobalQuizAttemptAnswer>;
+  totalScore: number;
+  totalResponseTime: number;
+  startedAt: number;
+  updatedAt: number;
+  completedAt: number | null;
+}
+
+export interface GlobalQuizUserStats {
+  quizId: string;
+  userId: string;
+  username: string;
+  email: string;
+  attemptsUsed: number;
+  extraAttemptsGranted: number;
+  activeAttemptId: string | null;
+  bestScore: number;
+  bestResponseTime: number;
+  bestAttemptId: string | null;
+  lastAttemptAt: number | null;
+  updatedAt: number;
+}
+
+export interface GlobalQuizLeaderboardEntry {
+  quizId: string;
+  userId: string;
+  username: string;
+  score: number;
+  totalResponseTime: number;
+  attemptId: string;
+  completedAt: number;
+}
+
+export interface GlobalQuizAdminUserEntry extends GlobalQuizUserStats {
+  attemptLimit: number | null;
+  remainingAttempts: number | null;
 }

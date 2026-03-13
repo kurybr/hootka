@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Users, LogIn } from "lucide-react";
+import { Users, LogIn, Trophy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,7 +35,7 @@ export default function HomePage() {
 
         <Separator />
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:gap-8">
+        <div className="grid gap-6 md:grid-cols-3 lg:gap-8">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -80,6 +80,29 @@ export default function HomePage() {
               </Button>
             </CardContent>
           </Card>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.3 }}
+          >
+            <Card className="transition-shadow hover:shadow-lg">
+              <CardHeader className="p-6 lg:p-8">
+                <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
+                  <Trophy className="h-5 w-5" />
+                  Quizzes Globais
+                </CardTitle>
+                <CardDescription>
+                  Explore quizzes oficiais e comunitários com ranking global
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 pt-0 lg:p-8 lg:pt-0">
+                <Button asChild variant="outline" size="lg" className="w-full">
+                  <Link href="/quizzes">Explorar Quizzes</Link>
+                </Button>
+              </CardContent>
+            </Card>
           </motion.div>
         </div>
 

@@ -1,4 +1,5 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
@@ -27,4 +28,15 @@ export function getFirebaseDatabase() {
   return getDatabase(app);
 }
 
+export function getFirebaseAuth() {
+  const app = getFirebaseApp();
+  if (!app) return null;
+  return getAuth(app);
+}
+
 export const ROOMS_PATH = "rooms";
+export const GLOBAL_QUIZZES_PATH = "globalQuizzes";
+export const GLOBAL_QUIZ_SLUGS_PATH = "globalQuizSlugs";
+export const GLOBAL_QUIZ_ATTEMPTS_PATH = "globalQuizAttempts";
+export const GLOBAL_QUIZ_USER_STATS_PATH = "globalQuizUserStats";
+export const GLOBAL_QUIZ_LEADERBOARD_PATH = "globalQuizLeaderboard";

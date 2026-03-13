@@ -11,6 +11,7 @@ import {
   GoogleAuthProvider,
   isSignInWithEmailLink,
   signInWithPopup,
+  signInWithEmailAndPassword,
   sendSignInLinkToEmail,
   signInWithEmailLink,
   onAuthStateChanged,
@@ -38,6 +39,7 @@ interface AuthContextValue {
   profile: AuthProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmailPassword?: (email: string, password: string) => Promise<void>;
   sendEmailLinkSignIn: (
     email: string,
     username: string,
@@ -141,6 +143,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [user]);
+
+  const handleSignInWithEmailPassword = async (email: string, password: string) => {
+    const auth = getFirebaseAuth();
+    if (!auth) throw new Error("Firebase não disponível");
+    await signInWithEmailAndPassword(auth, email.trim(), password);
+  };
 
   const handleSignInWithGoogle = async () => {
     const auth = getFirebaseAuth();
@@ -251,6 +259,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         loading,
         signInWithGoogle: handleSignInWithGoogle,
+        signInWithEmailPassword:
+          process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true"
+            ? handleSignInWithEmailPassword
+            : undefined,
         sendEmailLinkSignIn: handleSendEmailLinkSignIn,
         completeEmailLinkSignIn: handleCompleteEmailLinkSignIn,
         getIdToken: handleGetIdToken,

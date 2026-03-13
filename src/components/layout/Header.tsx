@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PlusCircle, LogIn, Trophy, Menu } from "lucide-react";
+import { PlusCircle, LogIn, Trophy, Menu, Shield } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/providers/AuthProvider";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,8 @@ const secondaryNavItems = [
 export function Header() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === "admin";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -49,6 +52,18 @@ export function Header() {
               </Link>
             </Button>
           ))}
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+            >
+              <Link href="/admin" className="flex items-center gap-2">
+                <Shield className="h-4 w-4" aria-hidden="true" />
+                Admin
+              </Link>
+            </Button>
+          )}
           <Button size="sm" asChild>
             <Link href="/host" className="flex items-center gap-2">
               <PlusCircle className="h-4 w-4" aria-hidden="true" />
@@ -85,6 +100,16 @@ export function Header() {
                   {label}
                 </Link>
               ))}
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium hover:bg-muted transition-colors"
+                >
+                  <Shield className="h-5 w-5" aria-hidden="true" />
+                  Admin
+                </Link>
+              )}
               <Link
                 href="/host"
                 onClick={() => setMobileOpen(false)}

@@ -5,6 +5,10 @@ import { getDatabase } from "firebase-admin/database";
 
 let adminApp: App | null = null;
 
+const USE_EMULATOR =
+  process.env.FIREBASE_AUTH_EMULATOR_HOST != null ||
+  process.env.FIREBASE_DATABASE_EMULATOR_HOST != null;
+
 function getFirebaseAdminApp(): App | null {
   if (adminApp) return adminApp;
 
@@ -13,24 +17,38 @@ function getFirebaseAdminApp(): App | null {
     return adminApp;
   }
 
-  const databaseURL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
-  const rawPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  const credentialsPath = rawPath?.startsWith("/")
-    ? rawPath
-    : rawPath
-      ? resolve(process.cwd(), rawPath)
-      : undefined;
   const projectId =
     process.env.FIREBASE_PROJECT_ID ||
-    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
+    (USE_EMULATOR ? "demo-test" : undefined);
+
+  const databaseURL = USE_EMULATOR
+    ? process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||
+      `http://127.0.0.1:9000?ns=${projectId || "demo-test"}`
+    : process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
 
   if (!databaseURL) {
     return null;
   }
 
   try {
+    if (USE_EMULATOR) {
+      adminApp = initializeApp({
+        projectId: projectId || "demo-test",
+        databaseURL,
+      });
+      return adminApp;
+    }
+
+    const rawPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    const credentialsPath = rawPath?.startsWith("/")
+      ? rawPath
+      : rawPath
+        ? resolve(process.cwd(), rawPath)
+        : undefined;
+    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
     if (credentialsPath) {
       adminApp = initializeApp({
         credential: cert(credentialsPath),

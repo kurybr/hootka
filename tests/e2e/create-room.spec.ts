@@ -35,7 +35,7 @@ test.describe("Create room flow", () => {
   test("shows validation error when question has empty options", async ({ page }) => {
     await page.goto(`${BASE_URL}/host/create`);
 
-    await page.getByPlaceholder("Digite a pergunta...").fill("Qual a capital do Brasil?");
+    await page.getByPlaceholder("Digite a pergunta...").first().fill("Qual a capital do Brasil?");
     await page.getByRole("button", { name: "Criar Sala" }).click();
 
     await expect(page.getByText(/preencha todas as alternativas/)).toBeVisible();
@@ -44,14 +44,15 @@ test.describe("Create room flow", () => {
   test("fills question and options correctly", async ({ page }) => {
     await page.goto(`${BASE_URL}/host/create`);
 
-    await page.getByPlaceholder("Digite a pergunta...").fill("Qual a capital do Brasil?");
+    const questionInput = page.getByPlaceholder("Digite a pergunta...").first();
+    await questionInput.fill("Qual a capital do Brasil?");
     const optionInputs = page.getByPlaceholder(/Alternativa \d/);
     const count = await optionInputs.count();
     for (let i = 0; i < count; i++) {
       await optionInputs.nth(i).fill(`Opção ${i + 1}`);
     }
 
-    await expect(page.getByPlaceholder("Digite a pergunta...")).toHaveValue("Qual a capital do Brasil?");
+    await expect(questionInput).toHaveValue("Qual a capital do Brasil?");
   });
 
   test("can add multiple questions", async ({ page }) => {
@@ -59,7 +60,7 @@ test.describe("Create room flow", () => {
 
     await page.getByRole("button", { name: "+ Adicionar Pergunta" }).click();
 
-    await expect(page.getByRole("heading", { name: "Pergunta 2" })).toBeVisible();
+    await expect(page.getByText("Pergunta 2")).toBeVisible();
   });
 
   test("save to library checkbox shows title input when checked", async ({ page }) => {
@@ -83,7 +84,7 @@ test.describe("Create room flow", () => {
   test("creates room successfully with valid quiz", async ({ page }) => {
     await page.goto(`${BASE_URL}/host/create`);
 
-    await page.getByPlaceholder("Digite a pergunta...").fill("1+1=?");
+    await page.getByPlaceholder("Digite a pergunta...").first().fill("1+1=?");
     const optionInputs = page.getByPlaceholder(/Alternativa \d/);
     const count = await optionInputs.count();
     for (let i = 0; i < count; i++) {

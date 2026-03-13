@@ -102,6 +102,7 @@ export async function submitGlobalQuizAnswer(
     quiz: PublicGlobalQuiz;
     attempt: GlobalQuizAttempt;
     answer: GlobalQuizAttemptAnswer;
+    correctOptionIndex: number;
     completed: boolean;
     leaderboard: GlobalQuizLeaderboardEntry[];
   }>(response);

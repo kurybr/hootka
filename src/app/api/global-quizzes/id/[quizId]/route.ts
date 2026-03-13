@@ -15,10 +15,12 @@ export async function GET(
   try {
     const user = await requireAuthenticatedUser(request);
     const { quizId } = await params;
-    const quizzes = await engine.listQuizzesByOwner(user.uid);
-    const quiz = quizzes.find((item) => item.id === quizId);
+    const quiz = await engine.getQuizById(quizId);
     if (!quiz) {
       throw new Error("QUIZ_NOT_FOUND");
+    }
+    if (quiz.createdBy !== user.uid && user.role !== "admin") {
+      throw new Error("FORBIDDEN");
     }
     return NextResponse.json({ quiz });
   } catch (error) {

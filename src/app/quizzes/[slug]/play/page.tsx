@@ -3,10 +3,12 @@
 import { use, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmailLinkSignInCard } from "@/components/EmailLinkSignInCard";
 import { QuestionCard } from "@/components/QuestionCard";
+import { ResultCard } from "@/components/ResultCard";
 import { Timer } from "@/components/Timer";
 import { usePublicGlobalQuiz } from "@/hooks/usePublicGlobalQuiz";
 import {
@@ -15,9 +17,12 @@ import {
   submitGlobalQuizAnswer,
 } from "@/lib/globalQuizClient";
 import { useAuth } from "@/providers/AuthProvider";
-import { toast } from "@/hooks/use-toast";
 import { useTimer } from "@/hooks/useTimer";
-import type { GlobalQuizAttempt } from "@/types/quiz";
+import type {
+  GlobalQuizAttempt,
+  GlobalQuizAttemptAnswer,
+  GlobalQuizLeaderboardEntry,
+} from "@/types/quiz";
 
 export default function GlobalQuizPlayPage({
   params,
@@ -33,6 +38,13 @@ export default function GlobalQuizPlayPage({
   const [attemptError, setAttemptError] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [lastFeedback, setLastFeedback] = useState<{
+    question: { text: string; options: string[]; correctOptionIndex: number };
+    answer: GlobalQuizAttemptAnswer;
+    attempt: GlobalQuizAttempt;
+    completed: boolean;
+    leaderboard: GlobalQuizLeaderboardEntry[];
+  } | null>(null);
   const autoExpiredQuestionRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -79,27 +91,28 @@ export default function GlobalQuizPlayPage({
 
   const handleSubmit = useCallback(
     async (optionIndex: number | null) => {
-      if (!quiz) return;
+      if (!quiz || !attempt) return;
 
       setSubmitting(true);
       try {
         const data = await submitGlobalQuizAnswer(quiz.id, optionIndex);
-        setAttempt(data.attempt);
-        setLeaderboard(data.leaderboard);
-        if (data.completed) {
-          toast({
-            title: "Tentativa concluída",
-            description: `Sua pontuação final foi ${data.attempt.totalScore} pontos.`,
-          });
-          router.replace(`/quizzes/${quiz.slug}/ranking`);
-        } else {
-          toast({
-            title: data.answer.correct ? "Resposta correta" : "Resposta registrada",
-            description: data.answer.correct
-              ? `+${data.answer.score} pontos`
-              : "A próxima pergunta já está disponível.",
-          });
+        const answeredQuestion = quiz.questions[data.answer.questionIndex];
+        if (!answeredQuestion) {
+          setAttempt(data.attempt);
+          setLeaderboard(data.leaderboard);
+          if (data.completed) router.replace(`/quizzes/${quiz.slug}/ranking`);
+          return;
         }
+        setLastFeedback({
+          question: {
+            ...answeredQuestion,
+            correctOptionIndex: data.correctOptionIndex,
+          },
+          answer: data.answer,
+          attempt: data.attempt,
+          completed: data.completed,
+          leaderboard: data.leaderboard,
+        });
       } catch (err) {
         setAttemptError(
           err instanceof Error ? err.message : "Não foi possível enviar a resposta."
@@ -109,8 +122,18 @@ export default function GlobalQuizPlayPage({
         setSubmitting(false);
       }
     },
-    [quiz, router, setLeaderboard]
+    [quiz, attempt, setLeaderboard]
   );
+
+  const handleContinueFeedback = useCallback(() => {
+    if (!lastFeedback) return;
+    setAttempt(lastFeedback.attempt);
+    setLeaderboard(lastFeedback.leaderboard);
+    setLastFeedback(null);
+    if (lastFeedback.completed) {
+      router.replace(`/quizzes/${slug}/ranking`);
+    }
+  }, [lastFeedback, setLeaderboard, router, slug]);
 
   useEffect(() => {
     if (!isExpired || !attempt || !currentQuestion || submitting) return;
@@ -163,6 +186,45 @@ export default function GlobalQuizPlayPage({
           />
         ) : attemptLoading || !attempt || !currentQuestion ? (
           <p className="text-sm text-muted-foreground">Preparando sua tentativa...</p>
+        ) : lastFeedback ? (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key="feedback"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle>Resultado da Rodada</CardTitle>
+                  <CardDescription>
+                    Confira seu desempenho nesta pergunta
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <ResultCard
+                    question={lastFeedback.question}
+                    selectedIndex={lastFeedback.answer.optionIndex}
+                    score={lastFeedback.answer.score}
+                    correct={lastFeedback.answer.correct}
+                  />
+                  <p className="text-center text-sm text-muted-foreground">
+                    Pontuação atual: {lastFeedback.attempt.totalScore} pontos
+                  </p>
+                  <Button
+                    size="lg"
+                    className="w-full"
+                    onClick={handleContinueFeedback}
+                  >
+                    {lastFeedback.completed
+                      ? "Ver ranking final"
+                      : "Próxima pergunta"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </AnimatePresence>
         ) : (
           <Card>
             <CardHeader>

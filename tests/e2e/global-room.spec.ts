@@ -45,10 +45,20 @@ test.describe("Global room - quiz flow with Firebase Emulator", () => {
     await page.getByRole("button", { name: "Brasília" }).click();
 
     await expect(
+      page.getByRole("button", { name: "Próxima pergunta" })
+    ).toBeVisible({ timeout: 10000 });
+    await page.getByRole("button", { name: "Próxima pergunta" }).click();
+
+    await expect(
       page.getByText("Quanto é 2 + 2?")
     ).toBeVisible({ timeout: 10000 });
 
     await page.getByRole("button", { name: "4" }).click();
+
+    await expect(
+      page.getByRole("button", { name: "Ver ranking final" })
+    ).toBeVisible({ timeout: 10000 });
+    await page.getByRole("button", { name: "Ver ranking final" }).click();
 
     await expect(page).toHaveURL(new RegExp(`/quizzes/${SEED_QUIZ.slug}/ranking`), {
       timeout: 15000,

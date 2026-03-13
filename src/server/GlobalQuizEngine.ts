@@ -335,6 +335,7 @@ export class GlobalQuizEngine {
     quiz: PublicGlobalQuiz;
     attempt: GlobalQuizAttempt;
     answer: GlobalQuizAttemptAnswer;
+    correctOptionIndex: number;
     completed: boolean;
     leaderboard: GlobalQuizLeaderboardEntry[];
   }> {
@@ -420,6 +421,7 @@ export class GlobalQuizEngine {
         quiz: toPublicQuiz(quiz),
         attempt: nextAttempt,
         answer,
+        correctOptionIndex: question.correctOptionIndex,
         completed: false,
         leaderboard: await this.getLeaderboard(quizId),
       };
@@ -471,6 +473,7 @@ export class GlobalQuizEngine {
       quiz: toPublicQuiz(quiz),
       attempt: nextAttempt,
       answer,
+      correctOptionIndex: question.correctOptionIndex,
       completed: true,
       leaderboard: await this.getLeaderboard(quizId),
     };

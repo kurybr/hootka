@@ -2,6 +2,7 @@ import { ref, get, set, remove, onValue } from "firebase/database";
 import type { SavedQuiz } from "@/types/quiz";
 import { getFirebaseDatabase } from "@/lib/firebase";
 import { getQuizzes as getLocalQuizzes } from "@/lib/quizStorage";
+import { cloneQuestions } from "@/lib/questionUtils";
 
 function quizzesRef(uid: string) {
   const db = getFirebaseDatabase();
@@ -100,10 +101,7 @@ export async function duplicateQuizCloud(
 
   return saveQuizCloud(uid, {
     title: `Cópia de ${original.title}`,
-    questions: original.questions.map((q) => ({
-      ...q,
-      options: [...q.options] as [string, string, string, string],
-    })),
+    questions: cloneQuestions(original.questions),
   });
 }
 

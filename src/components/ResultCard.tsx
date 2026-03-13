@@ -4,15 +4,9 @@ import { useEffect } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { QUESTION_OPTION_COLORS } from "@/lib/questionUtils";
 import { useSound } from "@/providers/SoundProvider";
 import type { Question } from "@/types/quiz";
-
-const OPTION_COLORS = [
-  "bg-red-500/80 border-red-600",
-  "bg-blue-500/80 border-blue-600",
-  "bg-yellow-500/80 border-yellow-600 text-yellow-950",
-  "bg-green-500/80 border-green-600",
-] as const;
 
 interface ResultCardProps {
   question: Question;
@@ -78,7 +72,7 @@ export function ResultCard({
               key={index}
               className={cn(
                 "flex min-h-[60px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-medium",
-                OPTION_COLORS[index],
+                QUESTION_OPTION_COLORS[index],
                 isCorrect && "border-green-600 bg-green-500 ring-2 ring-green-400",
                 showWrong && "border-red-600 bg-red-500 ring-2 ring-red-400"
               )}

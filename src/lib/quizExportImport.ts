@@ -1,5 +1,10 @@
 import type { SavedQuiz, ExportedQuiz, Question } from "@/types/quiz";
 import { saveQuiz } from "@/lib/quizStorage";
+import {
+  MAX_QUESTION_OPTIONS,
+  MIN_QUESTION_OPTIONS,
+  cloneQuestions,
+} from "@/lib/questionUtils";
 
 function slugify(title: string): string {
   return title
@@ -15,10 +20,7 @@ export function exportQuiz(quiz: SavedQuiz): ExportedQuiz {
   return {
     version: 1,
     title: quiz.title,
-    questions: quiz.questions.map((q) => ({
-      ...q,
-      options: [...q.options],
-    })),
+    questions: cloneQuestions(quiz.questions),
     exportedAt: Date.now(),
   };
 }
@@ -59,9 +61,13 @@ function validateQuestion(q: unknown, index: number): q is Question {
       `Quiz inválido: a pergunta ${index + 1} não tem enunciado válido.`
     );
   }
-  if (!Array.isArray(obj.options) || obj.options.length !== 4) {
+  if (
+    !Array.isArray(obj.options) ||
+    obj.options.length < MIN_QUESTION_OPTIONS ||
+    obj.options.length > MAX_QUESTION_OPTIONS
+  ) {
     throw new Error(
-      `Quiz inválido: a pergunta ${index + 1} tem menos de 4 alternativas.`
+      `Quiz inválido: a pergunta ${index + 1} deve ter entre ${MIN_QUESTION_OPTIONS} e ${MAX_QUESTION_OPTIONS} alternativas.`
     );
   }
   if (!obj.options.every((o: unknown) => typeof o === "string")) {
@@ -73,7 +79,7 @@ function validateQuestion(q: unknown, index: number): q is Question {
   if (
     typeof correctIndex !== "number" ||
     correctIndex < 0 ||
-    correctIndex > 3 ||
+    correctIndex >= obj.options.length ||
     !Number.isInteger(correctIndex)
   ) {
     throw new Error(
@@ -109,11 +115,7 @@ export function validateExportedQuiz(data: unknown): ExportedQuiz {
   return {
     version: 1,
     title: (obj.title as string).trim(),
-    questions: (obj.questions as Question[]).map((q) => ({
-      text: q.text,
-      options: [...q.options],
-      correctOptionIndex: q.correctOptionIndex,
-    })),
+    questions: cloneQuestions(obj.questions as Question[]),
     exportedAt: typeof obj.exportedAt === "number" ? obj.exportedAt : Date.now(),
   };
 }

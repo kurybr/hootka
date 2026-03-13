@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
 import "./globals.css";
+import { Header } from "@/components/layout/Header";
 import { Toaster } from "@/components/ui/toaster";
 import { RealTimeProvider } from "@/providers/RealTimeContext";
 import { SoundProvider } from "@/providers/SoundProvider";
@@ -41,6 +42,7 @@ export default function RootLayout({
             <AuthProvider>
               <RealTimeProvider>
                 <SoundProvider>
+                  <Header />
                   {children}
                   <ReconnectingOverlay />
                   <Toaster />

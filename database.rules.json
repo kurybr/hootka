@@ -27,6 +27,26 @@
         ".read": "$uid === auth.uid",
         ".write": "$uid === auth.uid"
       }
+    },
+    "globalQuizzes": {
+      ".read": true,
+      ".write": false
+    },
+    "globalQuizSlugs": {
+      ".read": true,
+      ".write": false
+    },
+    "globalQuizLeaderboard": {
+      ".read": true,
+      ".write": false
+    },
+    "globalQuizAttempts": {
+      ".read": false,
+      ".write": false
+    },
+    "globalQuizUserStats": {
+      ".read": false,
+      ".write": false
     }
   }
 }

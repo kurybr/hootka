@@ -1,6 +1,6 @@
 "use client";
 
-import { ref, onValue, off, type Unsubscribe } from "firebase/database";
+import { ref, onValue, type Unsubscribe } from "firebase/database";
 import type {
   AnswerCountData,
   AnswerResultData,
@@ -311,7 +311,7 @@ export class FirebaseProvider implements IRealTimeProvider {
             cb({
               correct: data.correct,
               score: data.score,
-              correctIndex: data.correctIndex,
+              correctIndex: -1,
             })
           );
         } else {

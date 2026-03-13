@@ -126,6 +126,14 @@ export default function PlayRoomPage() {
     return unsub;
   }, [provider]);
 
+  const previousRankingRef = useRef<typeof ranking>([]);
+
+  useEffect(() => {
+    if (status === "playing" && ranking.length > 0) {
+      previousRankingRef.current = [...ranking];
+    }
+  }, [status, ranking]);
+
   const confettiFiredForQuestion = useRef<number>(-1);
   useEffect(() => {
     if (status !== "result" || confettiFiredForQuestion.current === currentQuestionIndex) return;
@@ -335,6 +343,8 @@ export default function PlayRoomPage() {
                     <Ranking
                       participants={ranking}
                       currentParticipantId={participantId}
+                      previousParticipants={previousRankingRef.current}
+                      onCurrentPlayerEnterTop3={() => setTimeout(fireConfetti, 400)}
                     />
                   </div>
                 );

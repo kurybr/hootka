@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-const QUESTION_TIMEOUT_MS = 120000;
+import { DEFAULT_QUESTION_TIME_LIMIT_MS } from "@/lib/questionUtils";
 
 interface UseTimerResult {
   timeLeft: number;
@@ -11,15 +10,16 @@ interface UseTimerResult {
 }
 
 export function useTimer(
-  questionStartTimestamp: number | null
+  questionStartTimestamp: number | null,
+  timeLimitMs = DEFAULT_QUESTION_TIME_LIMIT_MS
 ): UseTimerResult {
-  const [timeLeft, setTimeLeft] = useState(QUESTION_TIMEOUT_MS / 1000);
+  const [timeLeft, setTimeLeft] = useState(timeLimitMs / 1000);
   const [isExpired, setIsExpired] = useState(false);
   const [progress, setProgress] = useState(1);
 
   useEffect(() => {
     if (questionStartTimestamp === null) {
-      setTimeLeft(QUESTION_TIMEOUT_MS / 1000);
+      setTimeLeft(timeLimitMs / 1000);
       setIsExpired(false);
       setProgress(1);
       return;
@@ -33,9 +33,9 @@ export function useTimer(
       if (now - lastUpdate >= 100) {
         lastUpdate = now;
         const elapsed = Date.now() - questionStartTimestamp;
-        const remainingMs = Math.max(0, QUESTION_TIMEOUT_MS - elapsed);
+        const remainingMs = Math.max(0, timeLimitMs - elapsed);
         const remainingSec = Math.ceil(remainingMs / 1000);
-        const progressValue = remainingMs / QUESTION_TIMEOUT_MS;
+        const progressValue = remainingMs / timeLimitMs;
         setTimeLeft(remainingSec);
         setIsExpired(remainingMs <= 0);
         setProgress(Math.max(0, Math.min(1, progressValue)));
@@ -46,7 +46,7 @@ export function useTimer(
     rafId = requestAnimationFrame(update);
 
     return () => cancelAnimationFrame(rafId);
-  }, [questionStartTimestamp]);
+  }, [questionStartTimestamp, timeLimitMs]);
 
   return {
     timeLeft,

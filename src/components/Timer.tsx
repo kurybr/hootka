@@ -3,21 +3,27 @@
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { useTimer } from "@/hooks/useTimer";
+import { DEFAULT_QUESTION_TIME_LIMIT_MS } from "@/lib/questionUtils";
 import { useSound } from "@/providers/SoundProvider";
 import { cn } from "@/lib/utils";
 
 interface TimerProps {
   questionStartTimestamp: number | null;
+  timeLimitMs?: number;
   className?: string;
   size?: "default" | "large";
 }
 
 export function Timer({
   questionStartTimestamp,
+  timeLimitMs = DEFAULT_QUESTION_TIME_LIMIT_MS,
   className,
   size = "default",
 }: TimerProps) {
-  const { timeLeft, isExpired, progress } = useTimer(questionStartTimestamp);
+  const { timeLeft, isExpired, progress } = useTimer(
+    questionStartTimestamp,
+    timeLimitMs
+  );
   const { playTick } = useSound();
   const lastTickRef = useRef<number | null>(null);
 

@@ -29,7 +29,7 @@ export interface ServerEvents {
   "answer:result": (data: {
     correct: boolean;
     score: number;
-    correctIndex: number;
+    correctIndex?: number;
   }) => void;
   "ranking:update": (data: Participant[]) => void;
   error: (data: { message: string; code: string }) => void;

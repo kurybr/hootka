@@ -76,7 +76,13 @@ export class SocketIOProvider implements IRealTimeProvider {
     });
 
     this.socket.on("answer:result", (data: AnswerResultData) => {
-      this.answerResultListeners.forEach((cb) => cb(data));
+      this.answerResultListeners.forEach((cb) =>
+        cb({
+          correct: data.correct,
+          score: data.score,
+          correctIndex: data.correctIndex ?? -1,
+        })
+      );
     });
 
     this.socket.on("ranking:update", (participants: Participant[]) => {

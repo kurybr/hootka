@@ -345,7 +345,6 @@ export function setupSocketHandler(io: TypedServer): void {
           socket.emit("answer:result" as keyof ServerEvents, {
             correct: result.correct,
             score: result.score,
-            correctIndex: result.correctIndex,
           });
           const updatedRoom = await store.getRoom(roomId);
           if (updatedRoom) {

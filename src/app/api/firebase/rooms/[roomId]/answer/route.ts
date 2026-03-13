@@ -48,7 +48,6 @@ export async function POST(
     return NextResponse.json({
       correct: result.correct,
       score: result.score,
-      correctIndex: result.correctIndex,
     });
   } catch (err) {
     const code = err instanceof Error ? err.message : "ERRO_RESPOSTA";

@@ -2,85 +2,101 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Users, LogIn } from "lucide-react";
+import { LogIn, Trophy } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { AdSense } from "@/components/AdSense";
+
+const playerActionCards = [
+  {
+    href: "/join",
+    title: "Entrar em sala",
+    description: "Digite o código e participe do jogo.",
+    icon: LogIn,
+  },
+  {
+    href: "/quizzes",
+    title: "Explorar quizzes",
+    description: "Jogue quizzes públicos e veja o ranking.",
+    icon: Trophy,
+  },
+];
 
 export default function HomePage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-8 lg:p-12">
       <motion.div
-        className="mx-auto w-full max-w-2xl space-y-8 text-center lg:max-w-3xl"
+        className="mx-auto w-full max-w-4xl space-y-12 text-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">
+        {/* Hero section */}
+        <div className="space-y-4">
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Hootka
           </h1>
-          <p className="text-muted-foreground">
-            Crie ou entre em uma sala para começar a jogar
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Crie quizzes interativos e jogue com outras pessoas em tempo real.
           </p>
         </div>
 
-        <Separator />
+        {/* How it works */}
+        <section className="rounded-xl border bg-muted/30 px-6 py-5 text-left max-w-2xl mx-auto">
+          <h2 className="text-sm font-medium mb-3 text-foreground">
+            Como funciona:
+          </h2>
+          <ol className="list-decimal list-inside space-y-1.5 text-sm text-muted-foreground">
+            <li>Crie uma sala</li>
+            <li>Compartilhe o código</li>
+            <li>Responda perguntas e veja o ranking</li>
+          </ol>
+        </section>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:gap-8">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: 0.1 }}
-          >
-            <Card className="transition-shadow hover:shadow-lg">
-            <CardHeader className="p-6 lg:p-8">
-              <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
-                <Users className="h-5 w-5" />
-                Criar Sala
-              </CardTitle>
-              <CardDescription>
-                Crie uma nova sala, adicione perguntas e convide participantes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 pt-0 lg:p-8 lg:pt-0">
-              <Button asChild size="lg" className="w-full">
-                <Link href="/host">Criar Sala</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: 0.2 }}
-          >
-            <Card className="transition-shadow hover:shadow-lg">
-            <CardHeader className="p-6 lg:p-8">
-              <CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
-                <LogIn className="h-5 w-5" />
-                Entrar em Sala
-              </CardTitle>
-              <CardDescription>
-                Entre em uma sala existente usando o código fornecido pelo host
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 pt-0 lg:p-8 lg:pt-0">
-              <Button asChild variant="secondary" size="lg" className="w-full">
-                <Link href="/join">Entrar em Sala</Link>
-              </Button>
-            </CardContent>
-          </Card>
-          </motion.div>
+        {/* Primary actions: player flows only */}
+        <div className="grid gap-6 sm:grid-cols-2 sm:gap-8 max-w-3xl mx-auto">
+          {playerActionCards.map((card, i) => {
+            const Icon = card.icon;
+            return (
+              <motion.div
+                key={card.href}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.1 + i * 0.1 }}
+              >
+                <Link
+                  href={card.href}
+                  className="block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
+                >
+                  <Card className="h-full transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer group">
+                    <CardHeader className="p-8 sm:p-10">
+                      <div className="flex flex-col items-center text-center space-y-4">
+                        <div className="rounded-full bg-primary/10 p-4 group-hover:bg-primary/15 transition-colors">
+                          <Icon
+                            className="h-8 w-8 text-primary sm:h-10 sm:w-10"
+                            aria-hidden="true"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <CardTitle className="text-xl sm:text-2xl">
+                            {card.title}
+                          </CardTitle>
+                          <CardDescription className="text-base">
+                            {card.description}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
 
         <AdSense

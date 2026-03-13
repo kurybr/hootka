@@ -1,4 +1,5 @@
 import type { SavedQuiz } from "@/types/quiz";
+import { cloneQuestions } from "@/lib/questionUtils";
 
 const STORAGE_KEY = "quiz_library";
 
@@ -34,7 +35,7 @@ export function saveQuiz(
   const saved: SavedQuiz = {
     id: crypto.randomUUID(),
     title: quiz.title,
-    questions: quiz.questions,
+    questions: cloneQuestions(quiz.questions),
     createdAt: now,
     updatedAt: now,
   };
@@ -56,6 +57,7 @@ export function updateQuiz(
   const updated: SavedQuiz = {
     ...existing,
     ...updates,
+    questions: updates.questions ? cloneQuestions(updates.questions) : existing.questions,
     updatedAt: Date.now(),
   };
   all[index] = updated;
@@ -75,9 +77,6 @@ export function duplicateQuiz(id: string): SavedQuiz {
   const title = `Cópia de ${original.title}`;
   return saveQuiz({
     title,
-    questions: original.questions.map((q) => ({
-      ...q,
-      options: [...q.options],
-    })),
+    questions: cloneQuestions(original.questions),
   });
 }

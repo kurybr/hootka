@@ -14,6 +14,7 @@ export interface AnswerCountData {
 export interface AnswerResultData {
   correct: boolean;
   score: number;
+  /** @deprecated Use room.questions[index].correctOptionIndex para exibir resultado */
   correctIndex: number;
 }
 

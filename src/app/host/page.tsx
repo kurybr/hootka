@@ -48,6 +48,7 @@ import { AdSense } from "@/components/AdSense";
 import { toast } from "@/hooks/use-toast";
 import { ImportQuizDialog } from "@/components/ImportQuizDialog";
 import { cn } from "@/lib/utils";
+import { isQuestionValid } from "@/lib/questionUtils";
 
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString("pt-BR", {
@@ -100,10 +101,7 @@ export default function HostDashboardPage() {
     }
 
     const validQuestions = quiz.questions.filter(
-      (q) =>
-        q.text.trim() &&
-        q.options.every((o) => o.trim()) &&
-        q.options[q.correctOptionIndex]?.trim()
+      (q) => isQuestionValid(q)
     );
 
     if (validQuestions.length === 0) {

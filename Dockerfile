@@ -17,10 +17,11 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/firebase-service-account.json
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+
+COPY .env .env
 
 # Copiar bundle standalone do Next.js
 COPY --from=builder /app/.next/standalone ./

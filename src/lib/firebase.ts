@@ -23,6 +23,7 @@ let emulatorAuthConnected = false;
 let emulatorDbConnected = false;
 
 export function getFirebaseApp(): FirebaseApp | null {
+
   if (typeof window === "undefined") return null; // Client-only
   if (!firebaseConfig.apiKey || !firebaseConfig.databaseURL) return null;
 

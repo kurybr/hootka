@@ -1,5 +1,6 @@
 import { type NextRequest } from "next/server";
 import { getFirebaseAdminAuth, getFirebaseAdminDatabase } from "@/lib/firebaseAdmin";
+import { assertValidPlayerDisplayName } from "@/lib/playerIdentity";
 
 export interface AuthenticatedUser {
   uid: string;
@@ -7,6 +8,8 @@ export interface AuthenticatedUser {
   emailVerified: boolean;
   username: string | null;
   role: "user" | "admin";
+  /** true quando o token é de signInAnonymously (quiz global sem login completo). */
+  isAnonymous: boolean;
 }
 
 export async function getAuthenticatedUser(
@@ -20,6 +23,9 @@ export async function getAuthenticatedUser(
 
   const token = authorization.slice("Bearer ".length);
   const decoded = await auth.verifyIdToken(token);
+  const firebaseMeta = decoded.firebase as { sign_in_provider?: string } | undefined;
+  const isAnonymous = firebaseMeta?.sign_in_provider === "anonymous";
+
   const db = getFirebaseAdminDatabase();
   const profileSnapshot = db
     ? await db.ref(`users/${decoded.uid}/profile`).get()
@@ -34,6 +40,7 @@ export async function getAuthenticatedUser(
     emailVerified: decoded.email_verified ?? false,
     username: profile?.username ?? decoded.name ?? null,
     role: profile?.role === "admin" ? "admin" : "user",
+    isAnonymous,
   };
 }
 
@@ -57,4 +64,17 @@ export function requireAdmin(user: AuthenticatedUser): void {
   if (user.role !== "admin") {
     throw new Error("FORBIDDEN");
   }
+}
+
+/** Criar/publicar/editar quiz global — exige conta real (não anônima) e e-mail verificado. */
+export function requireCreatorUser(user: AuthenticatedUser): void {
+  if (user.isAnonymous) {
+    throw new Error("FORBIDDEN");
+  }
+  requireVerifiedEmail(user);
+}
+
+/** Jogar quiz global — anônimo ou Google, mas nome no perfil obrigatório. */
+export function requireGlobalQuizPlayer(user: AuthenticatedUser): void {
+  assertValidPlayerDisplayName(user.username);
 }

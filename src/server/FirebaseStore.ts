@@ -1,9 +1,75 @@
-import type { Answer, Participant, Room } from "../types/quiz";
+import type { Answer, Participant, Question, Room } from "../types/quiz";
 import type { IGameStore } from "./IGameStore";
 import {
   getFirebaseAdminDatabase,
   ROOMS_PATH,
 } from "../lib/firebaseAdmin";
+
+/**
+ * RTDB pode omitir objetos vazios ou devolver nós sem o shape completo do tipo Room.
+ */
+function normalizeRoomData(data: unknown): Room | null {
+  if (data == null || typeof data !== "object") return null;
+  const r = data as Record<string, unknown>;
+  if (
+    typeof r.id !== "string" ||
+    typeof r.code !== "string" ||
+    typeof r.hostId !== "string"
+  ) {
+    return null;
+  }
+  const participants =
+    r.participants != null &&
+    typeof r.participants === "object" &&
+    !Array.isArray(r.participants)
+      ? (r.participants as Record<string, Participant>)
+      : {};
+  const answers: Room["answers"] =
+    r.answers != null &&
+    typeof r.answers === "object" &&
+    !Array.isArray(r.answers)
+      ? (r.answers as Room["answers"])
+      : {};
+  let questions: Question[] = [];
+  const q = r.questions;
+  if (Array.isArray(q)) {
+    questions = q as Question[];
+  } else if (q != null && typeof q === "object") {
+    const obj = q as Record<string, Question>;
+    questions = Object.keys(obj)
+      .sort((a, b) => Number(a) - Number(b))
+      .map((k) => obj[k])
+      .filter((item): item is Question => item != null && typeof item === "object");
+  }
+  const validStatuses: Room["status"][] = [
+    "waiting",
+    "playing",
+    "result",
+    "finished",
+  ];
+  const rawStatus = r.status;
+  const status = validStatuses.includes(rawStatus as Room["status"])
+    ? (rawStatus as Room["status"])
+    : "waiting";
+  return {
+    id: r.id,
+    code: r.code,
+    hostId: r.hostId,
+    status,
+    currentQuestionIndex:
+      typeof r.currentQuestionIndex === "number" ? r.currentQuestionIndex : 0,
+    questionStartTimestamp:
+      r.questionStartTimestamp === null ||
+      r.questionStartTimestamp === undefined
+        ? null
+        : typeof r.questionStartTimestamp === "number"
+          ? r.questionStartTimestamp
+          : null,
+    participants,
+    questions,
+    answers,
+  };
+}
 
 export class FirebaseStore implements IGameStore {
   private getDb() {
@@ -23,7 +89,7 @@ export class FirebaseStore implements IGameStore {
     if (!db) return null;
     const snapshot = await db.ref(`${ROOMS_PATH}/${roomId}`).get();
     const data = snapshot.val();
-    return data ? (data as Room) : null;
+    return normalizeRoomData(data);
   }
 
   async getRoomByCode(code: string): Promise<Room | null> {
@@ -33,8 +99,9 @@ export class FirebaseStore implements IGameStore {
     const rooms = snapshot.val();
     if (!rooms) return null;
     const normalizedCode = code.toUpperCase().trim();
-    for (const room of Object.values(rooms) as Room[]) {
-      if (room.code === normalizedCode) return room;
+    for (const entry of Object.values(rooms)) {
+      const room = normalizeRoomData(entry);
+      if (room && room.code === normalizedCode) return room;
     }
     return null;
   }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { EmailLinkSignInCard } from "@/components/EmailLinkSignInCard";
+import { GoogleSignInCard } from "@/components/GoogleSignInCard";
 import { GlobalQuizLeaderboard } from "@/components/GlobalQuizLeaderboard";
 import {
   getGlobalQuizAdminDetails,
@@ -25,15 +25,16 @@ export default function CommunityQuizDetailPage({
 }) {
   const { quizId } = use(params);
   const { user } = useAuth();
+  const isCreator = Boolean(user && !user.isAnonymous);
   const [quiz, setQuiz] = useState<GlobalQuiz | null>(null);
   const [leaderboard, setLeaderboard] = useState<GlobalQuizLeaderboardEntry[]>([]);
   const [userStats, setUserStats] = useState<GlobalQuizAdminUserEntry[]>([]);
-  const [loading, setLoading] = useState(Boolean(user));
+  const [loading, setLoading] = useState(Boolean(isCreator));
   const [error, setError] = useState<string | null>(null);
   const [grantValue, setGrantValue] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!user) return;
+    if (!isCreator) return;
     let cancelled = false;
 
     const load = async () => {
@@ -60,7 +61,7 @@ export default function CommunityQuizDetailPage({
     return () => {
       cancelled = true;
     };
-  }, [quizId, user]);
+  }, [quizId, isCreator]);
 
   const handleGrant = async (targetUserId: string) => {
     const amount = Number(grantValue[targetUserId] || "0");
@@ -71,17 +72,16 @@ export default function CommunityQuizDetailPage({
     setGrantValue((current) => ({ ...current, [targetUserId]: "" }));
   };
 
-  if (!user) {
+  if (!user || !isCreator) {
     return (
       <main className="min-h-screen p-8 lg:p-12">
         <div className="mx-auto w-full max-w-2xl space-y-6">
           <Button variant="outline" asChild>
             <Link href="/community/quizzes">Voltar</Link>
           </Button>
-          <EmailLinkSignInCard
-            redirectPath={`/community/quizzes/${quizId}`}
-            title="Entre para gerenciar este quiz"
-            description="Você precisa estar autenticado para acompanhar tentativas e liberar novas chances."
+          <GoogleSignInCard
+            title="Entre com Google para gerenciar este quiz"
+            description="Donos de quiz e administradores precisam de uma conta Google verificada."
           />
         </div>
       </main>

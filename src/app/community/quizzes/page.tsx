@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmailLinkSignInCard } from "@/components/EmailLinkSignInCard";
+import { GoogleSignInCard } from "@/components/GoogleSignInCard";
 import { useMyGlobalQuizzes } from "@/hooks/useMyGlobalQuizzes";
 import { useAuth } from "@/providers/AuthProvider";
 
 export default function CommunityQuizzesPage() {
   const { user, profile } = useAuth();
-  const { quizzes, loading, error } = useMyGlobalQuizzes(Boolean(user));
+  const isCreator = Boolean(user && !user.isAnonymous);
+  const { quizzes, loading, error } = useMyGlobalQuizzes(isCreator);
 
   return (
     <main className="min-h-screen p-8 lg:p-12">
@@ -17,15 +18,16 @@ export default function CommunityQuizzesPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Meus quizzes globais</h1>
-            <p className="text-muted-foreground">
-              Publique quizzes comunitários e acompanhe o ranking de cada um.
+            <p className="text-muted-foreground max-w-xl">
+              Entre com <strong>Google</strong> para publicar quizzes comunitários. Jogadores usam só
+              um nome no catálogo — sem fila de e-mail.
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
               <Link href="/quizzes">Catálogo</Link>
             </Button>
-            {user && (
+            {user && !user.isAnonymous && (
               <Button asChild>
                 <Link href="/community/quizzes/create">Novo quiz</Link>
               </Button>
@@ -33,17 +35,16 @@ export default function CommunityQuizzesPage() {
           </div>
         </div>
 
-        {!user ? (
-          <EmailLinkSignInCard
-            redirectPath="/community/quizzes"
-            title="Entre para criar quizzes"
-            description="Use seu e-mail para publicar quizzes comunitários e acompanhar tentativas."
+        {!isCreator ? (
+          <GoogleSignInCard
+            title="Entre com Google para criar quizzes"
+            description="Publique quizzes comunitários, salve na nuvem e gerencie tentativas. Jogadores podem usar só um nome no catálogo."
           />
         ) : (
           <>
             <Card>
               <CardHeader>
-                <CardTitle>{profile?.username || user.email}</CardTitle>
+                <CardTitle>{profile?.username || user?.email}</CardTitle>
                 <CardDescription>
                   Seus quizzes ficam salvos na nuvem e podem aparecer no catálogo global.
                 </CardDescription>

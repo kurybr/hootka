@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { EmailLinkSignInCard } from "@/components/EmailLinkSignInCard";
+import { GoogleSignInCard } from "@/components/GoogleSignInCard";
 import { GlobalQuizForm } from "@/components/GlobalQuizForm";
 import { getGlobalQuizById, updateGlobalQuiz } from "@/lib/globalQuizClient";
 import { useAuth } from "@/providers/AuthProvider";
@@ -19,13 +19,14 @@ export default function EditCommunityQuizPage({
   const { quizId } = use(params);
   const router = useRouter();
   const { user, profile } = useAuth();
+  const isCreator = Boolean(user && !user.isAnonymous);
   const [quiz, setQuiz] = useState<GlobalQuiz | null>(null);
-  const [loading, setLoading] = useState(Boolean(user));
+  const [loading, setLoading] = useState(Boolean(isCreator));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) return;
+    if (!isCreator) return;
     let cancelled = false;
 
     const load = async () => {
@@ -51,19 +52,18 @@ export default function EditCommunityQuizPage({
     return () => {
       cancelled = true;
     };
-  }, [quizId, user]);
+  }, [quizId, isCreator]);
 
-  if (!user) {
+  if (!user || !isCreator) {
     return (
       <main className="min-h-screen p-8 lg:p-12">
         <div className="mx-auto w-full max-w-2xl space-y-6">
           <Button variant="outline" asChild>
             <Link href="/community/quizzes">Voltar</Link>
           </Button>
-          <EmailLinkSignInCard
-            redirectPath={`/community/quizzes/${quizId}/edit`}
-            title="Entre para editar seu quiz"
-            description="Seu e-mail verificado é necessário para alterar quizzes públicos."
+          <GoogleSignInCard
+            title="Entre com Google para editar seu quiz"
+            description="A edição de quizzes públicos exige uma conta Google com e-mail verificado."
           />
         </div>
       </main>

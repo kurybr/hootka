@@ -10,11 +10,11 @@ test.describe("Explore quizzes flow", () => {
   test("navigates from home to quizzes page via card", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "Hootka" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Explorar quizzes" }).first().click();
+    await page.getByRole("link", { name: "Ranking global" }).first().click();
 
     await expect(page).toHaveURL(/\/quizzes/);
     await expect(page.getByRole("heading", { name: "Quizzes Globais" })).toBeVisible();
-    await expect(page.getByText("Descubra quizzes oficiais e comunitários")).toBeVisible();
+    await expect(page.getByText(/Descubra quizzes oficiais/)).toBeVisible();
   });
 
   test("navigates from header to quizzes page", async ({ page }) => {

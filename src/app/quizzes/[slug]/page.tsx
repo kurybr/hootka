@@ -5,12 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmailLinkSignInCard } from "@/components/EmailLinkSignInCard";
+import { GlobalQuizPlayerStartCard } from "@/components/GlobalQuizPlayerStartCard";
 import { GlobalQuizLeaderboard } from "@/components/GlobalQuizLeaderboard";
 import { usePublicGlobalQuiz } from "@/hooks/usePublicGlobalQuiz";
 import { startGlobalQuizAttempt } from "@/lib/globalQuizClient";
 import { useAuth } from "@/providers/AuthProvider";
 import { toast } from "@/hooks/use-toast";
+import { isValidPlayerDisplayName } from "@/lib/playerIdentity";
 
 export default function GlobalQuizDetailPage({
   params,
@@ -18,9 +19,13 @@ export default function GlobalQuizDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const slugHolder = use(params);
   const { quiz, leaderboard, loading, error } = usePublicGlobalQuiz(slugHolder.slug);
+
+  const canStartFromSession =
+    Boolean(user) &&
+    isValidPlayerDisplayName(profile?.username ?? user?.displayName ?? null);
 
   const handleStart = async () => {
     if (!quiz) return;
@@ -80,15 +85,14 @@ export default function GlobalQuizDetailPage({
                     Tentativas: {quiz.attemptLimit === null ? "Ilimitadas" : quiz.attemptLimit}
                   </span>
                 </div>
-                {user ? (
+                {canStartFromSession ? (
                   <Button onClick={handleStart} className="w-full">
                     Iniciar tentativa
                   </Button>
                 ) : (
-                  <EmailLinkSignInCard
-                    redirectPath={`/quizzes/${quiz.slug}`}
-                    title="Entre para participar"
-                    description="Use seu e-mail para entrar no ranking global e iniciar sua tentativa."
+                  <GlobalQuizPlayerStartCard
+                    submitLabel="Iniciar tentativa"
+                    onReadyToPlay={handleStart}
                   />
                 )}
               </CardContent>

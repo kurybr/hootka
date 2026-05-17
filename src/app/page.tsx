@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { LogIn, Trophy } from "lucide-react";
+import { BookOpen, LogIn, Trophy } from "lucide-react";
 
 import {
   Card,
@@ -14,16 +14,22 @@ import { AdSense } from "@/components/AdSense";
 
 const playerActionCards = [
   {
-    href: "/join",
-    title: "Entrar em sala",
-    description: "Digite o código e participe do jogo.",
-    icon: LogIn,
+    href: "/quizzes",
+    title: "Ranking global",
+    description: "Jogue quizzes públicos e suba no ranking.",
+    icon: Trophy,
   },
   {
-    href: "/quizzes",
-    title: "Explorar quizzes",
-    description: "Jogue quizzes públicos e veja o ranking.",
-    icon: Trophy,
+    href: "/community/quizzes",
+    title: "Criar quiz",
+    description: "Publique seu quiz na comunidade (conta Google).",
+    icon: BookOpen,
+  },
+  {
+    href: "/join",
+    title: "Sala ao vivo",
+    description: "Use o código da sala e jogue em tempo real.",
+    icon: LogIn,
   },
 ];
 
@@ -42,24 +48,32 @@ export default function HomePage() {
             Hootka
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Crie quizzes interativos e jogue com outras pessoas em tempo real.
+            Quizzes com ranking global e salas ao vivo para jogar em grupo — pontuação por acerto e
+            velocidade.
           </p>
         </div>
 
         {/* How it works */}
-        <section className="rounded-xl border bg-muted/30 px-6 py-5 text-left max-w-2xl mx-auto">
-          <h2 className="text-sm font-medium mb-3 text-foreground">
-            Como funciona:
-          </h2>
-          <ol className="list-decimal list-inside space-y-1.5 text-sm text-muted-foreground">
-            <li>Crie uma sala</li>
-            <li>Compartilhe o código</li>
-            <li>Responda perguntas e veja o ranking</li>
-          </ol>
+        <section className="rounded-xl border bg-muted/30 px-6 py-5 text-left max-w-2xl mx-auto space-y-4">
+          <div>
+            <h2 className="text-sm font-medium mb-2 text-foreground">Quiz global</h2>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+              <li>Escolha um quiz no catálogo</li>
+              <li>Informe como quer aparecer no ranking</li>
+              <li>Responda no tempo e veja sua posição</li>
+            </ol>
+          </div>
+          <div>
+            <h2 className="text-sm font-medium mb-2 text-foreground">Sala ao vivo</h2>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+              <li>O host cria a sala e compartilha o código</li>
+              <li>Participantes entram com o código e um nome</li>
+              <li>O host avança as perguntas; ranking em tempo real</li>
+            </ol>
+          </div>
         </section>
 
-        {/* Primary actions: player flows only */}
-        <div className="grid gap-6 sm:grid-cols-2 sm:gap-8 max-w-3xl mx-auto">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-8 max-w-4xl mx-auto">
           {playerActionCards.map((card, i) => {
             const Icon = card.icon;
             return (

@@ -200,7 +200,9 @@ export function setupSocketHandler(io: TypedServer): void {
                   ? "Esta sala já está em andamento"
                   : code === "NOME_DUPLICADO"
                     ? "Nome já utilizado nesta sala"
-                    : "Erro ao entrar na sala",
+                    : code === "SALA_CHEIA"
+                      ? "Sala cheia"
+                      : "Erro ao entrar na sala",
             code,
           });
         }

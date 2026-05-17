@@ -28,6 +28,13 @@ async function parseJson<T>(response: Response): Promise<T> {
   return data as T;
 }
 
+export type QuizAiUsage = { used: number; limit: number; remaining: number };
+
+export async function getQuizAiGenerationUsage() {
+  const response = await authFetch("/api/quizzes/generate", { method: "GET" });
+  return parseJson<QuizAiUsage>(response);
+}
+
 export async function listPublishedGlobalQuizzes() {
   const response = await fetch("/api/global-quizzes");
   return parseJson<{ quizzes: PublicGlobalQuiz[] }>(response);
@@ -137,4 +144,44 @@ export async function grantGlobalQuizExtraAttempts(
     body: JSON.stringify({ targetUserId, extraAttempts }),
   });
   return parseJson<{ entry: GlobalQuizAdminUserEntry }>(response);
+}
+
+export async function generateQuizQuestionsWithAi(input: {
+  topic: string;
+  count?: number;
+}) {
+  const response = await authFetch("/api/quizzes/generate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+  return parseJson<{
+    questions: Question[];
+    usage?: QuizAiUsage;
+  }>(response);
+}
+
+export async function generateFullGlobalQuizWithAi(input: {
+  prompt: string;
+  count?: number;
+}) {
+  const response = await authFetch("/api/quizzes/generate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      prompt: input.prompt,
+      count: input.count,
+    }),
+  });
+  return parseJson<{
+    title: string;
+    topic: string;
+    description: string;
+    questions: Question[];
+    usage?: QuizAiUsage;
+  }>(response);
 }

@@ -19,7 +19,7 @@ import {
   GLOBAL_QUIZ_SLUGS_PATH,
 } from "../src/lib/firebaseAdmin";
 import { clearEntireDatabase } from "../src/server/clearDatabase";
-import type { GlobalQuiz, Question } from "../types/quiz";
+import type { GlobalQuiz, Question } from "../src/types/quiz";
 
 const projectRoot = resolve(__dirname, "..");
 config({ path: resolve(projectRoot, ".env") });
@@ -146,6 +146,29 @@ async function main() {
   };
   await db.ref(`${GLOBAL_QUIZZES_PATH}/${quizId}`).set(quiz);
   await db.ref(`${GLOBAL_QUIZ_SLUGS_PATH}/${slug}`).set(quizId);
+
+  /** Quiz oficial de exemplo no catálogo (seed / demonstrações). */
+  const officialId = "quiz-oficial-seed";
+  const officialSlug = "conhecimentos-gerais-inicial";
+  const officialQuiz: GlobalQuiz = {
+    id: officialId,
+    slug: officialSlug,
+    title: "Conhecimentos gerais (oficial)",
+    description: "Quiz curto de demonstração no catálogo.",
+    topic: "Geral",
+    questions: QUIZ_FIXTURE.questions,
+    visibility: "official",
+    status: "published",
+    attemptLimit: null,
+    questionTimeLimitMs: 60000,
+    createdBy: ADMIN_VERIFICADO.uid,
+    createdByUsername: ADMIN_VERIFICADO.username,
+    createdAt: now,
+    updatedAt: now,
+    publishedAt: now,
+  };
+  await db.ref(`${GLOBAL_QUIZZES_PATH}/${officialId}`).set(officialQuiz);
+  await db.ref(`${GLOBAL_QUIZ_SLUGS_PATH}/${officialSlug}`).set(officialId);
 
   console.log("Seed concluído.");
   console.log("Usuários: user@test.local / test123456 | admin@test.local / admin123456");

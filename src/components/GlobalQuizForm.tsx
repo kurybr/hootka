@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { GlobalQuizAiPromptCard } from "@/components/GlobalQuizAiPromptCard";
 import { QuestionListEditor } from "@/components/QuestionListEditor";
 import {
   DEFAULT_QUESTION_OPTIONS,
@@ -126,6 +127,23 @@ export function GlobalQuizForm({
 
   return (
     <div className="space-y-6">
+      <GlobalQuizAiPromptCard
+        onApply={(draft) => {
+          setTitle(draft.title);
+          setTopic(draft.topic);
+          setDescription(draft.description);
+          setQuestions(draft.questions);
+          setError(null);
+        }}
+        onClearForm={() => {
+          setTitle("");
+          setTopic("");
+          setDescription("");
+          setQuestions([createEmptyQuestion(DEFAULT_QUESTION_OPTIONS)]);
+          setError(null);
+        }}
+      />
+
       <Card>
         <CardHeader>
           <CardTitle>Dados do quiz</CardTitle>
@@ -234,7 +252,7 @@ export function GlobalQuizForm({
         </CardContent>
       </Card>
 
-      <QuestionListEditor questions={questions} onChange={setQuestions} />
+      <QuestionListEditor questions={questions} onChange={setQuestions} showAiBar={false} />
 
       {error && (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">

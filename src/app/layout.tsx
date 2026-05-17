@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Montserrat, Nunito } from "next/font/google";
 
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
@@ -14,9 +14,18 @@ import { AdSenseScript } from "@/components/AdSense";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { AuthProvider } from "@/providers/AuthProvider";
 
-const inter = Inter({
+/** Corpo — substituto open source da Gotham (SIL Open Font License). */
+const montserrat = Montserrat({
   subsets: ["latin"],
+  weight: ["400", "500", "700"],
   variable: "--font-sans",
+});
+
+/** Títulos — substituto open source da Ample Soft (SIL Open Font License). */
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
+  variable: "--font-heading",
 });
 
 export const metadata: Metadata = {
@@ -34,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${montserrat.variable} ${nunito.variable}`}>
         <ErrorBoundary>
           <ConsentProvider>
             <GoogleAnalytics />

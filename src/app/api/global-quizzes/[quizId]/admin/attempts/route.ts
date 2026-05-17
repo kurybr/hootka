@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGlobalQuizEngine } from "@/lib/globalQuizEngine";
 import { globalQuizErrorResponse } from "@/lib/globalQuizApi";
-import { requireAuthenticatedUser } from "@/server/auth";
+import { requireAuthenticatedUser, requireCreatorUser } from "@/server/auth";
 
 export async function POST(
   request: NextRequest,
@@ -11,6 +11,7 @@ export async function POST(
 
   try {
     const user = await requireAuthenticatedUser(request);
+    requireCreatorUser(user);
     const { quizId } = await params;
     const { targetUserId, extraAttempts } = await request.json();
     const entry = await engine.grantExtraAttempts(

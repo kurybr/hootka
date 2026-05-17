@@ -10,6 +10,12 @@ const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 6;
 const QUESTION_TIMEOUT_MS = DEFAULT_QUESTION_TIME_LIMIT_MS;
 
+function getMaxRoomParticipants(): number {
+  const raw = parseInt(process.env.MAX_ROOM_PARTICIPANTS || "100", 10);
+  if (!Number.isFinite(raw) || raw < 2) return 100;
+  return Math.min(raw, 500);
+}
+
 function generateCode(): string {
   let code = "";
   for (let i = 0; i < CODE_LENGTH; i++) {
@@ -64,6 +70,10 @@ export class GameEngine {
     }
     if (room.status !== "waiting") {
       throw new Error("SALA_JA_INICIADA");
+    }
+
+    if (Object.keys(room.participants).length >= getMaxRoomParticipants()) {
+      throw new Error("SALA_CHEIA");
     }
 
     const nameLower = name.trim().toLowerCase();

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PlusCircle, LogIn, Trophy, Menu, Shield } from "lucide-react";
+import { PlusCircle, LogIn, Trophy, Menu, Shield, BookOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/AuthProvider";
@@ -17,8 +17,9 @@ import {
 import { cn } from "@/lib/utils";
 
 const secondaryNavItems = [
-  { href: "/join", label: "Entrar em sala", icon: LogIn },
   { href: "/quizzes", label: "Quizzes", icon: Trophy },
+  { href: "/community/quizzes", label: "Criar quiz", icon: BookOpen },
+  { href: "/join", label: "Entrar em sala", icon: LogIn },
 ];
 
 export function Header() {
@@ -64,10 +65,10 @@ export function Header() {
               </Link>
             </Button>
           )}
-          <Button size="sm" asChild>
+          <Button size="sm" variant="outline" asChild>
             <Link href="/host" className="flex items-center gap-2">
               <PlusCircle className="h-4 w-4" aria-hidden="true" />
-              Criar sala
+              Sala ao vivo
             </Link>
           </Button>
         </nav>
@@ -113,10 +114,10 @@ export function Header() {
               <Link
                 href="/host"
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors mt-2"
+                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium border border-border hover:bg-muted transition-colors mt-2"
               >
                 <PlusCircle className="h-5 w-5" aria-hidden="true" />
-                Criar sala
+                Sala ao vivo
               </Link>
             </nav>
           </DialogContent>

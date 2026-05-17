@@ -10,7 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)"],
+        heading: ["var(--font-heading)", "var(--font-sans)"],
       },
       colors: {
         background: "hsl(var(--background))",
@@ -52,6 +53,13 @@ export default {
           "3": "hsl(var(--chart-3))",
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
+        },
+        brand: {
+          teal: "hsl(var(--brand-teal))",
+          maroon: "hsl(var(--brand-maroon))",
+          orange: "hsl(var(--brand-orange))",
+          sand: "hsl(var(--brand-sand))",
+          charcoal: "hsl(var(--brand-charcoal))",
         },
       },
       borderRadius: {

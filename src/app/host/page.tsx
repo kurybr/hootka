@@ -215,7 +215,7 @@ export default function HostDashboardPage() {
       toast({
         variant: "destructive",
         title: "Arquivo inválido",
-        description: "Selecione um arquivo .json exportado pelo Karoot.",
+        description: "Selecione um arquivo .json exportado pelo Hootka.",
       });
     }
     e.target.value = "";
@@ -256,7 +256,7 @@ export default function HostDashboardPage() {
       toast({
         variant: "destructive",
         title: "Arquivo inválido",
-        description: "Arraste um arquivo .json exportado pelo Karoot.",
+        description: "Arraste um arquivo .json exportado pelo Hootka.",
       });
     }
   };
@@ -353,7 +353,8 @@ export default function HostDashboardPage() {
         )}
 
         <p className="text-muted-foreground">
-          Gerencie seus quizzes e inicie salas com apenas um clique.
+          Sem login, os quizzes ficam só neste navegador. Com Google, a biblioteca sincroniza na
+          nuvem (Firebase).
         </p>
 
         {libraryLoading && (

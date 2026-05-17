@@ -37,7 +37,9 @@ export async function POST(request: NextRequest) {
           ? "Esta sala já está em andamento"
           : code === "NOME_DUPLICADO"
             ? "Nome já utilizado nesta sala"
-            : "Erro ao entrar na sala";
+            : code === "SALA_CHEIA"
+              ? "Sala cheia"
+              : "Erro ao entrar na sala";
 
     return NextResponse.json({ error: message, code }, { status: 400 });
   }

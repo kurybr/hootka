@@ -42,3 +42,8 @@ next-env.d.ts
 firebase-*.json
 test-results/
 playwright-report/
+.playwright-mcp
+.log
+
+# Fontes proprietárias (projeto usa apenas Google Fonts — SIL OFL)
+/public/fonts/AmpleSoft/

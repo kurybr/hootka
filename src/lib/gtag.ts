@@ -18,7 +18,9 @@ export type GAEventName =
   | "room_created"
   | "room_joined"
   | "game_started"
-  | "game_finished";
+  | "game_finished"
+  | "global_quiz_attempt_started"
+  | "global_quiz_attempt_completed";
 
 export function trackEvent(
   eventName: GAEventName,

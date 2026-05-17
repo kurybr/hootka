@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getGlobalQuizEngine } from "@/lib/globalQuizEngine";
 import { globalQuizErrorResponse } from "@/lib/globalQuizApi";
-import {
-  requireAuthenticatedUser,
-  requireVerifiedEmail,
-} from "@/server/auth";
+import { requireAuthenticatedUser, requireCreatorUser } from "@/server/auth";
 
 export async function GET(
   request: NextRequest,
@@ -14,6 +11,7 @@ export async function GET(
 
   try {
     const user = await requireAuthenticatedUser(request);
+    requireCreatorUser(user);
     const { quizId } = await params;
     const quiz = await engine.getQuizById(quizId);
     if (!quiz) {
@@ -36,7 +34,7 @@ export async function PATCH(
 
   try {
     const user = await requireAuthenticatedUser(request);
-    requireVerifiedEmail(user);
+    requireCreatorUser(user);
     const body = await request.json();
     const { quizId } = await params;
     const quiz = await engine.updateQuiz(quizId, user, body);

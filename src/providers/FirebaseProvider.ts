@@ -8,7 +8,7 @@ import type {
   GameStatusData,
   IRealTimeProvider,
 } from "./IRealTimeProvider";
-import type { Participant, Question, Room } from "@/types/quiz";
+import type { Answer, Participant, Question, Room } from "@/types/quiz";
 import { getFirebaseDatabase, ROOMS_PATH } from "@/lib/firebase";
 
 const HOST_ID_KEY = "quiz_hostId";
@@ -53,6 +53,19 @@ function getAnswerCount(
   return { count, total };
 }
 
+/** RTDB pode serializar arrays como objetos com chaves "0","1",… */
+function normalizeQuestionsFromRtdb(raw: unknown): Question[] | undefined {
+  if (raw == null) return undefined;
+  if (Array.isArray(raw)) return raw as Question[];
+  if (typeof raw === "object") {
+    const obj = raw as Record<string, Question>;
+    return Object.keys(obj)
+      .sort((a, b) => Number(a) - Number(b))
+      .map((k) => obj[k]);
+  }
+  return undefined;
+}
+
 async function apiFetch(
   url: string,
   body: Record<string, unknown>
@@ -65,13 +78,27 @@ async function apiFetch(
   });
 }
 
+type RoomParts = {
+  id: string;
+  code?: string;
+  hostId?: string;
+  status?: Room["status"];
+  currentQuestionIndex?: number;
+  questionStartTimestamp?: number | null;
+  participants?: Record<string, Participant>;
+  questions?: Question[];
+  answers?: Room["answers"];
+};
+
 export class FirebaseProvider implements IRealTimeProvider {
   private _roomId: string | null = null;
   private role: "host" | "participant" | null = null;
   private participantId: string | null = null;
-  private unsubscribe: Unsubscribe | null = null;
+  private roomUnsubscribers: Unsubscribe[] = [];
+  private answersUnsubscribe: Unsubscribe | null = null;
   private lastRoomState: Room | null = null;
   private _connected = false;
+  private roomParts: RoomParts = { id: "" };
 
   private roomStateListeners: Set<(room: Room) => void> = new Set();
   private participantJoinedListeners: Set<(p: Participant) => void> =
@@ -98,6 +125,60 @@ export class FirebaseProvider implements IRealTimeProvider {
   private emitError(message: string, code: string): void {
     const data: ErrorData = { message, code };
     this.errorListeners.forEach((cb) => cb(data));
+  }
+
+  private composeRoom(): Room | null {
+    const p = this.roomParts;
+    if (
+      p.id &&
+      p.code !== undefined &&
+      p.hostId !== undefined &&
+      p.status !== undefined &&
+      p.currentQuestionIndex !== undefined &&
+      p.questions !== undefined &&
+      p.participants !== undefined
+    ) {
+      const answers = p.answers ?? {};
+      return {
+        id: p.id,
+        code: p.code,
+        hostId: p.hostId,
+        status: p.status,
+        currentQuestionIndex: p.currentQuestionIndex,
+        questionStartTimestamp: p.questionStartTimestamp ?? null,
+        participants: p.participants,
+        questions: p.questions,
+        answers,
+      };
+    }
+    return null;
+  }
+
+  private subscribeAnswersBranch(roomId: string, questionIndex: number): void {
+    const db = getFirebaseDatabase();
+    if (!db) return;
+
+    if (this.answersUnsubscribe) {
+      this.answersUnsubscribe();
+      this.answersUnsubscribe = null;
+    }
+
+    this.answersUnsubscribe = onValue(
+      ref(db, `${ROOMS_PATH}/${roomId}/answers/${questionIndex}`),
+      (snapshot) => {
+        const val = snapshot.val() as Record<string, Answer> | null;
+        const qKey = String(questionIndex);
+        this.roomParts.answers = { [qKey]: val ?? {} };
+        const room = this.composeRoom();
+        if (room) this.handleRoomUpdate(room);
+      }
+    );
+  }
+
+  private mergeRoomParts(partial: Partial<RoomParts>): void {
+    Object.assign(this.roomParts, partial);
+    const room = this.composeRoom();
+    if (room) this.handleRoomUpdate(room);
   }
 
   private handleRoomUpdate(room: Room | null): void {
@@ -163,28 +244,76 @@ export class FirebaseProvider implements IRealTimeProvider {
       return;
     }
 
-    this.unsubscribe = onValue(
-      ref(db, `${ROOMS_PATH}/${roomId}`),
-      (snapshot) => {
-        const data = snapshot.val();
-        this.handleRoomUpdate(data ? (data as Room) : null);
-      },
-      () => {
-        this._connected = false;
-        this.connectionStateListeners.forEach((cb) => cb(false));
-      }
+    for (const u of this.roomUnsubscribers) u();
+    this.roomUnsubscribers = [];
+    if (this.answersUnsubscribe) {
+      this.answersUnsubscribe();
+      this.answersUnsubscribe = null;
+    }
+
+    this.roomParts = { id: roomId, participants: {}, answers: {} };
+    const base = `${ROOMS_PATH}/${roomId}`;
+
+    const pushUnsub = (u: Unsubscribe) => this.roomUnsubscribers.push(u);
+
+    pushUnsub(
+      onValue(ref(db, `${base}/code`), (s) =>
+        this.mergeRoomParts({ code: s.val() as string })
+      )
+    );
+    pushUnsub(
+      onValue(ref(db, `${base}/hostId`), (s) =>
+        this.mergeRoomParts({ hostId: s.val() as string })
+      )
+    );
+    pushUnsub(
+      onValue(ref(db, `${base}/status`), (s) =>
+        this.mergeRoomParts({ status: s.val() as Room["status"] })
+      )
+    );
+    pushUnsub(
+      onValue(ref(db, `${base}/currentQuestionIndex`), (s) => {
+        const idx = typeof s.val() === "number" ? s.val() : Number(s.val()) || 0;
+        this.mergeRoomParts({ currentQuestionIndex: idx });
+        this.subscribeAnswersBranch(roomId, idx);
+      })
+    );
+    pushUnsub(
+      onValue(ref(db, `${base}/questionStartTimestamp`), (s) => {
+        const v = s.val();
+        this.mergeRoomParts({
+          questionStartTimestamp:
+            v === null || v === undefined ? null : Number(v),
+        });
+      })
+    );
+    pushUnsub(
+      onValue(ref(db, `${base}/participants`), (s) =>
+        this.mergeRoomParts({
+          participants: (s.val() as Record<string, Participant>) ?? {},
+        })
+      )
+    );
+    pushUnsub(
+      onValue(ref(db, `${base}/questions`), (s) => {
+        const q = normalizeQuestionsFromRtdb(s.val());
+        if (q) this.mergeRoomParts({ questions: q });
+      })
     );
   }
 
   disconnect(): void {
-    if (this.unsubscribe) {
-      this.unsubscribe();
-      this.unsubscribe = null;
+    for (const u of this.roomUnsubscribers) u();
+    this.roomUnsubscribers = [];
+    if (this.answersUnsubscribe) {
+      this.answersUnsubscribe();
+      this.answersUnsubscribe = null;
     }
     this._roomId = null;
     this.role = null;
     this.participantId = null;
     this.lastRoomState = null;
+    this.roomParts = { id: "" };
     this._connected = false;
     this.connectionStateListeners.forEach((cb) => cb(false));
   }

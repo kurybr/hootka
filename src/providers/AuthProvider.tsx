@@ -12,6 +12,7 @@ import {
   isSignInWithEmailLink,
   signInWithPopup,
   signInWithEmailAndPassword,
+  signInAnonymously,
   sendSignInLinkToEmail,
   signInWithEmailLink,
   onAuthStateChanged,
@@ -21,6 +22,7 @@ import {
 } from "firebase/auth";
 import { get, ref, update } from "firebase/database";
 import { getFirebaseAuth, getFirebaseDatabase } from "@/lib/firebase";
+import { isValidPlayerDisplayName } from "@/lib/playerIdentity";
 
 const EMAIL_LINK_EMAIL_KEY = "hootka_email_link_email";
 const EMAIL_LINK_USERNAME_KEY = "hootka_email_link_username";
@@ -32,6 +34,7 @@ interface AuthProfile {
   email: string | null;
   emailVerified: boolean;
   photoURL: string | null;
+  isAnonymous: boolean;
 }
 
 interface AuthContextValue {
@@ -40,6 +43,10 @@ interface AuthContextValue {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithEmailPassword?: (email: string, password: string) => Promise<void>;
+  /** Sessão anônima para jogar quiz global (ranking por dispositivo). */
+  signInAnonymouslyForPlay: () => Promise<void>;
+  /** Nome no ranking (grava em perfil + displayName do Firebase Auth). */
+  setPlayerDisplayName: (name: string) => Promise<void>;
   sendEmailLinkSignIn: (
     email: string,
     username: string,
@@ -57,6 +64,8 @@ const AuthContext = createContext<AuthContextValue>({
   profile: null,
   loading: true,
   signInWithGoogle: async () => {},
+  signInAnonymouslyForPlay: async () => {},
+  setPlayerDisplayName: async () => {},
   sendEmailLinkSignIn: async () => {},
   completeEmailLinkSignIn: async () => ({
     redirectPath: "/quizzes",
@@ -79,6 +88,7 @@ async function saveUserProfile(user: User, username?: string) {
     email: user.email ?? null,
     photoURL: user.photoURL ?? null,
     emailVerified: user.emailVerified,
+    isAnonymous: user.isAnonymous,
   });
 }
 
@@ -119,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: user.email ?? null,
           emailVerified: user.emailVerified,
           photoURL: user.photoURL ?? null,
+          isAnonymous: user.isAnonymous,
         });
         return;
       }
@@ -128,12 +139,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (cancelled) return;
 
+      const resolvedUsername =
+        data?.username ?? user.displayName ?? null;
+
       setProfile({
-        username: data?.username ?? user.displayName ?? null,
+        username: resolvedUsername,
         role: data?.role === "admin" ? "admin" : "user",
         email: data?.email ?? user.email ?? null,
         emailVerified: data?.emailVerified ?? user.emailVerified,
         photoURL: data?.photoURL ?? user.photoURL ?? null,
+        isAnonymous: user.isAnonymous,
       });
     };
 
@@ -143,6 +158,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true;
     };
   }, [user]);
+
+  const handleSignInAnonymouslyForPlay = async () => {
+    const auth = getFirebaseAuth();
+    if (!auth) throw new Error("Firebase não disponível");
+    if (auth.currentUser) return;
+    const cred = await signInAnonymously(auth);
+    await saveUserProfile(cred.user);
+  };
+
+  const handleSetPlayerDisplayName = async (name: string) => {
+    const auth = getFirebaseAuth();
+    const u = auth?.currentUser;
+    if (!auth || !u) throw new Error("Faça login ou inicie uma sessão de jogo.");
+    const trimmed = name.trim();
+    if (!isValidPlayerDisplayName(trimmed)) {
+      throw new Error("Informe um nome de 2 a 30 caracteres.");
+    }
+    await updateProfile(u, { displayName: trimmed });
+    await saveUserProfile(u, trimmed);
+    setProfile((prev) =>
+      prev
+        ? { ...prev, username: trimmed }
+        : {
+            username: trimmed,
+            role: "user",
+            email: u.email ?? null,
+            emailVerified: u.emailVerified,
+            photoURL: u.photoURL ?? null,
+            isAnonymous: u.isAnonymous,
+          }
+    );
+  };
 
   const handleSignInWithEmailPassword = async (email: string, password: string) => {
     const auth = getFirebaseAuth();
@@ -263,6 +310,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true"
             ? handleSignInWithEmailPassword
             : undefined,
+        signInAnonymouslyForPlay: handleSignInAnonymouslyForPlay,
+        setPlayerDisplayName: handleSetPlayerDisplayName,
         sendEmailLinkSignIn: handleSendEmailLinkSignIn,
         completeEmailLinkSignIn: handleCompleteEmailLinkSignIn,
         getIdToken: handleGetIdToken,

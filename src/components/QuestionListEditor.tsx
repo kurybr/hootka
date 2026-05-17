@@ -9,15 +9,19 @@ import {
   createEmptyQuestion,
 } from "@/lib/questionUtils";
 import type { Question } from "@/types/quiz";
+import { QuizAiQuestionBar } from "@/components/QuizAiQuestionBar";
 
 interface QuestionListEditorProps {
   questions: Question[];
   onChange: (questions: Question[]) => void;
+  /** Quando false, oculta o bloco OpenRouter (ex.: quiz global com IA no topo). */
+  showAiBar?: boolean;
 }
 
 export function QuestionListEditor({
   questions,
   onChange,
+  showAiBar = true,
 }: QuestionListEditorProps) {
   const updateQuestions = (updater: (current: Question[]) => Question[]) => {
     onChange(updater(questions));
@@ -84,6 +88,14 @@ export function QuestionListEditor({
 
   return (
     <div className="space-y-6">
+      {showAiBar && (
+        <QuizAiQuestionBar
+          onAddQuestions={(generated) =>
+            updateQuestions((current) => [...current, ...generated])
+          }
+        />
+      )}
+
       {questions.map((question, questionIndex) => (
         <Card key={questionIndex}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">

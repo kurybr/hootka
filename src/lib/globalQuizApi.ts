@@ -22,13 +22,16 @@ export function globalQuizErrorResponse(error: unknown) {
               code === "NO_ACTIVE_ATTEMPT" ||
               code === "ANSWER_ALREADY_SUBMITTED" ||
               code === "INVALID_OPTION" ||
-              code === "INVALID_EXTRA_ATTEMPTS"
+              code === "INVALID_EXTRA_ATTEMPTS" ||
+              code === "PROFILE_USERNAME_REQUIRED"
             ? 400
             : 500;
 
   const messageMap: Record<string, string> = {
     AUTH_REQUIRED: "Faça login para continuar.",
     EMAIL_NOT_VERIFIED: "Confirme seu e-mail para continuar.",
+    PROFILE_USERNAME_REQUIRED:
+      "Informe um nome de 2 a 30 caracteres para aparecer no ranking.",
     FORBIDDEN: "Você não tem permissão para realizar esta ação.",
     QUIZ_NOT_FOUND: "Quiz não encontrado.",
     ATTEMPT_LIMIT_REACHED: "Você atingiu o limite de tentativas deste quiz.",

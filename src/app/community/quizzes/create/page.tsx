@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { EmailLinkSignInCard } from "@/components/EmailLinkSignInCard";
+import { GoogleSignInCard } from "@/components/GoogleSignInCard";
 import { GlobalQuizForm } from "@/components/GlobalQuizForm";
 import { createGlobalQuiz } from "@/lib/globalQuizClient";
 import { useAuth } from "@/providers/AuthProvider";
@@ -15,17 +15,18 @@ export default function CreateCommunityQuizPage() {
   const { user, profile } = useAuth();
   const [loading, setLoading] = useState(false);
 
-  if (!user) {
+  const isCreator = Boolean(user && !user.isAnonymous);
+
+  if (!user || !isCreator) {
     return (
       <main className="min-h-screen p-8 lg:p-12">
         <div className="mx-auto w-full max-w-2xl space-y-6">
           <Button variant="outline" asChild>
             <Link href="/community/quizzes">Voltar</Link>
           </Button>
-          <EmailLinkSignInCard
-            redirectPath="/community/quizzes/create"
-            title="Entre para criar um quiz"
-            description="Seu e-mail verificado será usado para publicar e gerenciar quizzes."
+          <GoogleSignInCard
+            title="Entre com Google para criar um quiz"
+            description="Sua conta Google verificada é usada para publicar e gerenciar quizzes comunitários."
           />
         </div>
       </main>

@@ -3,7 +3,7 @@ import { getGlobalQuizEngine } from "@/lib/globalQuizEngine";
 import { globalQuizErrorResponse } from "@/lib/globalQuizApi";
 import {
   requireAuthenticatedUser,
-  requireVerifiedEmail,
+  requireGlobalQuizPlayer,
 } from "@/server/auth";
 
 export async function POST(
@@ -14,7 +14,7 @@ export async function POST(
 
   try {
     const user = await requireAuthenticatedUser(request);
-    requireVerifiedEmail(user);
+    requireGlobalQuizPlayer(user);
     const { quizId } = await params;
     const attempt = await engine.finishAttempt(user, quizId);
     return NextResponse.json({ attempt });

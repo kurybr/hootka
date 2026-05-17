@@ -143,7 +143,7 @@ export async function parseImportFile(
     parsed = JSON.parse(text);
   } catch {
     throw new Error(
-      "Arquivo inválido. Selecione um arquivo .json exportado pelo Karoot."
+      "Arquivo inválido. Selecione um arquivo .json exportado pelo Hootka."
     );
   }
   if (Array.isArray(parsed)) {

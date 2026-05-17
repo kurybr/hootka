@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmailLinkSignInCard } from "@/components/EmailLinkSignInCard";
+import { GlobalQuizPlayerStartCard } from "@/components/GlobalQuizPlayerStartCard";
 import { QuestionCard } from "@/components/QuestionCard";
 import { ResultCard } from "@/components/ResultCard";
 import { Timer } from "@/components/Timer";
@@ -17,6 +17,8 @@ import {
   submitGlobalQuizAnswer,
 } from "@/lib/globalQuizClient";
 import { useAuth } from "@/providers/AuthProvider";
+import { isValidPlayerDisplayName } from "@/lib/playerIdentity";
+import { trackEvent } from "@/lib/gtag";
 import { useTimer } from "@/hooks/useTimer";
 import type {
   GlobalQuizAttempt,
@@ -31,7 +33,7 @@ export default function GlobalQuizPlayPage({
 }) {
   const { slug } = use(params);
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { quiz, loading, error, setLeaderboard } = usePublicGlobalQuiz(slug);
   const [attempt, setAttempt] = useState<GlobalQuizAttempt | null>(null);
   const [attemptLoading, setAttemptLoading] = useState(false);
@@ -47,8 +49,12 @@ export default function GlobalQuizPlayPage({
   } | null>(null);
   const autoExpiredQuestionRef = useRef<number | null>(null);
 
+  const identityReady =
+    Boolean(user) &&
+    isValidPlayerDisplayName(profile?.username ?? user?.displayName ?? null);
+
   useEffect(() => {
-    if (!quiz || !user) return;
+    if (!quiz || !identityReady) return;
     let cancelled = false;
 
     const start = async () => {
@@ -58,6 +64,7 @@ export default function GlobalQuizPlayPage({
         if (cancelled) return;
         setAttempt(data.attempt);
         setAttemptError(null);
+        trackEvent("global_quiz_attempt_started", { quiz_id: quiz.id });
       } catch (err) {
         if (cancelled) return;
         setAttemptError(
@@ -75,7 +82,7 @@ export default function GlobalQuizPlayPage({
     return () => {
       cancelled = true;
     };
-  }, [quiz, user]);
+  }, [quiz, identityReady]);
 
   useEffect(() => {
     setSelectedIndex(null);
@@ -122,7 +129,7 @@ export default function GlobalQuizPlayPage({
         setSubmitting(false);
       }
     },
-    [quiz, attempt, setLeaderboard]
+    [quiz, attempt, setLeaderboard, router]
   );
 
   const handleContinueFeedback = useCallback(() => {
@@ -131,9 +138,10 @@ export default function GlobalQuizPlayPage({
     setLeaderboard(lastFeedback.leaderboard);
     setLastFeedback(null);
     if (lastFeedback.completed) {
+      trackEvent("global_quiz_attempt_completed", { quiz_id: quiz?.id ?? "" });
       router.replace(`/quizzes/${slug}/ranking`);
     }
-  }, [lastFeedback, setLeaderboard, router, slug]);
+  }, [lastFeedback, setLeaderboard, router, slug, quiz?.id]);
 
   useEffect(() => {
     if (!isExpired || !attempt || !currentQuestion || submitting) return;
@@ -178,12 +186,8 @@ export default function GlobalQuizPlayPage({
 
         {loading ? (
           <p className="text-sm text-muted-foreground">Carregando quiz...</p>
-        ) : !quiz ? null : !user ? (
-          <EmailLinkSignInCard
-            redirectPath={`/quizzes/${quiz.slug}/play`}
-            title="Entre para jogar"
-            description="Use seu e-mail para validar sua participação no ranking global."
-          />
+        ) : !quiz ? null : !identityReady ? (
+          <GlobalQuizPlayerStartCard submitLabel="Continuar" />
         ) : attemptLoading || !attempt || !currentQuestion ? (
           <p className="text-sm text-muted-foreground">Preparando sua tentativa...</p>
         ) : lastFeedback ? (

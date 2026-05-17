@@ -3,23 +3,7 @@
     "rooms": {
       "$roomId": {
         ".read": true,
-        ".write": true,
-        "participants": {
-          "$participantId": {
-            ".write": true,
-            "totalScore": {
-              ".write": "auth != null || data.parent().parent().parent().child('hostId').val() != null"
-            }
-          }
-        },
-        "answers": {
-          "$questionIndex": {
-            "$participantId": {
-              ".write": "!data.exists()",
-              ".validate": "newData.hasChildren(['participantId', 'optionIndex', 'timestamp', 'responseTime', 'score'])"
-            }
-          }
-        }
+        ".write": false
       }
     },
     "users": {
@@ -45,6 +29,10 @@
       ".write": false
     },
     "globalQuizUserStats": {
+      ".read": false,
+      ".write": false
+    },
+    "usage": {
       ".read": false,
       ".write": false
     }

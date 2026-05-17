@@ -53,6 +53,19 @@ export default function HomePage() {
           </p>
         </div>
 
+        <section className="rounded-xl border bg-muted/30 px-6 py-5 text-left max-w-2xl mx-auto space-y-4 text-sm text-muted-foreground leading-relaxed">
+          <h2 className="text-base font-semibold text-foreground">O que é o Hootka?</h2>
+          <p>
+            Plataforma gratuita de quizzes em português: catálogo público com ranking por quiz e
+            salas ao vivo para grupos (aulas, eventos, amigos). Pontuação por acerto e tempo de
+            resposta.{" "}
+            <Link href="/about" className="underline hover:text-foreground">
+              Saiba mais
+            </Link>
+            .
+          </p>
+        </section>
+
         {/* How it works */}
         <section className="rounded-xl border bg-muted/30 px-6 py-5 text-left max-w-2xl mx-auto space-y-4">
           <div>
@@ -119,7 +132,11 @@ export default function HomePage() {
           className="my-6"
         />
 
-        <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-sm text-muted-foreground space-x-3">
+          <Link href="/about" className="underline hover:text-foreground">
+            Sobre
+          </Link>
+          <span aria-hidden="true">·</span>
           <Link href="/privacy" className="underline hover:text-foreground">
             Política de privacidade
           </Link>

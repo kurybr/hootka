@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useGlobalQuizCatalog } from "@/hooks/useGlobalQuizCatalog";
+import { AdSense } from "@/components/AdSense";
 import type { PublicGlobalQuiz } from "@/types/quiz";
 
 export default function GlobalQuizCatalogPage() {
@@ -102,6 +103,12 @@ export default function GlobalQuizCatalogPage() {
             )}
           </div>
         )}
+
+        <AdSense
+          slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BANNER}
+          format="horizontal"
+          className="mt-10"
+        />
       </div>
     </main>
   );

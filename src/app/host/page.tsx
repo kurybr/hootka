@@ -44,7 +44,6 @@ import { useQuizLibrary } from "@/hooks/useQuizLibrary";
 import { useAuth } from "@/providers/AuthProvider";
 import { useRealTime } from "@/providers/RealTimeContext";
 import { trackEvent } from "@/lib/gtag";
-import { AdSense } from "@/components/AdSense";
 import { toast } from "@/hooks/use-toast";
 import { ImportQuizDialog } from "@/components/ImportQuizDialog";
 import { cn } from "@/lib/utils";
@@ -503,12 +502,6 @@ export default function HostDashboardPage() {
             ))}
           </div>
         ) : null}
-
-        <AdSense
-          slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BANNER}
-          format="horizontal"
-          className="mt-8"
-        />
       </div>
 
       <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>

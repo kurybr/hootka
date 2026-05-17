@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdSense } from "@/components/AdSense";
 import { GlobalQuizPlayerStartCard } from "@/components/GlobalQuizPlayerStartCard";
 import { GlobalQuizLeaderboard } from "@/components/GlobalQuizLeaderboard";
 import { usePublicGlobalQuiz } from "@/hooks/usePublicGlobalQuiz";
@@ -101,6 +102,12 @@ export default function GlobalQuizDetailPage({
             <GlobalQuizLeaderboard
               entries={leaderboard.slice(0, 10)}
               currentUserId={user?.uid ?? null}
+            />
+
+            <AdSense
+              slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_RECTANGLE}
+              format="rectangle"
+              className="mt-4"
             />
           </>
         )}

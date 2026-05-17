@@ -1,7 +1,9 @@
 "use client";
 
 import Script from "next/script";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { isAdsenseContentRoute } from "@/lib/adsensePolicy";
 import { useConsent } from "@/providers/ConsentProvider";
 
 const ADSENSE_CLIENT_ID = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
@@ -20,20 +22,22 @@ interface AdSenseProps {
 }
 
 export function AdSense({ slot, format = "auto", className = "" }: AdSenseProps) {
+  const pathname = usePathname();
   const { hasConsent } = useConsent();
   const adRef = useRef<HTMLModElement>(null);
+  const allowedRoute = isAdsenseContentRoute(pathname);
 
   useEffect(() => {
-    if (!ADSENSE_ENABLED || !hasConsent || !slot || !adRef.current) return;
+    if (!ADSENSE_ENABLED || !hasConsent || !allowedRoute || !slot || !adRef.current) return;
     try {
       const w = window as unknown as { adsbygoogle?: unknown[] };
       (w.adsbygoogle = w.adsbygoogle || []).push({});
     } catch {
       // Ignore
     }
-  }, [hasConsent, slot]);
+  }, [hasConsent, slot, allowedRoute]);
 
-  if (!ADSENSE_CLIENT_ID || !ADSENSE_ENABLED || !hasConsent) {
+  if (!ADSENSE_CLIENT_ID || !ADSENSE_ENABLED || !hasConsent || !allowedRoute) {
     return null;
   }
 
@@ -66,9 +70,10 @@ export function AdSense({ slot, format = "auto", className = "" }: AdSenseProps)
 
 /** Carrega o script do AdSense uma vez (usar no layout ou provider) */
 export function AdSenseScript() {
+  const pathname = usePathname();
   const { hasConsent } = useConsent();
 
-  if (!ADSENSE_CLIENT_ID || !ADSENSE_ENABLED || !hasConsent) {
+  if (!ADSENSE_CLIENT_ID || !ADSENSE_ENABLED || !hasConsent || !isAdsenseContentRoute(pathname)) {
     return null;
   }
 

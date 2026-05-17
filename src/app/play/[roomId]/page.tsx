@@ -28,8 +28,6 @@ import { SoundToggle } from "@/components/SoundToggle";
 import { fireConfetti } from "@/lib/confetti";
 import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
-import { AdSense } from "@/components/AdSense";
-
 const PARTICIPANT_ID_KEY = "quiz_participantId";
 
 export default function PlayRoomPage() {
@@ -252,11 +250,6 @@ export default function PlayRoomPage() {
               </div>
             </CardContent>
           </Card>
-              <AdSense
-                slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BANNER}
-                format="horizontal"
-                className="mt-6"
-              />
               </motion.div>
             )}
             {status === "playing" && currentQuestion && (

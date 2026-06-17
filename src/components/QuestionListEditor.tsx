@@ -7,6 +7,7 @@ import {
   MAX_QUESTION_OPTIONS,
   MIN_QUESTION_OPTIONS,
   createEmptyQuestion,
+  isQuestionValid,
 } from "@/lib/questionUtils";
 import type { Question } from "@/types/quiz";
 import { QuizAiQuestionBar } from "@/components/QuizAiQuestionBar";
@@ -91,7 +92,11 @@ export function QuestionListEditor({
       {showAiBar && (
         <QuizAiQuestionBar
           onAddQuestions={(generated) =>
-            updateQuestions((current) => [...current, ...generated])
+            updateQuestions((current) => {
+              const hasOnlyEmptyPlaceholder =
+                current.length === 1 && !isQuestionValid(current[0]);
+              return hasOnlyEmptyPlaceholder ? generated : [...current, ...generated];
+            })
           }
         />
       )}

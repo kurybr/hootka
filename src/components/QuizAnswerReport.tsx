@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { QUIZ_SURFACE_CARD_CLASS } from "@/components/QuizQuestionCardHeader";
 import type { QuizAnswerReport } from "@/lib/answerReportUtils";
 
 interface QuizAnswerReportProps {
@@ -23,7 +24,7 @@ export function QuizAnswerReport({
 }: QuizAnswerReportProps) {
   if (report.questionCount === 0) {
     return (
-      <Card>
+      <Card className={QUIZ_SURFACE_CARD_CLASS}>
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
@@ -37,7 +38,7 @@ export function QuizAnswerReport({
 
   if (report.totalSessions === 0) {
     return (
-      <Card>
+      <Card className={QUIZ_SURFACE_CARD_CLASS}>
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
@@ -52,7 +53,7 @@ export function QuizAnswerReport({
   }
 
   return (
-    <Card>
+    <Card className={QUIZ_SURFACE_CARD_CLASS}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>

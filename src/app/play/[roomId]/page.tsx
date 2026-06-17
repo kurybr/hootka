@@ -14,7 +14,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { QuestionCard } from "@/components/QuestionCard";
-import { Timer } from "@/components/Timer";
+import { LiveQuizPageShell } from "@/components/LiveQuizPageShell";
+import {
+  QUIZ_SURFACE_CARD_CLASS,
+  QuizQuestionCardHeader,
+} from "@/components/QuizQuestionCardHeader";
+import { formatLiveRoomSubtitle, formatRoomCodeLabel } from "@/lib/liveQuizDisplay";
 import { useRealTime } from "@/hooks/useRealTime";
 import { useRoom } from "@/hooks/useRoom";
 import { useParticipants } from "@/hooks/useParticipants";
@@ -159,24 +164,27 @@ export default function PlayRoomPage() {
     return () => clearTimeout(t);
   }, [status, currentQuestionIndex, currentQuestion, participantId, room]);
 
+  const myParticipant = participantId ? room?.participants[participantId] : null;
+  const myTotalScore = myParticipant?.totalScore ?? 0;
+
   if (!roomId) {
     router.replace("/");
     return null;
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6 sm:p-8">
-      <div className="mx-auto w-full max-w-2xl space-y-8">
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-2xl font-bold">Quiz</h1>
-          <div className="flex items-center gap-2">
-            <SoundToggle />
-            <Button variant="outline" asChild>
-              <Link href="/">Sair</Link>
-            </Button>
-          </div>
-        </div>
-
+    <LiveQuizPageShell
+      title={formatRoomCodeLabel(room)}
+      description={room ? formatLiveRoomSubtitle(room) : undefined}
+      actions={
+        <>
+          <SoundToggle />
+          <Button variant="outline" asChild>
+            <Link href="/">Sair</Link>
+          </Button>
+        </>
+      }
+    >
         {hostDisconnected && (
           <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
             O host está temporariamente desconectado. A sala permanece ativa.
@@ -202,17 +210,17 @@ export default function PlayRoomPage() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
-          <Card>
+          <Card className={QUIZ_SURFACE_CARD_CLASS}>
             <CardHeader>
-              <CardTitle>Aguardando o Host iniciar o jogo...</CardTitle>
+              <CardTitle>Aguardando o host</CardTitle>
               <CardDescription>
-                Assim que o host iniciar, a primeira pergunta será exibida
+                {room ? formatLiveRoomSubtitle(room) : "Preparando a sala..."}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="mb-6 text-center text-muted-foreground">
-                Você está na sala. Aguarde o host clicar em &quot;Iniciar
-                Jogo&quot;.
+              <p className="mb-6 text-sm text-muted-foreground">
+                Você está na sala. Assim que o host iniciar, a primeira pergunta
+                será exibida.
               </p>
 
               <div>
@@ -264,24 +272,19 @@ export default function PlayRoomPage() {
             {status === "playing" && currentQuestion && (
               <motion.div
                 key={`playing-${currentQuestionIndex}`}
-                initial={{ opacity: 0, y: 24, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -16, scale: 0.98 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
               >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                <span className="rounded-lg bg-primary px-2.5 py-0.5 font-mono text-sm font-bold text-primary-foreground">
-                  Pergunta {currentQuestionIndex + 1} de {room?.questions.length ?? 0}
-                </span>
-              </CardTitle>
-              <Timer
-                questionStartTimestamp={questionStartTimestamp}
-                timeLimitMs={questionTimeLimitMs}
-                size="large"
-              />
-            </CardHeader>
+          <Card className={QUIZ_SURFACE_CARD_CLASS}>
+            <QuizQuestionCardHeader
+              questionIndex={currentQuestionIndex}
+              questionCount={room?.questions.length ?? 0}
+              subtitle={formatLiveRoomSubtitle(room)}
+              questionStartTimestamp={questionStartTimestamp}
+              timeLimitMs={questionTimeLimitMs}
+            />
             <CardContent className="space-y-6">
               <QuestionCard
                 question={currentQuestion}
@@ -295,6 +298,9 @@ export default function PlayRoomPage() {
                   Tempo esgotado!
                 </p>
               )}
+              <p className="text-center text-sm text-muted-foreground">
+                Pontuação atual: {myTotalScore} pontos
+              </p>
             </CardContent>
           </Card>
               </motion.div>
@@ -307,7 +313,7 @@ export default function PlayRoomPage() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
-          <Card>
+          <Card className={QUIZ_SURFACE_CARD_CLASS}>
             <CardHeader>
               <CardTitle>Resultado da Rodada</CardTitle>
               <CardDescription>
@@ -333,6 +339,9 @@ export default function PlayRoomPage() {
                   />
                 );
               })()}
+              <p className="text-center text-sm text-muted-foreground">
+                Pontuação atual: {myTotalScore} pontos
+              </p>
               {ranking.length > 0 && (() => {
                 const myRank = ranking.find((p) => p.id === participantId);
                 return (
@@ -369,15 +378,16 @@ export default function PlayRoomPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
+                className="space-y-6"
               >
-          <Card>
-            <CardHeader>
-              <CardTitle>Jogo Encerrado</CardTitle>
-              <CardDescription>
-                Parabéns aos participantes!
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+              <Card className={QUIZ_SURFACE_CARD_CLASS}>
+                <CardHeader>
+                  <CardTitle>Jogo encerrado</CardTitle>
+                  <CardDescription>
+                    Confira o ranking final e sua pontuação nesta partida.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
               {ranking.length > 0 && (
                 <FinalRanking
                   participants={ranking}
@@ -389,15 +399,12 @@ export default function PlayRoomPage() {
                 currentPlayerId={participantId}
               />
               <Button asChild className="w-full">
-                <Link href="/">Voltar ao Início</Link>
+                <Link href="/">Voltar ao início</Link>
               </Button>
-            </CardContent>
-          </Card>
               </motion.div>
             )}
           </AnimatePresence>
         )}
-      </div>
-    </main>
+    </LiveQuizPageShell>
   );
 }

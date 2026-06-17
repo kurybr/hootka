@@ -20,7 +20,12 @@ import { useParticipants } from "@/hooks/useParticipants";
 import { useGameState } from "@/hooks/useGameState";
 import { useAnswerCount } from "@/hooks/useAnswerCount";
 import { useRanking } from "@/hooks/useRanking";
-import { Timer } from "@/components/Timer";
+import { LiveQuizPageShell } from "@/components/LiveQuizPageShell";
+import {
+  QUIZ_SURFACE_CARD_CLASS,
+  QuizQuestionCardHeader,
+} from "@/components/QuizQuestionCardHeader";
+import { formatLiveRoomSubtitle } from "@/lib/liveQuizDisplay";
 import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
 import { QuizAnswerReport } from "@/components/QuizAnswerReport";
@@ -130,18 +135,19 @@ export default function HostRoomPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8 lg:p-12">
-      <div className="mx-auto w-full max-w-4xl space-y-8">
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-2xl font-bold">Sala do Host</h1>
-          <div className="flex items-center gap-2">
-            <SoundToggle />
-            <Button variant="outline" asChild>
-              <Link href="/">Sair</Link>
-            </Button>
-          </div>
-        </div>
-
+    <LiveQuizPageShell
+      title="Sala do host"
+      description={room ? formatLiveRoomSubtitle(room) : undefined}
+      maxWidth="4xl"
+      actions={
+        <>
+          <SoundToggle />
+          <Button variant="outline" asChild>
+            <Link href="/">Sair</Link>
+          </Button>
+        </>
+      }
+    >
         {error && (
           <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
             {error}
@@ -161,9 +167,9 @@ export default function HostRoomPage() {
                 transition={{ duration: 0.25, ease: "easeOut" }}
                 className="space-y-8"
               >
-            <Card>
+            <Card className={QUIZ_SURFACE_CARD_CLASS}>
               <CardHeader className="p-6 lg:p-8">
-                <CardTitle>Código da Sala</CardTitle>
+                <CardTitle>Código da sala</CardTitle>
                 <CardDescription>
                   Compartilhe este código para os participantes entrarem
                 </CardDescription>
@@ -186,7 +192,22 @@ export default function HostRoomPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            {room && (
+              <div className="flex flex-wrap gap-2 text-sm">
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">
+                  {room.questions.length} pergunta
+                  {room.questions.length !== 1 ? "s" : ""}
+                </span>
+                <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
+                  {questionTimeLimitMs / 1000}s por pergunta
+                </span>
+                <span className="rounded-full bg-muted px-3 py-1 text-muted-foreground">
+                  Código {room.code}
+                </span>
+              </div>
+            )}
+
+            <Card className={QUIZ_SURFACE_CARD_CLASS}>
               <CardHeader className="p-6 lg:p-8">
                 <CardTitle className="flex items-center gap-2">
                   Participantes
@@ -260,19 +281,14 @@ export default function HostRoomPage() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
-          <Card>
-            <CardHeader className="p-6 lg:p-8">
-              <CardTitle className="text-xl lg:text-2xl">Pergunta {currentQuestionIndex + 1}</CardTitle>
-              <CardDescription className="text-base">
-                {currentQuestion?.text ?? "Carregando..."}
-              </CardDescription>
-              <Timer
-                questionStartTimestamp={questionStartTimestamp}
-                timeLimitMs={questionTimeLimitMs}
-                className="mt-4"
-                size="large"
-              />
-            </CardHeader>
+          <Card className={QUIZ_SURFACE_CARD_CLASS}>
+            <QuizQuestionCardHeader
+              questionIndex={currentQuestionIndex}
+              questionCount={room?.questions.length ?? 0}
+              subtitle={currentQuestion?.text ?? "Carregando..."}
+              questionStartTimestamp={questionStartTimestamp}
+              timeLimitMs={questionTimeLimitMs}
+            />
             <CardContent className="space-y-4 p-6 pt-0 lg:p-8 lg:pt-0">
               <div className="space-y-2">
                 <p className="text-center text-xl font-bold lg:text-2xl">
@@ -302,9 +318,9 @@ export default function HostRoomPage() {
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
-          <Card>
+          <Card className={QUIZ_SURFACE_CARD_CLASS}>
             <CardHeader className="p-6 lg:p-8">
-              <CardTitle>Resultado da Rodada</CardTitle>
+              <CardTitle>Resultado da rodada</CardTitle>
               <CardDescription>
                 Resposta correta e distribuição de respostas
               </CardDescription>
@@ -365,15 +381,16 @@ export default function HostRoomPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
+                className="space-y-6"
               >
-          <Card>
-            <CardHeader className="p-6 lg:p-8">
-              <CardTitle>Jogo Encerrado</CardTitle>
-              <CardDescription>
-                Parabéns aos participantes!
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 p-6 lg:p-8 lg:pt-0">
+              <Card className={QUIZ_SURFACE_CARD_CLASS}>
+                <CardHeader className="p-6 lg:p-8">
+                  <CardTitle>Jogo encerrado</CardTitle>
+                  <CardDescription>
+                    {room ? formatLiveRoomSubtitle(room) : "Partida finalizada"}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
               {ranking.length > 0 && (
                 <FinalRanking participants={ranking} />
               )}
@@ -385,15 +402,12 @@ export default function HostRoomPage() {
                 />
               )}
               <Button asChild className="w-full">
-                <Link href="/">Voltar ao Início</Link>
+                <Link href="/">Voltar ao início</Link>
               </Button>
-            </CardContent>
-          </Card>
               </motion.div>
             )}
           </AnimatePresence>
         )}
-      </div>
-    </main>
+    </LiveQuizPageShell>
   );
 }

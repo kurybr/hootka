@@ -18,7 +18,7 @@ export default defineConfig({
     {
       name: "live-rooms",
       use: { ...devices["Desktop Chrome"] },
-      testMatch: ["**/create-room.spec.ts", "**/join-room.spec.ts", "**/live-room*.spec.ts"],
+      testMatch: ["**/create-room.spec.ts", "**/create-forms-alignment.spec.ts", "**/join-room.spec.ts", "**/live-room*.spec.ts"],
     },
     {
       name: "global-room",

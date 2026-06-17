@@ -11,6 +11,7 @@ import {
 } from "@/lib/questionUtils";
 import type { Question } from "@/types/quiz";
 import { QuizAiQuestionBar } from "@/components/QuizAiQuestionBar";
+import { QUIZ_SURFACE_CARD_CLASS } from "@/components/QuizQuestionCardHeader";
 
 interface QuestionListEditorProps {
   questions: Question[];
@@ -102,7 +103,7 @@ export function QuestionListEditor({
       )}
 
       {questions.map((question, questionIndex) => (
-        <Card key={questionIndex}>
+        <Card key={questionIndex} className={QUIZ_SURFACE_CARD_CLASS}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-lg">Pergunta {questionIndex + 1}</CardTitle>
             <div className="flex gap-2">

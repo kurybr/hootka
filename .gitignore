@@ -47,3 +47,7 @@ playwright-report/
 
 # Fontes proprietárias (projeto usa apenas Google Fonts — SIL OFL)
 /public/fonts/AmpleSoft/
+
+
+playwright-report/
+.playwright-audit

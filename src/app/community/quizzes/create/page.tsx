@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { GoogleSignInCard } from "@/components/GoogleSignInCard";
 import { GlobalQuizForm } from "@/components/GlobalQuizForm";
+import { QuizCreatePageShell } from "@/components/QuizCreatePageShell";
 import { createGlobalQuiz } from "@/lib/globalQuizClient";
 import { useAuth } from "@/providers/AuthProvider";
 import { toast } from "@/hooks/use-toast";
@@ -19,54 +18,44 @@ export default function CreateCommunityQuizPage() {
 
   if (!user || !isCreator) {
     return (
-      <main className="min-h-screen p-8 lg:p-12">
-        <div className="mx-auto w-full max-w-2xl space-y-6">
-          <Button variant="outline" asChild>
-            <Link href="/community/quizzes">Voltar</Link>
-          </Button>
-          <GoogleSignInCard
-            title="Entre com Google para criar um quiz"
-            description="Sua conta Google verificada é usada para publicar e gerenciar quizzes comunitários."
-          />
-        </div>
-      </main>
+      <QuizCreatePageShell
+        title="Novo quiz global"
+        description="Publique um quiz comunitário com ranking global."
+        backHref="/community/quizzes"
+        maxWidth="2xl"
+      >
+        <GoogleSignInCard
+          title="Entre com Google para criar um quiz"
+          description="Sua conta Google verificada é usada para publicar e gerenciar quizzes comunitários."
+        />
+      </QuizCreatePageShell>
     );
   }
 
   return (
-    <main className="min-h-screen p-8 lg:p-12">
-      <div className="mx-auto w-full max-w-5xl space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Novo quiz global</h1>
-            <p className="text-muted-foreground">
-              Publique um quiz comunitário com ranking global.
-            </p>
-          </div>
-          <Button variant="outline" asChild>
-            <Link href="/community/quizzes">Voltar</Link>
-          </Button>
-        </div>
-
-        <GlobalQuizForm
-          loading={loading}
-          isAdmin={profile?.role === "admin"}
-          submitLabel="Criar quiz global"
-          onSubmit={async (values) => {
-            setLoading(true);
-            try {
-              const { quiz } = await createGlobalQuiz(values);
-              toast({
-                title: "Quiz criado",
-                description: "Seu quiz global já está disponível.",
-              });
-              router.push(`/community/quizzes/${quiz.id}`);
-            } finally {
-              setLoading(false);
-            }
-          }}
-        />
-      </div>
-    </main>
+    <QuizCreatePageShell
+      title="Novo quiz global"
+      description="Publique um quiz comunitário com ranking global."
+      backHref="/community/quizzes"
+    >
+      <GlobalQuizForm
+        loading={loading}
+        isAdmin={profile?.role === "admin"}
+        submitLabel="Criar quiz global"
+        onSubmit={async (values) => {
+          setLoading(true);
+          try {
+            const { quiz } = await createGlobalQuiz(values);
+            toast({
+              title: "Quiz criado",
+              description: "Seu quiz global já está disponível.",
+            });
+            router.push(`/community/quizzes/${quiz.id}`);
+          } finally {
+            setLoading(false);
+          }
+        }}
+      />
+    </QuizCreatePageShell>
   );
 }

@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { GlobalQuizAiPromptCard } from "@/components/GlobalQuizAiPromptCard";
 import { QuestionListEditor } from "@/components/QuestionListEditor";
+import { QUIZ_SURFACE_CARD_CLASS } from "@/components/QuizQuestionCardHeader";
 import {
   DEFAULT_QUESTION_OPTIONS,
   DEFAULT_QUESTION_TIME_LIMIT_MS,
@@ -144,7 +145,7 @@ export function GlobalQuizForm({
         }}
       />
 
-      <Card>
+      <Card className={QUIZ_SURFACE_CARD_CLASS}>
         <CardHeader>
           <CardTitle>Dados do quiz</CardTitle>
           <CardDescription>

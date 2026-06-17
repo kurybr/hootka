@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { QUIZ_SURFACE_CARD_CLASS } from "@/components/QuizQuestionCardHeader";
 import type { PlayerRankingReport as PlayerRankingReportData } from "@/lib/playerRankingReportUtils";
 
 interface PlayerRankingReportProps {
@@ -39,7 +40,7 @@ export function PlayerRankingReport({
 }: PlayerRankingReportProps) {
   if (report.totalPlayers === 0) {
     return (
-      <Card>
+      <Card className={QUIZ_SURFACE_CARD_CLASS}>
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
@@ -54,7 +55,7 @@ export function PlayerRankingReport({
   }
 
   return (
-    <Card>
+    <Card className={QUIZ_SURFACE_CARD_CLASS}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {description ? (

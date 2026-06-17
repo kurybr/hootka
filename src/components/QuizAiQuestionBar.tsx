@@ -3,6 +3,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   generateQuizQuestionsWithAi,
@@ -42,9 +49,14 @@ export function QuizAiQuestionBar({ onAddQuestions }: QuizAiQuestionBarProps) {
 
   if (!user || user.isAnonymous) {
     return (
-      <p className="text-xs text-muted-foreground">
-        Entre com Google para gerar perguntas com IA (OpenRouter).
-      </p>
+      <Card className="border-dashed">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Gerar perguntas com IA</CardTitle>
+          <CardDescription>
+            Entre com Google para gerar perguntas com IA (OpenRouter).
+          </CardDescription>
+        </CardHeader>
+      </Card>
     );
   }
 
@@ -75,59 +87,75 @@ export function QuizAiQuestionBar({ onAddQuestions }: QuizAiQuestionBarProps) {
   };
 
   return (
-    <div className="rounded-lg border border-dashed bg-muted/25 p-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium">
-        <span className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" aria-hidden />
-          Gerar perguntas com IA (OpenRouter)
-        </span>
-        {usage !== null && (
-          <span className="text-xs font-normal text-muted-foreground">
-            {usage.used}/{usage.limit} gerações
-          </span>
-        )}
-      </div>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <div className="flex-1 space-y-1">
-          <label htmlFor="ai-topic" className="text-xs text-muted-foreground">
+    <Card className="border-primary/20 bg-muted/20">
+      <CardHeader className="pb-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-2">
+            <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
+            <div>
+              <CardTitle className="text-lg">Gerar perguntas com IA</CardTitle>
+              <CardDescription>
+                Informe um tema e a quantidade. As perguntas geradas são adicionadas ao
+                formulário — você pode editar tudo antes de criar a sala.
+              </CardDescription>
+            </div>
+          </div>
+          {usage !== null && (
+            <span className="text-xs whitespace-nowrap text-muted-foreground">
+              Gerações: {usage.used}/{usage.limit}
+              {usage.remaining > 0 ? ` (${usage.remaining} restantes)` : ""}
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="space-y-1">
+          <label htmlFor="ai-topic" className="text-sm font-medium">
             Tema
           </label>
           <Input
             id="ai-topic"
             value={topic}
-            onChange={(e) => setTopic(e.target.value)}
+            onChange={(event) => setTopic(event.target.value)}
             placeholder="Ex.: astronomia básica"
             disabled={busy || atLimit}
           />
         </div>
-        <div className="w-24 space-y-1">
-          <label htmlFor="ai-count" className="text-xs text-muted-foreground">
-            Qtd.
-          </label>
-          <Input
-            id="ai-count"
-            type="number"
-            min={1}
-            max={12}
-            value={count}
-            onChange={(e) => setCount(e.target.value)}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="w-full space-y-1 sm:w-28">
+            <label htmlFor="ai-count" className="text-xs text-muted-foreground">
+              Qtd. perguntas
+            </label>
+            <Input
+              id="ai-count"
+              type="number"
+              min={1}
+              max={12}
+              value={count}
+              onChange={(event) => setCount(event.target.value)}
+              disabled={busy || atLimit}
+            />
+          </div>
+          <Button
+            type="button"
+            className="sm:ml-auto"
+            onClick={() => void handleGenerate()}
             disabled={busy || atLimit}
-          />
+          >
+            {busy ? "Gerando…" : "Gerar perguntas"}
+          </Button>
         </div>
-        <Button type="button" onClick={() => void handleGenerate()} disabled={busy || atLimit}>
-          {busy ? "Gerando..." : "Gerar"}
-        </Button>
-      </div>
-      {atLimit && (
-        <p className="text-xs text-amber-700 dark:text-amber-500">
-          Limite de gerações com IA atingido para sua conta.
-        </p>
-      )}
-      {error && (
-        <p className="text-xs text-destructive" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
+        {atLimit && (
+          <p className="text-sm text-amber-700 dark:text-amber-500" role="status">
+            Você atingiu o limite de gerações com IA para sua conta.
+          </p>
+        )}
+        {error && (
+          <p className="text-sm text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }

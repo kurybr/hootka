@@ -21,7 +21,9 @@ test.describe("Create room flow", () => {
 
     await expect(page).toHaveURL(/\/host\/create/);
     await expect(page.getByRole("heading", { name: "Criar Sala" })).toBeVisible();
-    await expect(page.getByText("Adicione as perguntas do quiz")).toBeVisible();
+    await expect(page.getByText(/sala ao vivo/i)).toBeVisible();
+    await expect(page.getByText("Gerar quiz com IA")).toBeVisible();
+    await expect(page.getByText("Dados da sala")).toBeVisible();
   });
 
   test("shows validation error when creating room with empty question", async ({ page }) => {
@@ -63,13 +65,11 @@ test.describe("Create room flow", () => {
     await expect(page.getByText("Pergunta 2")).toBeVisible();
   });
 
-  test("save to library checkbox shows title input when checked", async ({ page }) => {
+  test("save to library checkbox is visible with title field", async ({ page }) => {
     await page.goto(`${BASE_URL}/host/create`);
 
-    await page.getByText("Salvar quiz na biblioteca ao criar sala").click();
-
     await expect(page.getByLabel("Título do quiz")).toBeVisible();
-    await expect(page.getByPlaceholder("Ex: Conhecimentos Gerais")).toBeVisible();
+    await expect(page.getByText("Salvar quiz na biblioteca ao criar sala")).toBeVisible();
   });
 
   test("back button returns to host page", async ({ page }) => {

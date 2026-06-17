@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GlobalQuizPlayerStartCard } from "@/components/GlobalQuizPlayerStartCard";
+import { QUIZ_SURFACE_CARD_CLASS } from "@/components/QuizQuestionCardHeader";
 import { QuestionCard } from "@/components/QuestionCard";
 import { ResultCard } from "@/components/ResultCard";
 import { Timer } from "@/components/Timer";
@@ -199,7 +200,7 @@ export default function GlobalQuizPlayPage({
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
-              <Card>
+              <Card className={QUIZ_SURFACE_CARD_CLASS}>
                 <CardHeader>
                   <CardTitle>Resultado da Rodada</CardTitle>
                   <CardDescription>
@@ -230,7 +231,7 @@ export default function GlobalQuizPlayPage({
             </motion.div>
           </AnimatePresence>
         ) : (
-          <Card>
+          <Card className={QUIZ_SURFACE_CARD_CLASS}>
             <CardHeader>
               <CardTitle>
                 Pergunta {attempt.currentQuestionIndex + 1} de {quiz.questions.length}

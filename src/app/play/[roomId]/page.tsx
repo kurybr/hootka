@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -20,9 +20,12 @@ import { useRoom } from "@/hooks/useRoom";
 import { useParticipants } from "@/hooks/useParticipants";
 import { useGameState } from "@/hooks/useGameState";
 import { useTimer } from "@/hooks/useTimer";
+import { resolveQuestionTimeLimitMs } from "@/lib/questionUtils";
 import { useRanking } from "@/hooks/useRanking";
 import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
+import { PlayerRankingReport } from "@/components/PlayerRankingReport";
+import { buildLivePlayerRankingReport } from "@/lib/playerRankingReportUtils";
 import { ResultCard } from "@/components/ResultCard";
 import { SoundToggle } from "@/components/SoundToggle";
 import { fireConfetti } from "@/lib/confetti";
@@ -55,8 +58,14 @@ export default function PlayRoomPage() {
   }, []);
 
   const currentQuestion = room?.questions[currentQuestionIndex];
+  const questionTimeLimitMs = resolveQuestionTimeLimitMs(room?.questionTimeLimitMs);
+  const playerRankingReport = useMemo(
+    () => buildLivePlayerRankingReport(ranking),
+    [ranking]
+  );
   const { isExpired } = useTimer(
-    status === "playing" ? questionStartTimestamp : null
+    status === "playing" ? questionStartTimestamp : null,
+    questionTimeLimitMs
   );
 
   const handleAnswer = (optionIndex: number) => {
@@ -267,7 +276,11 @@ export default function PlayRoomPage() {
                   Pergunta {currentQuestionIndex + 1} de {room?.questions.length ?? 0}
                 </span>
               </CardTitle>
-              <Timer questionStartTimestamp={questionStartTimestamp} size="large" />
+              <Timer
+                questionStartTimestamp={questionStartTimestamp}
+                timeLimitMs={questionTimeLimitMs}
+                size="large"
+              />
             </CardHeader>
             <CardContent className="space-y-6">
               <QuestionCard
@@ -371,6 +384,10 @@ export default function PlayRoomPage() {
                   currentParticipantId={participantId}
                 />
               )}
+              <PlayerRankingReport
+                report={playerRankingReport}
+                currentPlayerId={participantId}
+              />
               <Button asChild className="w-full">
                 <Link href="/">Voltar ao Início</Link>
               </Button>

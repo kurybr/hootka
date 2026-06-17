@@ -4,6 +4,26 @@ export const MIN_QUESTION_OPTIONS = 2;
 export const MAX_QUESTION_OPTIONS = 5;
 export const DEFAULT_QUESTION_OPTIONS = 4;
 export const DEFAULT_QUESTION_TIME_LIMIT_MS = 120000;
+export const MIN_QUESTION_TIME_LIMIT_MS = 10000;
+export const DEFAULT_LIVE_ROOM_TIME_LIMIT_MS = 60000;
+
+export function resolveQuestionTimeLimitMs(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value) && value >= MIN_QUESTION_TIME_LIMIT_MS) {
+    return Math.floor(value);
+  }
+  return DEFAULT_QUESTION_TIME_LIMIT_MS;
+}
+
+export function sanitizeQuestionTimeLimitSeconds(
+  seconds: number | string | undefined | null,
+  defaultSeconds = DEFAULT_LIVE_ROOM_TIME_LIMIT_MS / 1000
+): number {
+  const parsed = Number(seconds ?? defaultSeconds);
+  if (!Number.isFinite(parsed)) {
+    return Math.max(MIN_QUESTION_TIME_LIMIT_MS, defaultSeconds * 1000);
+  }
+  return Math.max(MIN_QUESTION_TIME_LIMIT_MS, Math.floor(parsed) * 1000);
+}
 export const MAX_QUESTION_SCORE = 120;
 export const QUESTION_SHORTCUT_KEYS = ["a", "s", "d", "f", "g"] as const;
 export const QUESTION_OPTION_COLORS = [

@@ -10,6 +10,7 @@ import type {
 } from "./IRealTimeProvider";
 import type { Answer, Participant, Question, Room } from "@/types/quiz";
 import { getFirebaseDatabase, ROOMS_PATH } from "@/lib/firebase";
+import { resolveQuestionTimeLimitMs } from "@/lib/questionUtils";
 
 const HOST_ID_KEY = "quiz_hostId";
 const PARTICIPANT_ID_KEY = "quiz_participantId";
@@ -85,6 +86,7 @@ type RoomParts = {
   status?: Room["status"];
   currentQuestionIndex?: number;
   questionStartTimestamp?: number | null;
+  questionTimeLimitMs?: number;
   participants?: Record<string, Participant>;
   questions?: Question[];
   answers?: Room["answers"];
@@ -146,6 +148,7 @@ export class FirebaseProvider implements IRealTimeProvider {
         status: p.status,
         currentQuestionIndex: p.currentQuestionIndex,
         questionStartTimestamp: p.questionStartTimestamp ?? null,
+        questionTimeLimitMs: resolveQuestionTimeLimitMs(p.questionTimeLimitMs),
         participants: p.participants,
         questions: p.questions,
         answers,
@@ -288,6 +291,14 @@ export class FirebaseProvider implements IRealTimeProvider {
       })
     );
     pushUnsub(
+      onValue(ref(db, `${base}/questionTimeLimitMs`), (s) => {
+        const v = s.val();
+        if (typeof v === "number" && Number.isFinite(v)) {
+          this.mergeRoomParts({ questionTimeLimitMs: v });
+        }
+      })
+    );
+    pushUnsub(
       onValue(ref(db, `${base}/participants`), (s) =>
         this.mergeRoomParts({
           participants: (s.val() as Record<string, Participant>) ?? {},
@@ -318,15 +329,19 @@ export class FirebaseProvider implements IRealTimeProvider {
     this.connectionStateListeners.forEach((cb) => cb(false));
   }
 
-  async createRoom(questions: Question[]): Promise<{
+  async createRoom(
+    questions: Question[],
+    questionTimeLimitMs?: number
+  ): Promise<{
     roomId: string;
     code: string;
   }> {
     const hostId = getOrCreateHostId();
-    const res = await apiFetch("/api/firebase/rooms/create", {
-      questions,
-      hostId,
-    });
+    const body: Record<string, unknown> = { questions, hostId };
+    if (questionTimeLimitMs !== undefined) {
+      body.questionTimeLimitMs = questionTimeLimitMs;
+    }
+    const res = await apiFetch("/api/firebase/rooms/create", body);
 
     const data = await res.json();
     if (!res.ok) {

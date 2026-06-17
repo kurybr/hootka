@@ -39,8 +39,14 @@ const scheduler_1 = require("firebase-functions/v2/scheduler");
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 const db = admin.database();
-const MAX_RESPONSE_TIME = 120000;
 const MAX_SCORE = 120;
+function getRoomTimeLimitMs(room) {
+    const raw = room.questionTimeLimitMs;
+    if (typeof raw === "number" && Number.isFinite(raw) && raw >= 10000) {
+        return Math.floor(raw);
+    }
+    return 120000;
+}
 exports.onAnswerSubmitted = (0, database_1.onValueCreated)("rooms/{roomId}/answers/{questionIndex}/{participantId}", async (event) => {
     const { roomId, questionIndex, participantId } = event.params;
     const answer = event.data.val();
@@ -49,10 +55,11 @@ exports.onAnswerSubmitted = (0, database_1.onValueCreated)("rooms/{roomId}/answe
     if (!roomSnap.exists())
         return;
     const room = roomSnap.val();
+    const timeLimitMs = getRoomTimeLimitMs(room);
     const isValid = room.status === "playing" &&
         room.participants?.[participantId] &&
         typeof answer.responseTime === "number" &&
-        answer.responseTime <= MAX_RESPONSE_TIME;
+        answer.responseTime <= timeLimitMs;
     if (!isValid) {
         await event.data.ref.remove();
         return;
@@ -66,8 +73,8 @@ exports.onAnswerSubmitted = (0, database_1.onValueCreated)("rooms/{roomId}/answe
     const isCorrect = answer.optionIndex === question.correctOptionIndex;
     const score = isCorrect
         ? Math.round(MAX_SCORE *
-            (Math.max(0, MAX_RESPONSE_TIME - answer.responseTime) /
-                MAX_RESPONSE_TIME))
+            (Math.max(0, timeLimitMs - answer.responseTime) /
+                timeLimitMs))
         : 0;
     await event.data.ref.child("score").set(score);
     const participantRef = db.ref(`rooms/${roomId}/participants/${participantId}`);

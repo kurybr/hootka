@@ -1,14 +1,15 @@
 import type { Answer, Participant, Question, Room } from "../types/quiz";
 import type { IGameStore } from "./IGameStore";
 import {
-  DEFAULT_QUESTION_TIME_LIMIT_MS,
+  DEFAULT_LIVE_ROOM_TIME_LIMIT_MS,
   calculateTimedScore,
+  resolveQuestionTimeLimitMs,
+  sanitizeQuestionTimeLimitSeconds,
   validateQuestions,
 } from "../lib/questionUtils";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 6;
-const QUESTION_TIMEOUT_MS = DEFAULT_QUESTION_TIME_LIMIT_MS;
 
 function getMaxRoomParticipants(): number {
   const raw = parseInt(process.env.MAX_ROOM_PARTICIPANTS || "100", 10);
@@ -31,7 +32,11 @@ function generateId(): string {
 export class GameEngine {
   constructor(private store: IGameStore) {}
 
-  async createRoom(questions: Question[], hostId: string): Promise<Room> {
+  async createRoom(
+    questions: Question[],
+    hostId: string,
+    questionTimeLimitMs = DEFAULT_LIVE_ROOM_TIME_LIMIT_MS
+  ): Promise<Room> {
     const validationError = validateQuestions(questions);
     if (validationError) {
       throw new Error(validationError);
@@ -54,6 +59,9 @@ export class GameEngine {
       participants: {},
       questions,
       answers: {},
+      questionTimeLimitMs: sanitizeQuestionTimeLimitSeconds(
+        questionTimeLimitMs / 1000
+      ),
     };
 
     await this.store.createRoom(room);
@@ -146,13 +154,14 @@ export class GameEngine {
     const questionStartTimestamp = room.questionStartTimestamp;
     if (questionStartTimestamp === null) throw new Error("TIMESTAMP_INVALIDO");
 
+    const timeLimitMs = resolveQuestionTimeLimitMs(room.questionTimeLimitMs);
     const responseTime = Date.now() - questionStartTimestamp;
-    if (responseTime > QUESTION_TIMEOUT_MS) {
+    if (responseTime > timeLimitMs) {
       throw new Error("TEMPO_ESGOTADO");
     }
 
     const correct = optionIndex === question.correctOptionIndex;
-    const score = calculateTimedScore(correct, responseTime, QUESTION_TIMEOUT_MS);
+    const score = calculateTimedScore(correct, responseTime, timeLimitMs);
 
     const answer: Answer = {
       participantId,
@@ -179,7 +188,7 @@ export class GameEngine {
     const answeredCount = Object.keys(updatedRoom.answers[qKey] ?? {}).length;
     const shouldTransitionToResult =
       answeredCount >= totalParticipants ||
-      responseTime >= QUESTION_TIMEOUT_MS - 100;
+      responseTime >= timeLimitMs - 100;
 
     return {
       correct,

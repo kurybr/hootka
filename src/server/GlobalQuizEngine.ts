@@ -14,6 +14,8 @@ import {
   slugifyQuizTitle,
   toPublicQuiz,
 } from "@/lib/globalQuizUtils";
+import { buildGlobalQuizAnswerReport } from "@/lib/answerReportUtils";
+import type { QuizAnswerReport } from "@/lib/answerReportUtils";
 import {
   calculateTimedScore,
   normalizeQuestionFromFirebase,
@@ -536,6 +538,24 @@ export class GlobalQuizEngine {
         if (b.bestScore !== a.bestScore) return b.bestScore - a.bestScore;
         return a.username.localeCompare(b.username, "pt-BR");
       });
+  }
+
+  async getQuizAnswerReport(
+    quizId: string,
+    user: EngineUser
+  ): Promise<QuizAnswerReport> {
+    const quiz = await this.getQuizById(quizId);
+    if (!quiz) throw new Error("QUIZ_NOT_FOUND");
+    if (quiz.createdBy !== user.uid && user.role !== "admin") {
+      throw new Error("FORBIDDEN");
+    }
+
+    const db = this.getDb();
+    const snapshot = await db.ref(`${GLOBAL_QUIZ_ATTEMPTS_PATH}/${quizId}`).get();
+    const attemptsMap = snapshot.val() as Record<string, GlobalQuizAttempt> | null;
+    const attempts = attemptsMap ? Object.values(attemptsMap) : [];
+
+    return buildGlobalQuizAnswerReport(quiz.questions, attempts);
   }
 
   async grantExtraAttempts(

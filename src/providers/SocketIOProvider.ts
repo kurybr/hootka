@@ -177,7 +177,10 @@ export class SocketIOProvider implements IRealTimeProvider {
     this.participantId = null;
   }
 
-  async createRoom(questions: Question[]): Promise<{ roomId: string; code: string }> {
+  async createRoom(
+    questions: Question[],
+    questionTimeLimitMs?: number
+  ): Promise<{ roomId: string; code: string }> {
     return new Promise((resolve, reject) => {
       const hostId = getOrCreateHostId();
       this.ensureConnected(hostId);
@@ -217,7 +220,10 @@ export class SocketIOProvider implements IRealTimeProvider {
         onError(data);
       });
 
-      this.socket.emit("room:create" as never, { questions } as never);
+      this.socket.emit("room:create" as never, {
+        questions,
+        questionTimeLimitMs,
+      } as never);
     });
   }
 

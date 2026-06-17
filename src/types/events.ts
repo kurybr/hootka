@@ -1,7 +1,10 @@
 import type { Participant, Question, Room } from "./quiz";
 
 export interface ClientEvents {
-  "room:create": (data: { questions: Question[] }) => void;
+  "room:create": (data: {
+    questions: Question[];
+    questionTimeLimitMs?: number;
+  }) => void;
   "room:join": (data: { code: string; name: string }) => void;
   "room:rejoin": (data: { roomId: string }) => void;
   "game:start": () => void;

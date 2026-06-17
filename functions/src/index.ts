@@ -5,8 +5,15 @@ import * as admin from "firebase-admin";
 admin.initializeApp();
 
 const db = admin.database();
-const MAX_RESPONSE_TIME = 120000;
 const MAX_SCORE = 120;
+
+function getRoomTimeLimitMs(room: Record<string, unknown>): number {
+  const raw = room.questionTimeLimitMs;
+  if (typeof raw === "number" && Number.isFinite(raw) && raw >= 10000) {
+    return Math.floor(raw);
+  }
+  return 120000;
+}
 
 export const onAnswerSubmitted = onValueCreated(
   "rooms/{roomId}/answers/{questionIndex}/{participantId}",
@@ -19,12 +26,13 @@ export const onAnswerSubmitted = onValueCreated(
     if (!roomSnap.exists()) return;
 
     const room = roomSnap.val();
+    const timeLimitMs = getRoomTimeLimitMs(room);
 
     const isValid =
       room.status === "playing" &&
       room.participants?.[participantId] &&
       typeof answer.responseTime === "number" &&
-      answer.responseTime <= MAX_RESPONSE_TIME;
+      answer.responseTime <= timeLimitMs;
 
     if (!isValid) {
       await event.data.ref.remove();
@@ -42,8 +50,8 @@ export const onAnswerSubmitted = onValueCreated(
     const score = isCorrect
       ? Math.round(
           MAX_SCORE *
-            (Math.max(0, MAX_RESPONSE_TIME - answer.responseTime) /
-              MAX_RESPONSE_TIME)
+            (Math.max(0, timeLimitMs - answer.responseTime) /
+              timeLimitMs)
         )
       : 0;
 

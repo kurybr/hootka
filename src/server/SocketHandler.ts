@@ -3,20 +3,24 @@ import type { Socket } from "socket.io";
 import { GameEngine } from "./GameEngine";
 import { InMemoryStore } from "./InMemoryStore";
 import { serverMetrics } from "../lib/serverMetrics";
+import { resolveQuestionTimeLimitMs } from "../lib/questionUtils";
 import type { ClientEvents, ServerEvents } from "../types/events";
-
-const QUESTION_TIMEOUT_MS = 120000;
 
 const questionTimers = new Map<string, NodeJS.Timeout>();
 
-function scheduleQuestionTimeout(
+async function scheduleQuestionTimeout(
   io: TypedServer,
   roomId: string,
   engine: GameEngine,
   store: InstanceType<typeof InMemoryStore>
-): void {
+): Promise<void> {
   const existing = questionTimers.get(roomId);
   if (existing) clearTimeout(existing);
+
+  const room = await store.getRoom(roomId);
+  if (!room || room.status !== "playing") return;
+
+  const timeoutMs = resolveQuestionTimeLimitMs(room.questionTimeLimitMs);
 
   const timeoutId = setTimeout(async () => {
     questionTimers.delete(roomId);
@@ -39,7 +43,7 @@ function scheduleQuestionTimeout(
     } catch {
       // Ignore
     }
-  }, QUESTION_TIMEOUT_MS);
+  }, timeoutMs);
 
   questionTimers.set(roomId, timeoutId);
 }
@@ -138,7 +142,7 @@ export function setupSocketHandler(io: TypedServer): void {
 
     socket.on(
       "room:create" as keyof ClientEvents,
-      async (data: { questions: unknown[] }) => {
+      async (data: { questions: unknown[]; questionTimeLimitMs?: number }) => {
         try {
           const questions = data.questions as Parameters<
             GameEngine["createRoom"]
@@ -150,7 +154,11 @@ export function setupSocketHandler(io: TypedServer): void {
             });
             return;
           }
-          const room = await engine.createRoom(questions, hostId);
+          const room = await engine.createRoom(
+            questions,
+            hostId,
+            data.questionTimeLimitMs
+          );
           socket.join(room.id);
           socket.data.roomId = room.id;
           socket.data.role = "host";
@@ -237,7 +245,7 @@ export function setupSocketHandler(io: TypedServer): void {
           total,
         });
         io.to(roomId).emit("ranking:update" as keyof ServerEvents, ranking);
-        scheduleQuestionTimeout(io, roomId, engine, store);
+        scheduleQuestionTimeout(io, roomId, engine, store).catch(() => {});
       } catch (err) {
         socket.emit("error", {
           message: err instanceof Error ? err.message : "Erro ao iniciar jogo",
@@ -296,7 +304,7 @@ export function setupSocketHandler(io: TypedServer): void {
           count,
           total,
         });
-        scheduleQuestionTimeout(io, roomId, engine, store);
+        scheduleQuestionTimeout(io, roomId, engine, store).catch(() => {});
       } catch (err) {
         socket.emit("error", {
           message:

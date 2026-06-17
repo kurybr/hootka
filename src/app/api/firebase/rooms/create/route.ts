@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFirebaseEngine } from "@/lib/firebaseEngine";
+import { sanitizeQuestionTimeLimitSeconds } from "@/lib/questionUtils";
 
 export async function POST(request: NextRequest) {
   const engine = getFirebaseEngine();
@@ -11,7 +12,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { questions, hostId } = await request.json();
+    const { questions, hostId, questionTimeLimitMs } = await request.json();
     if (!hostId || !questions?.length) {
       return NextResponse.json(
         { error: "hostId e questions são obrigatórios" },
@@ -19,7 +20,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const room = await engine.createRoom(questions, hostId);
+    const timeLimitMs =
+      questionTimeLimitMs !== undefined && questionTimeLimitMs !== null
+        ? sanitizeQuestionTimeLimitSeconds(Number(questionTimeLimitMs) / 1000)
+        : undefined;
+
+    const room = await engine.createRoom(questions, hostId, timeLimitMs);
     return NextResponse.json({
       roomId: room.id,
       code: room.code,

@@ -13,6 +13,7 @@ export interface Room {
   participants: Record<string, Participant>;
   questions: Question[];
   answers: Record<string, Record<string, Answer>>;
+  questionTimeLimitMs: number;
 }
 
 export interface Participant {

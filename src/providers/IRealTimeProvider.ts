@@ -30,7 +30,10 @@ export interface IRealTimeProvider {
   get roomId(): string | null;
   onConnectionStateChange(callback: (connected: boolean) => void): () => void;
 
-  createRoom(questions: Question[]): Promise<{ roomId: string; code: string }>;
+  createRoom(
+    questions: Question[],
+    questionTimeLimitMs?: number
+  ): Promise<{ roomId: string; code: string }>;
   joinRoom(
     code: string,
     name: string

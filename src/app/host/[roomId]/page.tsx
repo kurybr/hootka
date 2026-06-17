@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -23,11 +23,16 @@ import { useRanking } from "@/hooks/useRanking";
 import { Timer } from "@/components/Timer";
 import { Ranking } from "@/components/Ranking";
 import { FinalRanking } from "@/components/FinalRanking";
+import { QuizAnswerReport } from "@/components/QuizAnswerReport";
+import { PlayerRankingReport } from "@/components/PlayerRankingReport";
 import { AnswerDistribution } from "@/components/AnswerDistribution";
+import { buildRoomAnswerReport } from "@/lib/answerReportUtils";
+import { buildLivePlayerRankingReport } from "@/lib/playerRankingReportUtils";
 import { SoundToggle } from "@/components/SoundToggle";
 import { fireConfettiLight } from "@/lib/confetti";
 import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
+import { resolveQuestionTimeLimitMs } from "@/lib/questionUtils";
 export default function HostRoomPage() {
   const params = useParams();
   const router = useRouter();
@@ -76,6 +81,15 @@ export default function HostRoomPage() {
   }, [provider, roomId]);
 
   const currentQuestion = room?.questions[currentQuestionIndex];
+  const questionTimeLimitMs = resolveQuestionTimeLimitMs(room?.questionTimeLimitMs);
+  const answerReport = useMemo(
+    () => (room ? buildRoomAnswerReport(room) : null),
+    [room]
+  );
+  const playerRankingReport = useMemo(
+    () => buildLivePlayerRankingReport(ranking),
+    [ranking]
+  );
   const isLastQuestion =
     room &&
     currentQuestionIndex >= room.questions.length - 1;
@@ -254,6 +268,7 @@ export default function HostRoomPage() {
               </CardDescription>
               <Timer
                 questionStartTimestamp={questionStartTimestamp}
+                timeLimitMs={questionTimeLimitMs}
                 className="mt-4"
                 size="large"
               />
@@ -361,6 +376,13 @@ export default function HostRoomPage() {
             <CardContent className="space-y-6 p-6 lg:p-8 lg:pt-0">
               {ranking.length > 0 && (
                 <FinalRanking participants={ranking} />
+              )}
+              <PlayerRankingReport report={playerRankingReport} />
+              {answerReport && (
+                <QuizAnswerReport
+                  report={answerReport}
+                  description="Resumo agregado de todas as perguntas desta partida."
+                />
               )}
               <Button asChild className="w-full">
                 <Link href="/">Voltar ao Início</Link>

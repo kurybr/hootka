@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,10 @@ import {
   getGlobalQuizAdminDetails,
   grantGlobalQuizExtraAttempts,
 } from "@/lib/globalQuizClient";
+import type { QuizAnswerReport } from "@/lib/answerReportUtils";
+import { QuizAnswerReport as QuizAnswerReportCard } from "@/components/QuizAnswerReport";
+import { PlayerRankingReport } from "@/components/PlayerRankingReport";
+import { buildGlobalPlayerRankingReport } from "@/lib/playerRankingReportUtils";
 import { useAuth } from "@/providers/AuthProvider";
 import type {
   GlobalQuiz,
@@ -29,9 +33,15 @@ export default function CommunityQuizDetailPage({
   const [quiz, setQuiz] = useState<GlobalQuiz | null>(null);
   const [leaderboard, setLeaderboard] = useState<GlobalQuizLeaderboardEntry[]>([]);
   const [userStats, setUserStats] = useState<GlobalQuizAdminUserEntry[]>([]);
+  const [answerReport, setAnswerReport] = useState<QuizAnswerReport | null>(null);
   const [loading, setLoading] = useState(Boolean(isCreator));
   const [error, setError] = useState<string | null>(null);
   const [grantValue, setGrantValue] = useState<Record<string, string>>({});
+
+  const playerRankingReport = useMemo(
+    () => buildGlobalPlayerRankingReport(userStats),
+    [userStats]
+  );
 
   useEffect(() => {
     if (!isCreator) return;
@@ -45,6 +55,7 @@ export default function CommunityQuizDetailPage({
         setQuiz(data.quiz);
         setLeaderboard(data.leaderboard);
         setUserStats(data.userStats);
+        setAnswerReport(data.answerReport);
         setError(null);
       } catch (err) {
         if (cancelled) return;
@@ -146,6 +157,18 @@ export default function CommunityQuizDetailPage({
             </Card>
 
             <GlobalQuizLeaderboard entries={leaderboard} title="Melhores resultados" />
+
+            <PlayerRankingReport
+              report={playerRankingReport}
+              description="Melhor pontuação de cada jogador que participou deste quiz."
+            />
+
+            {answerReport && (
+              <QuizAnswerReportCard
+                report={answerReport}
+                description="Distribuição agregada das tentativas concluídas, sem identificar jogadores."
+              />
+            )}
 
             <Card>
               <CardHeader>

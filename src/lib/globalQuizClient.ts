@@ -1,4 +1,5 @@
 import { authFetch } from "@/lib/authFetch";
+import type { QuizAnswerReport } from "@/lib/answerReportUtils";
 import type {
   GlobalQuiz,
   GlobalQuizAdminUserEntry,
@@ -128,6 +129,7 @@ export async function getGlobalQuizAdminDetails(quizId: string) {
     quiz: GlobalQuiz;
     leaderboard: GlobalQuizLeaderboardEntry[];
     userStats: GlobalQuizAdminUserEntry[];
+    answerReport: QuizAnswerReport;
   }>(response);
 }
 

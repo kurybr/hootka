@@ -18,6 +18,8 @@ import { QuestionListEditor } from "@/components/QuestionListEditor";
 import {
   cloneQuestions,
   createEmptyQuestion,
+  DEFAULT_LIVE_ROOM_TIME_LIMIT_MS,
+  sanitizeQuestionTimeLimitSeconds,
   trimQuestion,
   validateQuestions,
 } from "@/lib/questionUtils";
@@ -36,6 +38,9 @@ function CreateRoomContent() {
   const [saveToLibrary, setSaveToLibrary] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [questionTimeLimitSeconds, setQuestionTimeLimitSeconds] = useState(
+    String(DEFAULT_LIVE_ROOM_TIME_LIMIT_MS / 1000)
+  );
 
   const quizId = searchParams.get("quizId");
 
@@ -74,7 +79,11 @@ function CreateRoomContent() {
         });
       }
 
-      const { roomId } = await provider.createRoom(validQuestions);
+      const questionTimeLimitMs = sanitizeQuestionTimeLimitSeconds(
+        questionTimeLimitSeconds
+      );
+
+      const { roomId } = await provider.createRoom(validQuestions, questionTimeLimitMs);
       trackEvent("room_created", { room_id: roomId });
       toast({
         title: "Sala criada!",
@@ -140,6 +149,24 @@ function CreateRoomContent() {
                 />
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Tempo por pergunta</CardTitle>
+            <CardDescription>
+              Segundos que cada participante tem para responder (mínimo 10)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Input
+              id="room-time-limit"
+              type="number"
+              min={10}
+              value={questionTimeLimitSeconds}
+              onChange={(e) => setQuestionTimeLimitSeconds(e.target.value)}
+            />
           </CardContent>
         </Card>
 

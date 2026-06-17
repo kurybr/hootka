@@ -13,10 +13,11 @@ export async function GET(
     const user = await requireAuthenticatedUser(request);
     requireCreatorUser(user);
     const { quizId } = await params;
-    const [quiz, leaderboard, userStats] = await Promise.all([
+    const [quiz, leaderboard, userStats, answerReport] = await Promise.all([
       engine.getQuizById(quizId),
       engine.getLeaderboard(quizId),
       engine.getAdminEntries(quizId, user),
+      engine.getQuizAnswerReport(quizId, user),
     ]);
 
     if (!quiz) {
@@ -27,6 +28,7 @@ export async function GET(
       quiz,
       leaderboard,
       userStats,
+      answerReport,
     });
   } catch (error) {
     return globalQuizErrorResponse(error);

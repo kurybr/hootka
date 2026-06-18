@@ -206,11 +206,15 @@ export function getOptionButtonClassName(
   usesSubtleBorder = false
 ): string {
   return [
-    `relative flex min-h-[80px] items-center justify-center rounded-xl ${usesSubtleBorder ? "border" : "border-2"} px-4 py-3 text-center font-semibold transition-all duration-300`,
+    `flex h-full min-h-[92px] w-full items-center gap-4 rounded-xl px-4 py-3 font-semibold transition-all duration-300`,
+    usesSubtleBorder ? "border border-zinc-300 shadow-sm" : "border-2",
     disabled ? "cursor-not-allowed" : "hover:brightness-95",
   ].join(" ");
 }
 
 export function getOptionResultClassName(usesSubtleBorder = false): string {
-  return `flex min-h-[60px] items-center justify-center rounded-xl ${usesSubtleBorder ? "border" : "border-2"} px-4 py-3 text-center font-semibold transition-all duration-300`;
+  return [
+    `flex min-h-[60px] items-center justify-center rounded-xl px-4 py-3 text-center font-semibold transition-all duration-300`,
+    usesSubtleBorder ? "border border-zinc-300 shadow-sm" : "border-2",
+  ].join(" ");
 }

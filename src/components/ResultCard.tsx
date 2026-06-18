@@ -103,7 +103,9 @@ export function ResultCard({
               )}
               style={{
                 backgroundColor: optionStyle.backgroundColor,
-                borderColor: optionStyle.borderColor,
+                ...(!optionStyle.usesSubtleBorder && {
+                  borderColor: optionStyle.borderColor,
+                }),
                 color: optionStyle.color,
                 textShadow: optionStyle.textShadow,
               }}

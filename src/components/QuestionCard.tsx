@@ -29,6 +29,17 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+function OptionKeyBadge({ shortcutKey }: { shortcutKey: string }) {
+  return (
+    <span
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border bg-background/90 font-mono text-xs font-semibold text-foreground"
+      aria-hidden
+    >
+      {shortcutKey}
+    </span>
+  );
+}
+
 interface QuestionCardProps {
   question: PublicQuestion;
   optionPaletteId?: QuizOptionPaletteId;
@@ -111,7 +122,7 @@ export function QuestionCard({
       )}
 
       <motion.div
-        className="grid gap-3 sm:grid-cols-2"
+        className="grid auto-rows-fr gap-3 sm:grid-cols-2"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -142,6 +153,7 @@ export function QuestionCard({
               type="button"
               onClick={() => handleAnswer(index)}
               disabled={disabled}
+              aria-label={`${option} (atalho ${QUESTION_SHORTCUT_KEYS[index].toUpperCase()})`}
               variants={itemVariants}
               whileHover={isInteractive ? { scale: 1.02 } : undefined}
               whileTap={isInteractive ? { scale: 0.98 } : undefined}
@@ -156,7 +168,9 @@ export function QuestionCard({
               )}
               style={{
                 backgroundColor: optionStyle.backgroundColor,
-                borderColor: optionStyle.borderColor,
+                ...(!optionStyle.usesSubtleBorder && {
+                  borderColor: optionStyle.borderColor,
+                }),
                 color: optionStyle.color,
                 textShadow: optionStyle.textShadow,
                 boxShadow: isKeyPressed
@@ -164,21 +178,18 @@ export function QuestionCard({
                   : undefined,
               }}
             >
-              <span
-                className={
-                  optionStyle.usesSubtleBorder
-                    ? "absolute left-2 top-2 rounded border border-border bg-muted/80 px-1.5 py-0.5 font-mono text-xs font-bold text-foreground"
-                    : "absolute left-2 top-2 rounded bg-white/80 px-1.5 py-0.5 font-mono text-xs font-bold text-black/80"
-                }
-              >
-                {QUESTION_SHORTCUT_KEYS[index].toUpperCase()}
-              </span>
-              <span className="flex items-center justify-center gap-2">
+              <OptionKeyBadge
+                shortcutKey={QUESTION_SHORTCUT_KEYS[index].toUpperCase()}
+              />
+              <div className="min-w-0 flex-1 text-left leading-snug">
                 {option}
                 {hasSelection && isSelected && (
-                  <Check className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
+                  <Check
+                    className="ml-2 inline h-4 w-4 shrink-0 align-text-bottom opacity-90"
+                    aria-hidden
+                  />
                 )}
-              </span>
+              </div>
             </motion.button>
           );
         })}

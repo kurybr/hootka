@@ -137,7 +137,11 @@ export function QuestionCard({
                   ? { duration: 0.35, ease: "easeOut" }
                   : { type: "spring", stiffness: 400, damping: 25 }
               }
-              className={getOptionButtonClassName(disabled, isDiscarded)}
+              className={getOptionButtonClassName(
+                disabled,
+                isDiscarded,
+                optionStyle.usesSubtleBorder
+              )}
               style={{
                 backgroundColor: optionStyle.backgroundColor,
                 borderColor: optionStyle.borderColor,
@@ -150,7 +154,9 @@ export function QuestionCard({
                 className={
                   isDiscarded
                     ? "absolute left-2 top-2 rounded bg-muted px-1.5 py-0.5 font-mono text-xs font-bold text-muted-foreground"
-                    : "absolute left-2 top-2 rounded bg-white/80 px-1.5 py-0.5 font-mono text-xs font-bold text-black/80"
+                    : optionStyle.usesSubtleBorder
+                      ? "absolute left-2 top-2 rounded border border-border bg-muted/80 px-1.5 py-0.5 font-mono text-xs font-bold text-foreground"
+                      : "absolute left-2 top-2 rounded bg-white/80 px-1.5 py-0.5 font-mono text-xs font-bold text-black/80"
                 }
               >
                 {QUESTION_SHORTCUT_KEYS[index].toUpperCase()}

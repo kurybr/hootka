@@ -8,6 +8,7 @@ import {
   MIN_CONTRAST_RATIO,
   OPTION_TEXT_DARK,
   OPTION_TEXT_LIGHT,
+  QUIZ_FEEDBACK_COLORS,
   QUIZ_OPTION_PALETTES,
   resolveQuizOptionPaletteId,
 } from "./quizOptionPalettes";
@@ -52,28 +53,44 @@ function testKnownContrastCases() {
   assert.equal(getOptionSelectionRingColor("#283593"), OPTION_TEXT_LIGHT);
 }
 
-function testAllPalettesHaveDiscardedColor() {
-  for (const palette of QUIZ_OPTION_PALETTES) {
-    assert.ok(palette.discardedColor.startsWith("#"));
-    assert.equal(
-      getOptionButtonStyle(palette.id, 0, "discarded").backgroundColor,
-      palette.discardedColor
-    );
-  }
-}
-
-function testDiscardedColorsMeetContrastRequirements() {
-  for (const palette of QUIZ_OPTION_PALETTES) {
-    const style = getOptionButtonStyle(palette.id, 0, "discarded");
-    const contrast = getContrastRatio(style.color, palette.discardedColor);
+function testFeedbackColorsMeetContrastRequirements() {
+  for (const [name, backgroundColor] of Object.entries(QUIZ_FEEDBACK_COLORS)) {
+    const style = getOptionButtonStyle("hootka", 0, name === "correct" ? "correct" : "wrong");
+    const contrast = getContrastRatio(style.color, backgroundColor);
     const meetsContrast =
       contrast >= MIN_CONTRAST_RATIO || Boolean(style.textShadow);
 
     assert.ok(
       meetsContrast,
-      `${palette.id} discarded ${palette.discardedColor} contrast ${contrast.toFixed(2)}`
+      `feedback ${name} ${backgroundColor} contrast ${contrast.toFixed(2)}`
     );
   }
+}
+
+function testFeedbackStatesUseGlobalColors() {
+  assert.equal(
+    getOptionButtonStyle("hootka", 0, "discarded").backgroundColor,
+    QUIZ_FEEDBACK_COLORS.wrong
+  );
+  assert.equal(
+    getOptionButtonStyle("hootka", 0, "wrong").backgroundColor,
+    QUIZ_FEEDBACK_COLORS.wrong
+  );
+  assert.equal(
+    getOptionButtonStyle("hootka", 0, "correct").backgroundColor,
+    QUIZ_FEEDBACK_COLORS.correct
+  );
+}
+
+function testBrasilPaletteUsesFlagColors() {
+  const brasil = getQuizOptionPalette("copa");
+  assert.deepEqual(brasil.colors, ["#009C3B", "#FFDF00", "#002776", "#FFFFFF"]);
+
+  const whiteOption = getOptionButtonStyle("copa", 3);
+  assert.equal(whiteOption.backgroundColor, "#FFFFFF");
+  assert.equal(whiteOption.color, OPTION_TEXT_DARK);
+  assert.equal(whiteOption.usesSubtleBorder, true);
+  assert.equal(whiteOption.borderColor, "hsl(var(--border))");
 }
 
 function testSelectedUsesActiveColor() {
@@ -101,10 +118,11 @@ function testAllPaletteColorsMeetContrastRequirements() {
 testResolvePaletteId();
 testPaletteColors();
 testAllPalettesHaveFourColors();
-testAllPalettesHaveDiscardedColor();
 testContrastRatioIsSymmetric();
 testKnownContrastCases();
-testDiscardedColorsMeetContrastRequirements();
+testFeedbackStatesUseGlobalColors();
+testFeedbackColorsMeetContrastRequirements();
+testBrasilPaletteUsesFlagColors();
 testSelectedUsesActiveColor();
 testAllPaletteColorsMeetContrastRequirements();
 

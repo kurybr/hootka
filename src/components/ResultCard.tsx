@@ -70,8 +70,7 @@ export function ResultCard({
           const isCorrect = index === question.correctOptionIndex;
           const isSelected = index === selectedIndex;
           const showWrong = !correct && isSelected && !isCorrect;
-          const visualState =
-            isCorrect || showWrong ? "active" : "discarded";
+          const visualState = isCorrect ? "correct" : "discarded";
           const optionStyle = getOptionButtonStyle(
             optionPaletteId,
             index,
@@ -81,7 +80,7 @@ export function ResultCard({
           return (
             <div
               key={index}
-              className={getOptionResultClassName()}
+              className={getOptionResultClassName(optionStyle.usesSubtleBorder)}
               style={{
                 backgroundColor: optionStyle.backgroundColor,
                 borderColor: optionStyle.borderColor,
@@ -89,9 +88,7 @@ export function ResultCard({
                 textShadow: optionStyle.textShadow,
                 boxShadow: isCorrect
                   ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px ${optionStyle.selectionRingColor}`
-                  : showWrong
-                    ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px #f87171`
-                    : undefined,
+                  : undefined,
               }}
             >
               {option}
@@ -104,7 +101,8 @@ export function ResultCard({
               )}
               {showWrong && (
                 <X
-                  className="ml-2 h-5 w-5 shrink-0 text-red-600"
+                  className="ml-2 h-5 w-5 shrink-0"
+                  style={{ color: optionStyle.color }}
                   aria-hidden
                 />
               )}

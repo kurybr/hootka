@@ -1,76 +1,95 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   QUIZ_OPTION_PALETTES,
   getOptionButtonStyle,
+  getQuizOptionPalette,
 } from "@/lib/quizOptionPalettes";
 import type { QuizOptionPaletteId } from "@/types/quiz";
 import { DEFAULT_QUIZ_OPTION_PALETTE_ID } from "@/types/quiz";
+import { Card } from "@/components/ui/card";
 
 interface OptionPalettePickerProps {
   value?: QuizOptionPaletteId;
   onChange: (paletteId: QuizOptionPaletteId) => void;
 }
 
+const PREVIEW_OPTIONS = ["Resposta A", "Resposta B", "Resposta C", "Resposta D"];
+const PREVIEW_LABELS = ["A", "B", "C", "D"];
+
+const PALETTE_META: Record<
+  QuizOptionPaletteId,
+  { displayLabel: string; description: string }
+> = {
+  hootka: {
+    displayLabel: "Hootka",
+    description: "A paleta oficial do Hootka",
+  },
+  lgbt: {
+    displayLabel: "Pride 🌈",
+    description: "Inspirada nas cores do orgulho",
+  },
+  copa: {
+    displayLabel: "Brasil 🇧🇷",
+    description: "As cores da bandeira brasileira",
+  },
+  dia: {
+    displayLabel: "Dia 🌞",
+    description: "Leve, alegre e descontraída",
+  },
+  lua: {
+    displayLabel: "Lua 🌙",
+    description: "Inspirada no céu noturno",
+  },
+};
+
 function PaletteSwatches({ paletteId }: { paletteId: QuizOptionPaletteId }) {
-  const palette = QUIZ_OPTION_PALETTES.find((item) => item.id === paletteId);
-  if (!palette) return null;
+  const palette = getQuizOptionPalette(paletteId);
 
   return (
-    <div className="flex gap-1.5">
+    <div className="grid grid-cols-4 gap-2">
       {palette.colors.map((color) => (
         <span
           key={color}
-          className="h-6 w-6 rounded-md border border-black/10 shadow-sm"
+          className="h-8 min-w-0 rounded-md border border-border"
           style={{ backgroundColor: color }}
           aria-hidden
         />
       ))}
-      <span
-        className="h-6 w-6 rounded-md border border-dashed border-black/20 shadow-sm"
-        style={{ backgroundColor: palette.discardedColor }}
-        title="Descartada / errada"
-        aria-hidden
-      />
     </div>
   );
 }
 
 function PalettePreview({ paletteId }: { paletteId: QuizOptionPaletteId }) {
-  const activeLabels = ["A", "B", "C", "D"];
-  const discardedStyle = getOptionButtonStyle(paletteId, 0, "discarded");
-
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-      {activeLabels.map((label, index) => {
-        const style = getOptionButtonStyle(paletteId, index, "active");
+    <div className="space-y-3">
+      <p className="text-sm font-semibold text-foreground">Pergunta exemplo</p>
+      <div className="space-y-2">
+        {PREVIEW_OPTIONS.map((optionText, index) => {
+          const style = getOptionButtonStyle(paletteId, index, "active");
+          const label = PREVIEW_LABELS[index];
 
-        return (
-          <div
-            key={label}
-            className="flex min-h-10 items-center justify-center rounded-lg border-2 px-2 py-2 text-sm font-semibold"
-            style={{
-              backgroundColor: style.backgroundColor,
-              borderColor: style.borderColor,
-              color: style.color,
-              textShadow: style.textShadow,
-            }}
-          >
-            {label}
-          </div>
-        );
-      })}
-      <div
-        className="flex min-h-10 items-center justify-center rounded-lg border-2 px-2 py-2 text-xs font-semibold sm:text-sm"
-        style={{
-          backgroundColor: discardedStyle.backgroundColor,
-          borderColor: discardedStyle.borderColor,
-          color: discardedStyle.color,
-          textShadow: discardedStyle.textShadow,
-        }}
-      >
-        Errado
+          return (
+            <div
+              key={label}
+              className={cn(
+                "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold",
+                style.usesSubtleBorder ? "border" : "border-2"
+              )}
+              style={{
+                backgroundColor: style.backgroundColor,
+                borderColor: style.borderColor,
+                color: style.color,
+                textShadow: style.textShadow,
+              }}
+            >
+              <span className="shrink-0 tabular-nums">[{label}]</span>
+              <span>{optionText}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -88,39 +107,65 @@ export function OptionPalettePicker({ value, onChange }: OptionPalettePickerProp
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {QUIZ_OPTION_PALETTES.map((palette) => {
-          const isSelected = selected === palette.id;
-          return (
-            <label
-              key={palette.id}
-              className={cn(
-                "flex cursor-pointer items-center justify-between gap-3 rounded-xl border p-3 transition-colors",
-                isSelected
-                  ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                  : "border-border hover:bg-muted/40"
-              )}
-            >
-              <span className="flex items-center gap-3">
-                <input
-                  type="radio"
-                  name="option-palette"
-                  checked={isSelected}
-                  onChange={() => onChange(palette.id)}
-                  className="shrink-0"
-                />
-                <span className="text-sm font-medium">{palette.label}</span>
-              </span>
-              <PaletteSwatches paletteId={palette.id} />
-            </label>
-          );
-        })}
-      </div>
+      <fieldset className="space-y-3">
+        <legend className="sr-only">Paleta de cores das alternativas</legend>
+        <div className="flex flex-col gap-3" role="radiogroup" aria-label="Paleta de cores">
+          {QUIZ_OPTION_PALETTES.map((palette) => {
+            const isSelected = selected === palette.id;
+            const inputId = `option-palette-${palette.id}`;
+            const meta = PALETTE_META[palette.id];
 
-      <div className="space-y-2 rounded-xl border bg-muted/20 p-4">
-        <p className="text-xs font-medium text-muted-foreground">Prévia</p>
-        <PalettePreview paletteId={selected} />
-      </div>
+            return (
+              <motion.div
+                key={palette.id}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                transition={{ duration: 0.15 }}
+                className="w-full"
+              >
+                <Card
+                  className={cn(
+                    "overflow-hidden transition-all duration-150",
+                    "has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary",
+                    isSelected
+                      ? "border-primary shadow-sm ring-2 ring-primary/30"
+                      : "border-border shadow-none hover:bg-accent/30"
+                  )}
+                >
+                  <label
+                    htmlFor={inputId}
+                    className="flex cursor-pointer flex-col gap-3 rounded-xl px-4 py-3"
+                  >
+                    <span className="space-y-0.5">
+                      <span className="block text-sm font-medium">{meta.displayLabel}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {meta.description}
+                      </span>
+                    </span>
+                    <PaletteSwatches paletteId={palette.id} />
+                    <input
+                      id={inputId}
+                      type="radio"
+                      name="option-palette"
+                      value={palette.id}
+                      checked={isSelected}
+                      onChange={() => onChange(palette.id)}
+                      className="sr-only"
+                    />
+                  </label>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <Card className="border-border shadow-none">
+        <div className="space-y-4 p-4">
+          <p className="text-sm font-medium">Prévia</p>
+          <PalettePreview paletteId={selected} />
+        </div>
+      </Card>
     </div>
   );
 }

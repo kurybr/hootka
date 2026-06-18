@@ -2,47 +2,53 @@ import type { QuizOptionPaletteId } from "@/types/quiz";
 
 export const OPTION_TEXT_LIGHT = "#FFFFFF";
 export const OPTION_TEXT_DARK = "#1F1A17";
+export const OPTION_SUBTLE_BORDER = "hsl(var(--border))";
 export const MIN_CONTRAST_RATIO = 4.5;
+export const LIGHT_BACKGROUND_LUMINANCE = 0.85;
+
+export const QUIZ_FEEDBACK_COLORS = {
+  correct: "#22C55E",
+  wrong: "#6B7280",
+} as const;
 
 export interface QuizOptionPalette {
   id: QuizOptionPaletteId;
   label: string;
   colors: [string, string, string, string];
-  discardedColor: string;
 }
 
-export type OptionButtonVisualState = "active" | "selected" | "discarded";
+export type OptionButtonVisualState =
+  | "active"
+  | "selected"
+  | "discarded"
+  | "correct"
+  | "wrong";
 
 export const QUIZ_OPTION_PALETTES: QuizOptionPalette[] = [
   {
     id: "hootka",
     label: "Hootka",
     colors: ["#3F7B70", "#D14B24", "#8E2E1E", "#D9C491"],
-    discardedColor: "#B5A99A",
   },
   {
     id: "copa",
-    label: "Copa",
-    colors: ["#009739", "#FFDF00", "#002776", "#F5F5F5"],
-    discardedColor: "#BDBDBD",
+    label: "Brasil",
+    colors: ["#009C3B", "#FFDF00", "#002776", "#FFFFFF"],
   },
   {
     id: "lgbt",
-    label: "LGBTQIA+",
-    colors: ["#E40303", "#FF8C00", "#FFED00", "#740787"],
-    discardedColor: "#B0B0B0",
+    label: "Pride",
+    colors: ["#E40303", "#FF8C00", "#FFED00", "#732982"],
   },
   {
     id: "dia",
     label: "Dia",
-    colors: ["#4FC3F7", "#FFD54F", "#FF8A65", "#66BB6A"],
-    discardedColor: "#B0BEC5",
+    colors: ["#0EA5E9", "#FDE047", "#FDBA74", "#22C55E"],
   },
   {
     id: "lua",
     label: "Lua",
-    colors: ["#283593", "#5E35B1", "#90A4AE", "#1A237E"],
-    discardedColor: "#78909C",
+    colors: ["#312E81", "#6366F1", "#A78BFA", "#E2E8F0"],
   },
 ];
 
@@ -140,23 +146,37 @@ function darkenHex(hex: string, amount = 0.12): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
+export function needsSubtleOptionBorder(backgroundColor: string): boolean {
+  return relativeLuminance(backgroundColor) >= LIGHT_BACKGROUND_LUMINANCE;
+}
+
+function getOptionBorderColor(backgroundColor: string): string {
+  if (needsSubtleOptionBorder(backgroundColor)) {
+    return OPTION_SUBTLE_BORDER;
+  }
+  return darkenHex(backgroundColor);
+}
+
 export interface OptionButtonStyle {
   backgroundColor: string;
   borderColor: string;
   color: string;
   textShadow?: string;
   selectionRingColor: string;
+  usesSubtleBorder: boolean;
 }
 
 function buildOptionButtonStyle(backgroundColor: string): OptionButtonStyle {
   const textStyle = getReadableTextStyle(backgroundColor);
+  const usesSubtleBorder = needsSubtleOptionBorder(backgroundColor);
 
   return {
     backgroundColor,
-    borderColor: darkenHex(backgroundColor),
+    borderColor: getOptionBorderColor(backgroundColor),
     color: textStyle.color,
     textShadow: textStyle.textShadow,
     selectionRingColor: getOptionSelectionRingColor(backgroundColor),
+    usesSubtleBorder,
   };
 }
 
@@ -165,26 +185,30 @@ export function getOptionButtonStyle(
   index: number,
   state: OptionButtonVisualState = "active"
 ): OptionButtonStyle {
-  const palette = getQuizOptionPalette(paletteId);
-
-  if (state === "discarded") {
-    return buildOptionButtonStyle(palette.discardedColor);
+  if (state === "correct") {
+    return buildOptionButtonStyle(QUIZ_FEEDBACK_COLORS.correct);
   }
 
+  if (state === "discarded" || state === "wrong") {
+    return buildOptionButtonStyle(QUIZ_FEEDBACK_COLORS.wrong);
+  }
+
+  const palette = getQuizOptionPalette(paletteId);
   const safeIndex = Math.max(0, Math.min(index, palette.colors.length - 1));
   return buildOptionButtonStyle(palette.colors[safeIndex]);
 }
 
 export function getOptionButtonClassName(
   disabled = false,
-  isDiscarded = false
+  isDiscarded = false,
+  usesSubtleBorder = false
 ): string {
   return [
-    "relative flex min-h-[80px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-semibold transition-colors duration-300",
+    `relative flex min-h-[80px] items-center justify-center rounded-xl ${usesSubtleBorder ? "border" : "border-2"} px-4 py-3 text-center font-semibold transition-colors duration-300`,
     disabled || isDiscarded ? "cursor-not-allowed" : "hover:brightness-95",
   ].join(" ");
 }
 
-export function getOptionResultClassName(): string {
-  return "flex min-h-[60px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-semibold transition-colors duration-300";
+export function getOptionResultClassName(usesSubtleBorder = false): string {
+  return `flex min-h-[60px] items-center justify-center rounded-xl ${usesSubtleBorder ? "border" : "border-2"} px-4 py-3 text-center font-semibold transition-colors duration-300`;
 }

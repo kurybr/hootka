@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import {
-  QUESTION_OPTION_COLORS,
-  QUESTION_SHORTCUT_KEYS,
-} from "@/lib/questionUtils";
-import type { PublicQuestion } from "@/types/quiz";
+  getOptionButtonClassName,
+  getOptionButtonStyle,
+} from "@/lib/quizOptionPalettes";
+import { QUESTION_SHORTCUT_KEYS } from "@/lib/questionUtils";
+import type { PublicQuestion, QuizOptionPaletteId } from "@/types/quiz";
 import { useSound } from "@/providers/SoundProvider";
 
 const containerVariants = {
@@ -25,6 +25,7 @@ const itemVariants = {
 
 interface QuestionCardProps {
   question: PublicQuestion;
+  optionPaletteId?: QuizOptionPaletteId;
   onAnswer: (optionIndex: number) => void;
   disabled?: boolean;
   selectedIndex?: number | null;
@@ -33,6 +34,7 @@ interface QuestionCardProps {
 
 export function QuestionCard({
   question,
+  optionPaletteId,
   onAnswer,
   disabled = false,
   selectedIndex = null,
@@ -92,44 +94,53 @@ export function QuestionCard({
         animate="visible"
         custom={0}
       >
-        {question.options.map((option, index) => (
-          <motion.button
-            key={index}
-            type="button"
-            onClick={() => handleAnswer(index)}
-            disabled={disabled}
-            variants={itemVariants}
-            whileHover={!disabled ? { scale: 1.02 } : undefined}
-            whileTap={!disabled ? { scale: 0.98 } : undefined}
-            animate={
-              selectedIndex === index
-                ? { scale: [1, 1.05, 1] }
-                : keyPressed === index
+        {question.options.map((option, index) => {
+          const optionStyle = getOptionButtonStyle(optionPaletteId, index);
+          const isSelected = selectedIndex === index;
+          const isKeyPressed = keyPressed === index && selectedIndex === null;
+          const selectionOutline = isSelected
+            ? `0 0 0 2px hsl(var(--background)), 0 0 0 6px ${optionStyle.selectionRingColor}`
+            : isKeyPressed
+              ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px ${optionStyle.selectionRingColor}`
+              : undefined;
+
+          return (
+            <motion.button
+              key={index}
+              type="button"
+              onClick={() => handleAnswer(index)}
+              disabled={disabled}
+              variants={itemVariants}
+              whileHover={!disabled ? { scale: 1.02 } : undefined}
+              whileTap={!disabled ? { scale: 0.98 } : undefined}
+              animate={
+                isSelected
                   ? { scale: [1, 1.05, 1] }
-                  : { scale: 1 }
-            }
-            transition={
-              selectedIndex === index || keyPressed === index
-                ? { duration: 0.35, ease: "easeOut" }
-                : { type: "spring", stiffness: 400, damping: 25 }
-            }
-            className={cn(
-              "relative flex min-h-[80px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-medium transition-colors",
-              QUESTION_OPTION_COLORS[index],
-              disabled && "cursor-not-allowed opacity-70",
-              selectedIndex === index &&
-                "ring-4 ring-white ring-offset-2 ring-offset-background",
-              keyPressed === index &&
-                selectedIndex === null &&
-                "ring-2 ring-white ring-offset-2 ring-offset-background"
-            )}
-          >
-            <span className="absolute left-2 top-2 rounded bg-white/80 px-1.5 py-0.5 font-mono text-xs font-bold text-black/80">
-              {QUESTION_SHORTCUT_KEYS[index].toUpperCase()}
-            </span>
-            {option}
-          </motion.button>
-        ))}
+                  : isKeyPressed
+                    ? { scale: [1, 1.05, 1] }
+                    : { scale: 1 }
+              }
+              transition={
+                isSelected || isKeyPressed
+                  ? { duration: 0.35, ease: "easeOut" }
+                  : { type: "spring", stiffness: 400, damping: 25 }
+              }
+              className={getOptionButtonClassName(disabled)}
+              style={{
+                backgroundColor: optionStyle.backgroundColor,
+                borderColor: optionStyle.borderColor,
+                color: optionStyle.color,
+                textShadow: optionStyle.textShadow,
+                boxShadow: selectionOutline,
+              }}
+            >
+              <span className="absolute left-2 top-2 rounded bg-white/80 px-1.5 py-0.5 font-mono text-xs font-bold text-black/80">
+                {QUESTION_SHORTCUT_KEYS[index].toUpperCase()}
+              </span>
+              {option}
+            </motion.button>
+          );
+        })}
       </motion.div>
     </div>
   );

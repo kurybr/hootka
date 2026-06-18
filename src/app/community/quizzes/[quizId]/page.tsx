@@ -166,6 +166,7 @@ export default function CommunityQuizDetailPage({
             {answerReport && (
               <QuizAnswerReportCard
                 report={answerReport}
+                optionPaletteId={quiz?.optionPaletteId}
                 description="Distribuição agregada das tentativas concluídas, sem identificar jogadores."
               />
             )}

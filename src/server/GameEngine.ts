@@ -1,4 +1,4 @@
-import type { Answer, Participant, Question, Room } from "../types/quiz";
+import type { Answer, Participant, Question, QuizOptionPaletteId, Room } from "../types/quiz";
 import type { IGameStore } from "./IGameStore";
 import {
   DEFAULT_LIVE_ROOM_TIME_LIMIT_MS,
@@ -7,6 +7,8 @@ import {
   sanitizeQuestionTimeLimitSeconds,
   validateQuestions,
 } from "../lib/questionUtils";
+import { resolveQuizOptionPaletteId } from "../lib/quizOptionPalettes";
+import { DEFAULT_QUIZ_OPTION_PALETTE_ID } from "../types/quiz";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 6;
@@ -35,7 +37,8 @@ export class GameEngine {
   async createRoom(
     questions: Question[],
     hostId: string,
-    questionTimeLimitMs = DEFAULT_LIVE_ROOM_TIME_LIMIT_MS
+    questionTimeLimitMs = DEFAULT_LIVE_ROOM_TIME_LIMIT_MS,
+    optionPaletteId: QuizOptionPaletteId = DEFAULT_QUIZ_OPTION_PALETTE_ID
   ): Promise<Room> {
     const validationError = validateQuestions(questions);
     if (validationError) {
@@ -62,6 +65,7 @@ export class GameEngine {
       questionTimeLimitMs: sanitizeQuestionTimeLimitSeconds(
         questionTimeLimitMs / 1000
       ),
+      optionPaletteId: resolveQuizOptionPaletteId(optionPaletteId),
     };
 
     await this.store.createRoom(room);

@@ -288,6 +288,7 @@ export default function PlayRoomPage() {
             <CardContent className="space-y-6">
               <QuestionCard
                 question={currentQuestion}
+                optionPaletteId={room?.optionPaletteId}
                 onAnswer={handleAnswer}
                 disabled={isExpired || selectedIndex !== null}
                 selectedIndex={selectedIndex}
@@ -333,6 +334,7 @@ export default function PlayRoomPage() {
                 return (
                   <ResultCard
                     question={currentQuestion}
+                    optionPaletteId={room?.optionPaletteId}
                     selectedIndex={answer?.optionIndex ?? null}
                     score={score}
                     correct={correct}

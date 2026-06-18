@@ -8,9 +8,10 @@ import type {
   GameStatusData,
   IRealTimeProvider,
 } from "./IRealTimeProvider";
-import type { Answer, Participant, Question, Room } from "@/types/quiz";
+import type { Answer, Participant, Question, QuizOptionPaletteId, Room } from "@/types/quiz";
 import { getFirebaseDatabase, ROOMS_PATH } from "@/lib/firebase";
 import { resolveQuestionTimeLimitMs } from "@/lib/questionUtils";
+import { resolveQuizOptionPaletteId } from "@/lib/quizOptionPalettes";
 
 const HOST_ID_KEY = "quiz_hostId";
 const PARTICIPANT_ID_KEY = "quiz_participantId";
@@ -87,6 +88,7 @@ type RoomParts = {
   currentQuestionIndex?: number;
   questionStartTimestamp?: number | null;
   questionTimeLimitMs?: number;
+  optionPaletteId?: QuizOptionPaletteId;
   participants?: Record<string, Participant>;
   questions?: Question[];
   answers?: Room["answers"];
@@ -149,6 +151,7 @@ export class FirebaseProvider implements IRealTimeProvider {
         currentQuestionIndex: p.currentQuestionIndex,
         questionStartTimestamp: p.questionStartTimestamp ?? null,
         questionTimeLimitMs: resolveQuestionTimeLimitMs(p.questionTimeLimitMs),
+        optionPaletteId: resolveQuizOptionPaletteId(p.optionPaletteId),
         participants: p.participants,
         questions: p.questions,
         answers,
@@ -299,6 +302,16 @@ export class FirebaseProvider implements IRealTimeProvider {
       })
     );
     pushUnsub(
+      onValue(ref(db, `${base}/optionPaletteId`), (s) => {
+        const v = s.val();
+        if (typeof v === "string") {
+          this.mergeRoomParts({
+            optionPaletteId: resolveQuizOptionPaletteId(v),
+          });
+        }
+      })
+    );
+    pushUnsub(
       onValue(ref(db, `${base}/participants`), (s) =>
         this.mergeRoomParts({
           participants: (s.val() as Record<string, Participant>) ?? {},
@@ -331,7 +344,8 @@ export class FirebaseProvider implements IRealTimeProvider {
 
   async createRoom(
     questions: Question[],
-    questionTimeLimitMs?: number
+    questionTimeLimitMs?: number,
+    optionPaletteId?: QuizOptionPaletteId
   ): Promise<{
     roomId: string;
     code: string;
@@ -340,6 +354,9 @@ export class FirebaseProvider implements IRealTimeProvider {
     const body: Record<string, unknown> = { questions, hostId };
     if (questionTimeLimitMs !== undefined) {
       body.questionTimeLimitMs = questionTimeLimitMs;
+    }
+    if (optionPaletteId !== undefined) {
+      body.optionPaletteId = optionPaletteId;
     }
     const res = await apiFetch("/api/firebase/rooms/create", body);
 

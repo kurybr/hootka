@@ -5,6 +5,7 @@ import type {
   GlobalQuizUserStats,
   PublicGlobalQuiz,
   Question,
+  QuizOptionPaletteId,
 } from "@/types/quiz";
 import {
   DEFAULT_QUESTION_TIME_LIMIT_MS,
@@ -12,6 +13,7 @@ import {
   trimQuestion,
   validateQuestions,
 } from "@/lib/questionUtils";
+import { resolveQuizOptionPaletteId } from "@/lib/quizOptionPalettes";
 
 /** Remove correctOptionIndex das perguntas para não expor ao jogador. */
 export function toPublicQuiz(quiz: GlobalQuiz): PublicGlobalQuiz {
@@ -51,6 +53,7 @@ export function sanitizeGlobalQuizInput(input: {
   topic?: string;
   attemptLimit?: number | null;
   questionTimeLimitMs?: number | null;
+  optionPaletteId?: QuizOptionPaletteId;
   questions: Question[];
 }): {
   title: string;
@@ -58,6 +61,7 @@ export function sanitizeGlobalQuizInput(input: {
   topic: string;
   attemptLimit: number | null;
   questionTimeLimitMs: number;
+  optionPaletteId: QuizOptionPaletteId;
   questions: Question[];
 } {
   const title = input.title.trim();
@@ -92,6 +96,7 @@ export function sanitizeGlobalQuizInput(input: {
     topic,
     attemptLimit,
     questionTimeLimitMs,
+    optionPaletteId: resolveQuizOptionPaletteId(input.optionPaletteId),
     questions,
   };
 }

@@ -4,6 +4,7 @@ import { GameEngine } from "./GameEngine";
 import { InMemoryStore } from "./InMemoryStore";
 import { serverMetrics } from "../lib/serverMetrics";
 import { resolveQuestionTimeLimitMs } from "../lib/questionUtils";
+import type { QuizOptionPaletteId } from "../types/quiz";
 import type { ClientEvents, ServerEvents } from "../types/events";
 
 const questionTimers = new Map<string, NodeJS.Timeout>();
@@ -142,7 +143,11 @@ export function setupSocketHandler(io: TypedServer): void {
 
     socket.on(
       "room:create" as keyof ClientEvents,
-      async (data: { questions: unknown[]; questionTimeLimitMs?: number }) => {
+      async (data: {
+        questions: unknown[];
+        questionTimeLimitMs?: number;
+        optionPaletteId?: QuizOptionPaletteId;
+      }) => {
         try {
           const questions = data.questions as Parameters<
             GameEngine["createRoom"]
@@ -157,7 +162,8 @@ export function setupSocketHandler(io: TypedServer): void {
           const room = await engine.createRoom(
             questions,
             hostId,
-            data.questionTimeLimitMs
+            data.questionTimeLimitMs,
+            data.optionPaletteId
           );
           socket.join(room.id);
           socket.data.roomId = room.id;

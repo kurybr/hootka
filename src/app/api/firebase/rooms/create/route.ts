@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getFirebaseEngine } from "@/lib/firebaseEngine";
 import { sanitizeQuestionTimeLimitSeconds } from "@/lib/questionUtils";
+import { resolveQuizOptionPaletteId } from "@/lib/quizOptionPalettes";
 
 export async function POST(request: NextRequest) {
   const engine = getFirebaseEngine();
@@ -12,7 +13,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { questions, hostId, questionTimeLimitMs } = await request.json();
+    const { questions, hostId, questionTimeLimitMs, optionPaletteId } =
+      await request.json();
     if (!hostId || !questions?.length) {
       return NextResponse.json(
         { error: "hostId e questions são obrigatórios" },
@@ -25,7 +27,12 @@ export async function POST(request: NextRequest) {
         ? sanitizeQuestionTimeLimitSeconds(Number(questionTimeLimitMs) / 1000)
         : undefined;
 
-    const room = await engine.createRoom(questions, hostId, timeLimitMs);
+    const room = await engine.createRoom(
+      questions,
+      hostId,
+      timeLimitMs,
+      resolveQuizOptionPaletteId(optionPaletteId)
+    );
     return NextResponse.json({
       roomId: room.id,
       code: room.code,

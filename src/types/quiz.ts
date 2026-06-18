@@ -3,6 +3,10 @@ export type GlobalQuizVisibility = "official" | "community";
 export type GlobalQuizStatus = "draft" | "published" | "archived";
 export type GlobalQuizAttemptStatus = "in_progress" | "completed" | "abandoned";
 
+export type QuizOptionPaletteId = "hootka" | "copa" | "lgbt" | "dia" | "lua";
+
+export const DEFAULT_QUIZ_OPTION_PALETTE_ID: QuizOptionPaletteId = "hootka";
+
 export interface Room {
   id: string;
   code: string;
@@ -14,6 +18,7 @@ export interface Room {
   questions: Question[];
   answers: Record<string, Record<string, Answer>>;
   questionTimeLimitMs: number;
+  optionPaletteId?: QuizOptionPaletteId;
 }
 
 export interface Participant {
@@ -57,6 +62,7 @@ export interface SavedQuiz {
   questions: Question[];
   createdAt: number;
   updatedAt: number;
+  optionPaletteId?: QuizOptionPaletteId;
 }
 
 export interface ExportedQuiz {
@@ -81,6 +87,7 @@ export interface GlobalQuiz {
   status: GlobalQuizStatus;
   attemptLimit: number | null;
   questionTimeLimitMs: number;
+  optionPaletteId?: QuizOptionPaletteId;
   createdBy: string;
   createdByUsername: string;
   createdAt: number;

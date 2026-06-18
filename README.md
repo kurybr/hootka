@@ -57,6 +57,7 @@ Criadores usam **Google**; jogadores do quiz global podem usar sessão anônima 
 - [Quiz global](docs/FEATURE-QUIZ-GLOBAL.md)
 - [Testes E2E](docs/TESTES-E2E.md)
 - [Escala salas ao vivo](docs/ESCALA-SALAS.md)
+- [Acessibilidade](ACCESSIBILITY.md) — meta WCAG 2.2 AA e skills para agentes em `.agents/skills/`
 
 ## Licença
 

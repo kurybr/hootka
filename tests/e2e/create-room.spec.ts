@@ -65,6 +65,14 @@ test.describe("Create room flow", () => {
     await expect(page.getByText("Pergunta 2")).toBeVisible();
   });
 
+  test("palette picker is visible and selectable", async ({ page }) => {
+    await page.goto(`${BASE_URL}/host/create`);
+
+    await expect(page.getByText("Cores das alternativas")).toBeVisible();
+    await page.getByText("Copa", { exact: true }).click();
+    await expect(page.getByRole("radio", { name: /Copa/ })).toBeChecked();
+  });
+
   test("save to library checkbox is visible with title field", async ({ page }) => {
     await page.goto(`${BASE_URL}/host/create`);
 

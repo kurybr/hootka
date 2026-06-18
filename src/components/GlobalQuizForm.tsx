@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,9 +10,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { OptionPalettePicker } from "@/components/OptionPalettePicker";
 import { GlobalQuizAiPromptCard } from "@/components/GlobalQuizAiPromptCard";
 import { QuestionListEditor } from "@/components/QuestionListEditor";
 import { QUIZ_SURFACE_CARD_CLASS } from "@/components/QuizQuestionCardHeader";
+import { useDebouncedEffect } from "@/hooks/useDebouncedEffect";
+import { toast } from "@/hooks/use-toast";
 import {
   DEFAULT_QUESTION_OPTIONS,
   DEFAULT_QUESTION_TIME_LIMIT_MS,
@@ -20,7 +23,15 @@ import {
   trimQuestion,
   validateQuestions,
 } from "@/lib/questionUtils";
-import type { GlobalQuiz, Question } from "@/types/quiz";
+import {
+  clearQuizFormDraft,
+  GLOBAL_QUIZ_CREATE_DRAFT_KEY,
+  isGlobalQuizFormDraftEmpty,
+  loadGlobalQuizFormDraft,
+  saveGlobalQuizFormDraft,
+} from "@/lib/quizFormDraftStorage";
+import type { GlobalQuiz, Question, QuizOptionPaletteId } from "@/types/quiz";
+import { DEFAULT_QUIZ_OPTION_PALETTE_ID } from "@/types/quiz";
 
 interface GlobalQuizFormValues {
   title: string;
@@ -30,11 +41,13 @@ interface GlobalQuizFormValues {
   status: GlobalQuiz["status"];
   attemptLimit: number | null;
   questionTimeLimitMs: number;
+  optionPaletteId: QuizOptionPaletteId;
   questions: Question[];
 }
 
 interface GlobalQuizFormProps {
   initialValues?: Partial<GlobalQuizFormValues>;
+  persistDraft?: boolean;
   submitLabel: string;
   loading?: boolean;
   isAdmin?: boolean;
@@ -43,6 +56,7 @@ interface GlobalQuizFormProps {
 
 export function GlobalQuizForm({
   initialValues,
+  persistDraft = !initialValues,
   submitLabel,
   loading = false,
   isAdmin = false,
@@ -78,7 +92,86 @@ export function GlobalQuizForm({
         }))
       : [createEmptyQuestion(DEFAULT_QUESTION_OPTIONS)]
   );
+  const [optionPaletteId, setOptionPaletteId] = useState<QuizOptionPaletteId>(
+    initialValues?.optionPaletteId ?? DEFAULT_QUIZ_OPTION_PALETTE_ID
+  );
   const [error, setError] = useState<string | null>(null);
+  const draftHydratedRef = useRef(false);
+
+  useEffect(() => {
+    if (!persistDraft) {
+      draftHydratedRef.current = true;
+      return;
+    }
+
+    const draft = loadGlobalQuizFormDraft(GLOBAL_QUIZ_CREATE_DRAFT_KEY);
+    if (draft && !isGlobalQuizFormDraftEmpty(draft)) {
+      setTitle(draft.title);
+      setDescription(draft.description);
+      setTopic(draft.topic);
+      setVisibility(draft.visibility);
+      setStatus(draft.status);
+      setAttemptLimitMode(draft.attemptLimitMode);
+      setAttemptLimitInput(draft.attemptLimitInput);
+      setQuestionTimeLimitSeconds(draft.questionTimeLimitSeconds);
+      setOptionPaletteId(draft.optionPaletteId);
+      setQuestions(draft.questions);
+      toast({
+        title: "Rascunho restaurado",
+        description: "Continuamos de onde você parou.",
+      });
+    }
+
+    draftHydratedRef.current = true;
+  }, [persistDraft]);
+
+  useDebouncedEffect(() => {
+    if (!persistDraft || !draftHydratedRef.current) return;
+
+    saveGlobalQuizFormDraft(GLOBAL_QUIZ_CREATE_DRAFT_KEY, {
+      title,
+      description,
+      topic,
+      visibility,
+      status,
+      attemptLimitMode,
+      attemptLimitInput,
+      questionTimeLimitSeconds,
+      optionPaletteId,
+      questions,
+    });
+  }, [
+    persistDraft,
+    title,
+    description,
+    topic,
+    visibility,
+    status,
+    attemptLimitMode,
+    attemptLimitInput,
+    questionTimeLimitSeconds,
+    optionPaletteId,
+    questions,
+  ]);
+
+  const resetForm = () => {
+    setTitle("");
+    setTopic("");
+    setDescription("");
+    setVisibility("community");
+    setStatus("draft");
+    setAttemptLimitMode("limited");
+    setAttemptLimitInput("3");
+    setQuestionTimeLimitSeconds(
+      String(Math.round(DEFAULT_QUESTION_TIME_LIMIT_MS / 1000))
+    );
+    setOptionPaletteId(DEFAULT_QUIZ_OPTION_PALETTE_ID);
+    setQuestions([createEmptyQuestion(DEFAULT_QUESTION_OPTIONS)]);
+    setError(null);
+    if (persistDraft) {
+      clearQuizFormDraft(GLOBAL_QUIZ_CREATE_DRAFT_KEY);
+    }
+  };
 
   const attemptLimit = useMemo(() => {
     if (attemptLimitMode === "unlimited") return null;
@@ -119,8 +212,12 @@ export function GlobalQuizForm({
         status,
         attemptLimit,
         questionTimeLimitMs,
+        optionPaletteId,
         questions: questions.map(trimQuestion),
       });
+      if (persistDraft) {
+        clearQuizFormDraft(GLOBAL_QUIZ_CREATE_DRAFT_KEY);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível salvar o quiz.");
     }
@@ -136,13 +233,7 @@ export function GlobalQuizForm({
           setQuestions(draft.questions);
           setError(null);
         }}
-        onClearForm={() => {
-          setTitle("");
-          setTopic("");
-          setDescription("");
-          setQuestions([createEmptyQuestion(DEFAULT_QUESTION_OPTIONS)]);
-          setError(null);
-        }}
+        onClearForm={resetForm}
       />
 
       <Card className={QUIZ_SURFACE_CARD_CLASS}>
@@ -250,6 +341,8 @@ export function GlobalQuizForm({
               />
             )}
           </div>
+
+          <OptionPalettePicker value={optionPaletteId} onChange={setOptionPaletteId} />
         </CardContent>
       </Card>
 

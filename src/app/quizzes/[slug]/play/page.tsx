@@ -210,6 +210,7 @@ export default function GlobalQuizPlayPage({
                 <CardContent className="space-y-6">
                   <ResultCard
                     question={lastFeedback.question}
+                    optionPaletteId={quiz.optionPaletteId}
                     selectedIndex={lastFeedback.answer.optionIndex}
                     score={lastFeedback.answer.score}
                     correct={lastFeedback.answer.correct}
@@ -246,6 +247,7 @@ export default function GlobalQuizPlayPage({
             <CardContent className="space-y-6">
               <QuestionCard
                 question={currentQuestion}
+                optionPaletteId={quiz.optionPaletteId}
                 onAnswer={(index) => {
                   setSelectedIndex(index);
                   void handleSubmit(index);

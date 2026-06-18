@@ -1,7 +1,7 @@
 import type { Question } from "@/types/quiz";
 
 export const MIN_QUESTION_OPTIONS = 2;
-export const MAX_QUESTION_OPTIONS = 5;
+export const MAX_QUESTION_OPTIONS = 4;
 export const DEFAULT_QUESTION_OPTIONS = 4;
 export const DEFAULT_QUESTION_TIME_LIMIT_MS = 120000;
 export const MIN_QUESTION_TIME_LIMIT_MS = 10000;
@@ -25,13 +25,12 @@ export function sanitizeQuestionTimeLimitSeconds(
   return Math.max(MIN_QUESTION_TIME_LIMIT_MS, Math.floor(parsed) * 1000);
 }
 export const MAX_QUESTION_SCORE = 120;
-export const QUESTION_SHORTCUT_KEYS = ["a", "s", "d", "f", "g"] as const;
+export const QUESTION_SHORTCUT_KEYS = ["a", "s", "d", "f"] as const;
 export const QUESTION_OPTION_COLORS = [
   "bg-red-500 hover:bg-red-600 border-red-600",
   "bg-blue-500 hover:bg-blue-600 border-blue-600",
   "bg-yellow-500 hover:bg-yellow-600 border-yellow-600 text-yellow-950",
   "bg-green-500 hover:bg-green-600 border-green-600",
-  "bg-purple-500 hover:bg-purple-600 border-purple-600",
 ] as const;
 
 export function createEmptyQuestion(

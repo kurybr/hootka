@@ -347,6 +347,7 @@ export default function HostRoomPage() {
                     question={currentQuestion}
                     counts={counts}
                     total={total}
+                    optionPaletteId={room?.optionPaletteId}
                   />
                 );
               })()}
@@ -398,6 +399,7 @@ export default function HostRoomPage() {
               {answerReport && (
                 <QuizAnswerReport
                   report={answerReport}
+                  optionPaletteId={room?.optionPaletteId}
                   description="Resumo agregado de todas as perguntas desta partida."
                 />
               )}

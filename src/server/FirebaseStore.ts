@@ -1,6 +1,7 @@
 import type { Answer, Participant, Question, Room } from "../types/quiz";
 import type { IGameStore } from "./IGameStore";
 import { resolveQuestionTimeLimitMs } from "../lib/questionUtils";
+import { resolveQuizOptionPaletteId } from "../lib/quizOptionPalettes";
 import {
   getFirebaseAdminDatabase,
   ROOMS_PATH,
@@ -70,6 +71,7 @@ function normalizeRoomData(data: unknown): Room | null {
     questions,
     answers,
     questionTimeLimitMs: resolveQuestionTimeLimitMs(r.questionTimeLimitMs),
+    optionPaletteId: resolveQuizOptionPaletteId(r.optionPaletteId),
   };
 }
 

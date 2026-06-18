@@ -8,6 +8,7 @@ import type {
   GlobalQuizLeaderboardEntry,
   PublicGlobalQuiz,
   Question,
+  QuizOptionPaletteId,
 } from "@/types/quiz";
 
 interface UpsertGlobalQuizInput {
@@ -18,6 +19,7 @@ interface UpsertGlobalQuizInput {
   status?: GlobalQuiz["status"];
   attemptLimit?: number | null;
   questionTimeLimitMs?: number | null;
+  optionPaletteId?: QuizOptionPaletteId;
   questions: Question[];
 }
 

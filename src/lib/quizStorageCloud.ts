@@ -61,6 +61,7 @@ export async function saveQuizCloud(
     id: crypto.randomUUID(),
     title: quiz.title,
     questions: quiz.questions,
+    optionPaletteId: quiz.optionPaletteId,
     createdAt: now,
     updatedAt: now,
   };
@@ -71,7 +72,7 @@ export async function saveQuizCloud(
 export async function updateQuizCloud(
   uid: string,
   quizId: string,
-  updates: Partial<Pick<SavedQuiz, "title" | "questions">>
+  updates: Partial<Pick<SavedQuiz, "title" | "questions" | "optionPaletteId">>
 ): Promise<SavedQuiz> {
   const existing = await getQuizCloud(uid, quizId);
   if (!existing) throw new Error("Quiz não encontrado");
@@ -102,6 +103,7 @@ export async function duplicateQuizCloud(
   return saveQuizCloud(uid, {
     title: `Cópia de ${original.title}`,
     questions: cloneQuestions(original.questions),
+    optionPaletteId: original.optionPaletteId,
   });
 }
 

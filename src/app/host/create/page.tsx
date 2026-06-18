@@ -10,7 +10,8 @@ import { cloneQuestions, createEmptyQuestion } from "@/lib/questionUtils";
 import { useRealTime } from "@/providers/RealTimeContext";
 import { useQuizLibrary } from "@/hooks/useQuizLibrary";
 import { trackEvent } from "@/lib/gtag";
-import type { Question } from "@/types/quiz";
+import type { Question, QuizOptionPaletteId } from "@/types/quiz";
+import { DEFAULT_QUIZ_OPTION_PALETTE_ID } from "@/types/quiz";
 
 function CreateRoomContent() {
   const router = useRouter();
@@ -22,6 +23,8 @@ function CreateRoomContent() {
     createEmptyQuestion(),
   ]);
   const [initialQuizTitle, setInitialQuizTitle] = useState("");
+  const [initialOptionPaletteId, setInitialOptionPaletteId] =
+    useState<QuizOptionPaletteId>(DEFAULT_QUIZ_OPTION_PALETTE_ID);
 
   const quizId = searchParams.get("quizId");
 
@@ -35,6 +38,9 @@ function CreateRoomContent() {
             : [createEmptyQuestion()]
         );
         setInitialQuizTitle(quiz.title);
+        setInitialOptionPaletteId(
+          quiz.optionPaletteId ?? DEFAULT_QUIZ_OPTION_PALETTE_ID
+        );
       }
     }
   }, [quizId, quizzes]);
@@ -42,13 +48,15 @@ function CreateRoomContent() {
   return (
     <QuizCreatePageShell
       title="Criar Sala"
-      description="Monte o quiz da sala ao vivo. Cada pergunta pode ter entre 2 e 5 alternativas e uma resposta correta."
+      description="Monte o quiz da sala ao vivo. Cada pergunta tem até 4 alternativas e uma resposta correta."
       backHref="/host"
     >
       <LiveRoomForm
-        key={`${quizId ?? "new"}-${initialQuizTitle}-${initialQuestions.length}`}
+        key={quizId ?? "new"}
+        persistDraft={!quizId}
         initialQuestions={initialQuestions}
         initialQuizTitle={initialQuizTitle}
+        initialOptionPaletteId={initialOptionPaletteId}
         submitLabel="Criar Sala"
         loading={loading}
         onSubmit={async (values) => {
@@ -56,7 +64,11 @@ function CreateRoomContent() {
           try {
             if (values.saveToLibrary) {
               const title = values.quizTitle || "Quiz sem título";
-              await libSaveQuiz({ title, questions: values.questions });
+              await libSaveQuiz({
+                title,
+                questions: values.questions,
+                optionPaletteId: values.optionPaletteId,
+              });
               toast({
                 title: "Quiz salvo na biblioteca",
                 description: `"${title}" foi adicionado.`,
@@ -65,7 +77,8 @@ function CreateRoomContent() {
 
             const { roomId } = await provider.createRoom(
               values.questions,
-              values.questionTimeLimitMs
+              values.questionTimeLimitMs,
+              values.optionPaletteId
             );
             trackEvent("room_created", { room_id: roomId });
             toast({

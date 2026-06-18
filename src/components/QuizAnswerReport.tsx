@@ -10,15 +10,18 @@ import {
 } from "@/components/ui/card";
 import { QUIZ_SURFACE_CARD_CLASS } from "@/components/QuizQuestionCardHeader";
 import type { QuizAnswerReport } from "@/lib/answerReportUtils";
+import type { QuizOptionPaletteId } from "@/types/quiz";
 
 interface QuizAnswerReportProps {
   report: QuizAnswerReport;
+  optionPaletteId?: QuizOptionPaletteId;
   title?: string;
   description?: string;
 }
 
 export function QuizAnswerReport({
   report,
+  optionPaletteId,
   title = "Relatório de respostas",
   description = "Distribuição agregada por pergunta, sem identificar participantes.",
 }: QuizAnswerReportProps) {
@@ -92,6 +95,7 @@ export function QuizAnswerReport({
                 question={entry.question}
                 counts={entry.counts}
                 total={entry.totalAnswered}
+                optionPaletteId={optionPaletteId}
               />
             </div>
           ))}

@@ -4,12 +4,16 @@ import { useEffect } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { QUESTION_OPTION_COLORS } from "@/lib/questionUtils";
+import {
+  getOptionButtonStyle,
+  getOptionResultClassName,
+} from "@/lib/quizOptionPalettes";
 import { useSound } from "@/providers/SoundProvider";
-import type { Question } from "@/types/quiz";
+import type { Question, QuizOptionPaletteId } from "@/types/quiz";
 
 interface ResultCardProps {
   question: Question;
+  optionPaletteId?: QuizOptionPaletteId;
   selectedIndex: number | null;
   score: number;
   correct: boolean;
@@ -17,6 +21,7 @@ interface ResultCardProps {
 
 export function ResultCard({
   question,
+  optionPaletteId,
   selectedIndex,
   score,
   correct,
@@ -66,21 +71,35 @@ export function ResultCard({
           const isCorrect = index === question.correctOptionIndex;
           const isSelected = index === selectedIndex;
           const showWrong = !correct && isSelected;
+          const optionStyle = getOptionButtonStyle(optionPaletteId, index);
 
           return (
             <div
               key={index}
               className={cn(
-                "flex min-h-[60px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-medium",
-                QUESTION_OPTION_COLORS[index],
-                isCorrect && "border-green-600 bg-green-500 ring-2 ring-green-400",
-                showWrong && "border-red-600 bg-red-500 ring-2 ring-red-400"
+                getOptionResultClassName(),
+                isCorrect && "ring-2 ring-green-400",
+                showWrong && "ring-2 ring-red-400"
               )}
+              style={{
+                backgroundColor: isCorrect
+                  ? "#22c55e"
+                  : showWrong
+                    ? "#ef4444"
+                    : optionStyle.backgroundColor,
+                borderColor: isCorrect
+                  ? "#16a34a"
+                  : showWrong
+                    ? "#dc2626"
+                    : optionStyle.borderColor,
+                color:
+                  isCorrect || showWrong ? "#FFFFFF" : optionStyle.color,
+                textShadow:
+                  isCorrect || showWrong ? undefined : optionStyle.textShadow,
+              }}
             >
               {option}
-              {isCorrect && (
-                <Check className="ml-2 h-5 w-5 text-white" />
-              )}
+              {isCorrect && <Check className="ml-2 h-5 w-5 text-white" />}
             </div>
           );
         })}

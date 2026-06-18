@@ -1,4 +1,4 @@
-import type { Participant, Question, Room } from "@/types/quiz";
+import type { Participant, Question, QuizOptionPaletteId, Room } from "@/types/quiz";
 
 export interface GameStatusData {
   status: Room["status"];
@@ -32,7 +32,8 @@ export interface IRealTimeProvider {
 
   createRoom(
     questions: Question[],
-    questionTimeLimitMs?: number
+    questionTimeLimitMs?: number,
+    optionPaletteId?: QuizOptionPaletteId
   ): Promise<{ roomId: string; code: string }>;
   joinRoom(
     code: string,

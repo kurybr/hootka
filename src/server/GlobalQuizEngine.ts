@@ -6,6 +6,9 @@ import {
   GLOBAL_QUIZZES_PATH,
   getFirebaseAdminDatabase,
 } from "@/lib/firebaseAdmin";
+import { resolveQuizOptionPaletteId } from "@/lib/quizOptionPalettes";
+import { buildGlobalQuizAnswerReport } from "@/lib/answerReportUtils";
+import type { QuizAnswerReport } from "@/lib/answerReportUtils";
 import {
   createInitialGlobalQuizUserStats,
   getRemainingAttempts,
@@ -14,8 +17,6 @@ import {
   slugifyQuizTitle,
   toPublicQuiz,
 } from "@/lib/globalQuizUtils";
-import { buildGlobalQuizAnswerReport } from "@/lib/answerReportUtils";
-import type { QuizAnswerReport } from "@/lib/answerReportUtils";
 import {
   calculateTimedScore,
   normalizeQuestionFromFirebase,
@@ -30,6 +31,7 @@ import type {
   GlobalQuizVisibility,
   PublicGlobalQuiz,
   Question,
+  QuizOptionPaletteId,
 } from "@/types/quiz";
 
 interface EngineUser {
@@ -48,6 +50,7 @@ interface UpsertGlobalQuizInput {
   status?: GlobalQuiz["status"];
   attemptLimit?: number | null;
   questionTimeLimitMs?: number | null;
+  optionPaletteId?: QuizOptionPaletteId;
   questions: Question[];
 }
 
@@ -139,7 +142,11 @@ export class GlobalQuizEngine {
     const questions = Array.isArray(raw.questions)
       ? raw.questions.map((q) => normalizeQuestionFromFirebase(q))
       : [];
-    return { ...raw, questions };
+    return {
+      ...raw,
+      questions,
+      optionPaletteId: resolveQuizOptionPaletteId(raw.optionPaletteId),
+    };
   }
 
   async getQuizBySlug(slug: string): Promise<GlobalQuiz | null> {
@@ -190,6 +197,7 @@ export class GlobalQuizEngine {
       status,
       attemptLimit: sanitized.attemptLimit,
       questionTimeLimitMs: sanitized.questionTimeLimitMs,
+      optionPaletteId: sanitized.optionPaletteId,
       createdBy: user.uid,
       createdByUsername: user.username ?? "Usuário",
       createdAt: now,
@@ -234,6 +242,7 @@ export class GlobalQuizEngine {
       questions: sanitized.questions,
       attemptLimit: sanitized.attemptLimit,
       questionTimeLimitMs: sanitized.questionTimeLimitMs,
+      optionPaletteId: sanitized.optionPaletteId,
       visibility,
       status,
       updatedAt: now,

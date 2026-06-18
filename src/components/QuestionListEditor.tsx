@@ -151,7 +151,7 @@ export function QuestionListEditor({
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-4">
                 <label className="block text-sm font-medium">
-                  Alternativas (2 a 5, selecione a correta)
+                  Alternativas (2 a 4, selecione a correta)
                 </label>
                 <div className="flex gap-2">
                   <Button

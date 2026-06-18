@@ -1,19 +1,21 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { QUESTION_OPTION_COLORS } from "@/lib/questionUtils";
-import type { Question } from "@/types/quiz";
+import { getOptionButtonStyle } from "@/lib/quizOptionPalettes";
+import type { Question, QuizOptionPaletteId } from "@/types/quiz";
 
 interface AnswerDistributionProps {
   question: Question;
   counts: number[];
   total: number;
+  optionPaletteId?: QuizOptionPaletteId;
 }
 
 export function AnswerDistribution({
   question,
   counts,
   total,
+  optionPaletteId,
 }: AnswerDistributionProps) {
   const maxCount = Math.max(...counts, 1);
 
@@ -28,6 +30,7 @@ export function AnswerDistribution({
           const percentage = total > 0 ? (count / total) * 100 : 0;
           const barWidth = maxCount > 0 ? (count / maxCount) * 100 : 0;
           const isCorrect = index === question.correctOptionIndex;
+          const optionStyle = getOptionButtonStyle(optionPaletteId, index);
 
           return (
             <div key={index} className="space-y-1">
@@ -49,10 +52,13 @@ export function AnswerDistribution({
                 <div
                   className={cn(
                     "h-full transition-all",
-                    QUESTION_OPTION_COLORS[index],
                     isCorrect && "ring-2 ring-green-500"
                   )}
-                  style={{ width: `${barWidth}%` }}
+                  style={{
+                    width: `${barWidth}%`,
+                    backgroundColor: optionStyle.backgroundColor,
+                    borderRight: `2px solid ${optionStyle.borderColor}`,
+                  }}
                 />
               </div>
             </div>

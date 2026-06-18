@@ -1,9 +1,10 @@
-import type { Participant, Question, Room } from "./quiz";
+import type { Participant, Question, QuizOptionPaletteId, Room } from "./quiz";
 
 export interface ClientEvents {
   "room:create": (data: {
     questions: Question[];
     questionTimeLimitMs?: number;
+    optionPaletteId?: QuizOptionPaletteId;
   }) => void;
   "room:join": (data: { code: string; name: string }) => void;
   "room:rejoin": (data: { roomId: string }) => void;

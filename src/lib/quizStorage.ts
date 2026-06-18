@@ -36,6 +36,7 @@ export function saveQuiz(
     id: crypto.randomUUID(),
     title: quiz.title,
     questions: cloneQuestions(quiz.questions),
+    optionPaletteId: quiz.optionPaletteId,
     createdAt: now,
     updatedAt: now,
   };
@@ -47,7 +48,7 @@ export function saveQuiz(
 
 export function updateQuiz(
   id: string,
-  updates: Partial<Pick<SavedQuiz, "title" | "questions">>
+  updates: Partial<Pick<SavedQuiz, "title" | "questions" | "optionPaletteId">>
 ): SavedQuiz {
   const all = getStored();
   const index = all.findIndex((q) => q.id === id);
@@ -78,5 +79,6 @@ export function duplicateQuiz(id: string): SavedQuiz {
   return saveQuiz({
     title,
     questions: cloneQuestions(original.questions),
+    optionPaletteId: original.optionPaletteId,
   });
 }

@@ -8,7 +8,7 @@ import type {
   GameStatusData,
   IRealTimeProvider,
 } from "./IRealTimeProvider";
-import type { Participant, Question, Room } from "@/types/quiz";
+import type { Participant, Question, QuizOptionPaletteId, Room } from "@/types/quiz";
 
 const HOST_ID_KEY = "quiz_hostId";
 const PARTICIPANT_ID_KEY = "quiz_participantId";
@@ -179,7 +179,8 @@ export class SocketIOProvider implements IRealTimeProvider {
 
   async createRoom(
     questions: Question[],
-    questionTimeLimitMs?: number
+    questionTimeLimitMs?: number,
+    optionPaletteId?: QuizOptionPaletteId
   ): Promise<{ roomId: string; code: string }> {
     return new Promise((resolve, reject) => {
       const hostId = getOrCreateHostId();
@@ -223,6 +224,7 @@ export class SocketIOProvider implements IRealTimeProvider {
       this.socket.emit("room:create" as never, {
         questions,
         questionTimeLimitMs,
+        optionPaletteId,
       } as never);
     });
   }

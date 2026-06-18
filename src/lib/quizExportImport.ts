@@ -1,5 +1,6 @@
 import type { SavedQuiz, ExportedQuiz, Question } from "@/types/quiz";
 import { saveQuiz } from "@/lib/quizStorage";
+import { resolveQuizOptionPaletteId } from "@/lib/quizOptionPalettes";
 import {
   MAX_QUESTION_OPTIONS,
   MIN_QUESTION_OPTIONS,
@@ -22,6 +23,7 @@ export function exportQuiz(quiz: SavedQuiz): ExportedQuiz {
     title: quiz.title,
     questions: cloneQuestions(quiz.questions),
     exportedAt: Date.now(),
+    optionPaletteId: resolveQuizOptionPaletteId(quiz.optionPaletteId),
   };
 }
 
@@ -112,18 +114,23 @@ export function validateExportedQuiz(data: unknown): ExportedQuiz {
     );
   }
   obj.questions.forEach((q, i) => validateQuestion(q, i));
-  return {
+  const exported: ExportedQuiz = {
     version: 1,
     title: (obj.title as string).trim(),
     questions: cloneQuestions(obj.questions as Question[]),
     exportedAt: typeof obj.exportedAt === "number" ? obj.exportedAt : Date.now(),
   };
+  if (obj.optionPaletteId !== undefined) {
+    exported.optionPaletteId = resolveQuizOptionPaletteId(obj.optionPaletteId);
+  }
+  return exported;
 }
 
 export function importQuiz(exported: ExportedQuiz): SavedQuiz {
   return saveQuiz({
     title: exported.title,
     questions: exported.questions,
+    optionPaletteId: resolveQuizOptionPaletteId(exported.optionPaletteId),
   });
 }
 

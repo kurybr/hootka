@@ -12,7 +12,7 @@
     "docker:build": "docker build -t hootka:latest .",
     "docker:run": "docker run --rm -p 3000:3000 hootka:latest",
     "db:clear": "tsx scripts/clear-database.ts --confirm",
-    "test:unit": "tsx src/lib/quizOptionPalettes.test.ts && tsx src/lib/quizFormDraftStorage.test.ts",
+    "test:unit": "tsx src/lib/quizOptionPalettes.test.ts && tsx src/lib/quizFormDraftStorage.test.ts && tsx src/lib/quizExportImport.test.ts",
     "skills:accessibility": "npx skills add mgifford/accessibility-skills -y",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",

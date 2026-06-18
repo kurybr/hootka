@@ -47,7 +47,28 @@ import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
 import { ImportQuizDialog } from "@/components/ImportQuizDialog";
 import { cn } from "@/lib/utils";
-import { isQuestionValid } from "@/lib/questionUtils";
+import {
+  DEFAULT_LIVE_ROOM_TIME_LIMIT_MS,
+  isQuestionValid,
+  MIN_QUESTION_TIME_LIMIT_MS,
+  sanitizeQuestionTimeLimitSeconds,
+} from "@/lib/questionUtils";
+import { resolveQuizOptionPaletteId } from "@/lib/quizOptionPalettes";
+
+function resolveSavedQuizTimeLimitMs(
+  questionTimeLimitMs: number | undefined
+): number {
+  if (
+    typeof questionTimeLimitMs === "number" &&
+    Number.isFinite(questionTimeLimitMs) &&
+    questionTimeLimitMs >= MIN_QUESTION_TIME_LIMIT_MS
+  ) {
+    return Math.floor(questionTimeLimitMs);
+  }
+  return sanitizeQuestionTimeLimitSeconds(
+    DEFAULT_LIVE_ROOM_TIME_LIMIT_MS / 1000
+  );
+}
 
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString("pt-BR", {
@@ -114,7 +135,11 @@ export default function HostDashboardPage() {
 
     setStartingQuizId(quiz.id);
     try {
-      const { roomId } = await provider.createRoom(validQuestions);
+      const { roomId } = await provider.createRoom(
+        validQuestions,
+        resolveSavedQuizTimeLimitMs(quiz.questionTimeLimitMs),
+        resolveQuizOptionPaletteId(quiz.optionPaletteId)
+      );
       trackEvent("room_created", { room_id: roomId });
       toast({
         title: "Sala criada!",

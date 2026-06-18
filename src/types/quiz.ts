@@ -63,6 +63,7 @@ export interface SavedQuiz {
   createdAt: number;
   updatedAt: number;
   optionPaletteId?: QuizOptionPaletteId;
+  questionTimeLimitMs?: number;
 }
 
 export interface ExportedQuiz {
@@ -70,6 +71,7 @@ export interface ExportedQuiz {
   title: string;
   questions: Question[];
   exportedAt: number;
+  optionPaletteId?: QuizOptionPaletteId;
 }
 
 export interface CloudSavedQuiz extends SavedQuiz {

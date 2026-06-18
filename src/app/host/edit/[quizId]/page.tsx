@@ -25,6 +25,8 @@ export default function EditQuizPage() {
   const [initialQuizTitle, setInitialQuizTitle] = useState("");
   const [initialOptionPaletteId, setInitialOptionPaletteId] =
     useState<QuizOptionPaletteId>(DEFAULT_QUIZ_OPTION_PALETTE_ID);
+  const [initialQuestionTimeLimitSeconds, setInitialQuestionTimeLimitSeconds] =
+    useState<string | undefined>(undefined);
   const [startingRoom, setStartingRoom] = useState(false);
   const [saving, setSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
@@ -45,6 +47,11 @@ export default function EditQuizPage() {
         : [createEmptyQuestion()]
     );
     setInitialOptionPaletteId(quiz.optionPaletteId ?? DEFAULT_QUIZ_OPTION_PALETTE_ID);
+    if (typeof quiz.questionTimeLimitMs === "number") {
+      setInitialQuestionTimeLimitSeconds(
+        String(Math.round(quiz.questionTimeLimitMs / 1000))
+      );
+    }
     setInitialized(true);
   }, [quizId, quizzes, quizzesLoading, router, initialized]);
 
@@ -64,6 +71,7 @@ export default function EditQuizPage() {
           initialQuestions={initialQuestions}
           initialQuizTitle={initialQuizTitle}
           initialOptionPaletteId={initialOptionPaletteId}
+          initialQuestionTimeLimitSeconds={initialQuestionTimeLimitSeconds}
           submitLabel="Iniciar Sala com este Quiz"
           saveLabel="Salvar Alterações"
           loading={startingRoom}
@@ -75,10 +83,16 @@ export default function EditQuizPage() {
                 title: values.quizTitle,
                 questions: values.questions,
                 optionPaletteId: values.optionPaletteId,
+                questionTimeLimitMs: values.questionTimeLimitMs,
               });
               setInitialQuizTitle(values.quizTitle);
               setInitialQuestions(cloneQuestions(values.questions));
               setInitialOptionPaletteId(values.optionPaletteId);
+              if (typeof values.questionTimeLimitMs === "number") {
+                setInitialQuestionTimeLimitSeconds(
+                  String(Math.round(values.questionTimeLimitMs / 1000))
+                );
+              }
               toast({
                 title: "Alterações salvas",
                 description: "O quiz foi atualizado na biblioteca.",

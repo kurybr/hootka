@@ -46,7 +46,9 @@ export function useQuizLibrary() {
   const updateQuiz = useCallback(
     async (
       quizId: string,
-      updates: Partial<Pick<SavedQuiz, "title" | "questions" | "optionPaletteId">>
+      updates: Partial<
+        Pick<SavedQuiz, "title" | "questions" | "optionPaletteId" | "questionTimeLimitMs">
+      >
     ) => {
       if (uid) {
         return cloud.updateQuizCloud(uid, quizId, updates);

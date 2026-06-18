@@ -37,6 +37,7 @@ export function saveQuiz(
     title: quiz.title,
     questions: cloneQuestions(quiz.questions),
     optionPaletteId: quiz.optionPaletteId,
+    questionTimeLimitMs: quiz.questionTimeLimitMs,
     createdAt: now,
     updatedAt: now,
   };
@@ -48,7 +49,9 @@ export function saveQuiz(
 
 export function updateQuiz(
   id: string,
-  updates: Partial<Pick<SavedQuiz, "title" | "questions" | "optionPaletteId">>
+  updates: Partial<
+    Pick<SavedQuiz, "title" | "questions" | "optionPaletteId" | "questionTimeLimitMs">
+  >
 ): SavedQuiz {
   const all = getStored();
   const index = all.findIndex((q) => q.id === id);
@@ -80,5 +83,6 @@ export function duplicateQuiz(id: string): SavedQuiz {
     title,
     questions: cloneQuestions(original.questions),
     optionPaletteId: original.optionPaletteId,
+    questionTimeLimitMs: original.questionTimeLimitMs,
   });
 }

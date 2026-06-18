@@ -25,6 +25,8 @@ function CreateRoomContent() {
   const [initialQuizTitle, setInitialQuizTitle] = useState("");
   const [initialOptionPaletteId, setInitialOptionPaletteId] =
     useState<QuizOptionPaletteId>(DEFAULT_QUIZ_OPTION_PALETTE_ID);
+  const [initialQuestionTimeLimitSeconds, setInitialQuestionTimeLimitSeconds] =
+    useState<string | undefined>(undefined);
 
   const quizId = searchParams.get("quizId");
 
@@ -41,6 +43,11 @@ function CreateRoomContent() {
         setInitialOptionPaletteId(
           quiz.optionPaletteId ?? DEFAULT_QUIZ_OPTION_PALETTE_ID
         );
+        if (typeof quiz.questionTimeLimitMs === "number") {
+          setInitialQuestionTimeLimitSeconds(
+            String(Math.round(quiz.questionTimeLimitMs / 1000))
+          );
+        }
       }
     }
   }, [quizId, quizzes]);
@@ -57,6 +64,7 @@ function CreateRoomContent() {
         initialQuestions={initialQuestions}
         initialQuizTitle={initialQuizTitle}
         initialOptionPaletteId={initialOptionPaletteId}
+        initialQuestionTimeLimitSeconds={initialQuestionTimeLimitSeconds}
         submitLabel="Criar Sala"
         loading={loading}
         onSubmit={async (values) => {
@@ -68,6 +76,7 @@ function CreateRoomContent() {
                 title,
                 questions: values.questions,
                 optionPaletteId: values.optionPaletteId,
+                questionTimeLimitMs: values.questionTimeLimitMs,
               });
               toast({
                 title: "Quiz salvo na biblioteca",

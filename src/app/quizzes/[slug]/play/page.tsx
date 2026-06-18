@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GlobalQuizPlayerStartCard } from "@/components/GlobalQuizPlayerStartCard";
 import { QUIZ_SURFACE_CARD_CLASS, QUIZ_PLAYER_CARD_CONTENT_CLASS, QUIZ_PLAYER_CARD_HEADER_CLASS, QUIZ_PLAYER_RESULT_HEADER_CLASS } from "@/components/QuizQuestionCardHeader";
 import { QuestionCard } from "@/components/QuestionCard";
@@ -23,6 +23,7 @@ import {
 } from "@/lib/globalQuizClient";
 import { useAuth } from "@/providers/AuthProvider";
 import { isValidPlayerDisplayName } from "@/lib/playerIdentity";
+import { trackEvent } from "@/lib/gtag";
 import { cn } from "@/lib/utils";
 import { useTimer } from "@/hooks/useTimer";
 import type {

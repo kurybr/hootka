@@ -24,10 +24,11 @@ import {
 } from "@/components/QuizQuestionCardHeader";
 import { formatLiveRoomSubtitle, formatRoomCodeLabel } from "@/lib/liveQuizDisplay";
 import {
-  formatPlayerRankHighlight,
-  isTopThreeRank,
+  PLAYER_GAME_OVER_DESCRIPTION,
+  PLAYER_GAME_OVER_TITLE,
   PLAYER_RANK_HIGHLIGHT_CLASS,
   PLAYER_RANK_NEUTRAL_CLASS,
+  resolvePlayerRankBadge,
 } from "@/lib/playerMicrocopy";
 import { useRealTime } from "@/hooks/useRealTime";
 import { useRoom } from "@/hooks/useRoom";
@@ -374,19 +375,22 @@ export default function PlayRoomPage() {
                 </p>
                 {ranking.length > 1 && (() => {
                   const myRank = ranking.find((p) => p.id === participantId);
+                  const badge = myRank
+                    ? resolvePlayerRankBadge(myRank, ranking)
+                    : null;
                   return (
                     <div className="space-y-3">
-                      {myRank && (
+                      {badge && (
                         <motion.p
                           initial={{ opacity: 0, y: 4 }}
                           animate={{ opacity: 1, y: 0 }}
                           className={
-                            isTopThreeRank(myRank.position)
+                            badge.highlight
                               ? PLAYER_RANK_HIGHLIGHT_CLASS
                               : PLAYER_RANK_NEUTRAL_CLASS
                           }
                         >
-                          {formatPlayerRankHighlight(myRank.position)}
+                          {badge.text}
                         </motion.p>
                       )}
                       <Ranking
@@ -414,10 +418,8 @@ export default function PlayRoomPage() {
               >
               <Card className={QUIZ_SURFACE_CARD_CLASS}>
                 <CardHeader>
-                  <CardTitle>Jogo encerrado</CardTitle>
-                  <CardDescription>
-                    Confira o ranking final e sua pontuação nesta partida.
-                  </CardDescription>
+                  <CardTitle>{PLAYER_GAME_OVER_TITLE}</CardTitle>
+                  <CardDescription>{PLAYER_GAME_OVER_DESCRIPTION}</CardDescription>
                 </CardHeader>
               </Card>
               {ranking.length > 0 && (
@@ -430,9 +432,11 @@ export default function PlayRoomPage() {
                 report={playerRankingReport}
                 currentPlayerId={participantId}
               />
-              <Button asChild className="w-full">
-                <Link href="/">Voltar ao início</Link>
-              </Button>
+              <div className="flex justify-center pt-2">
+                <Button asChild className="min-w-[11rem] px-8">
+                  <Link href="/">Voltar ao início</Link>
+                </Button>
+              </div>
               </motion.div>
             )}
           </AnimatePresence>

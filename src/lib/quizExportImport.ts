@@ -4,8 +4,24 @@ import { resolveQuizOptionPaletteId } from "@/lib/quizOptionPalettes";
 import {
   MAX_QUESTION_OPTIONS,
   MIN_QUESTION_OPTIONS,
+  MIN_QUESTION_TIME_LIMIT_MS,
   cloneQuestions,
+  sanitizeQuestionTimeLimitSeconds,
+  DEFAULT_LIVE_ROOM_TIME_LIMIT_MS,
 } from "@/lib/questionUtils";
+
+function resolveExportedQuestionTimeLimitMs(value: unknown): number {
+  if (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= MIN_QUESTION_TIME_LIMIT_MS
+  ) {
+    return Math.floor(value);
+  }
+  return sanitizeQuestionTimeLimitSeconds(
+    DEFAULT_LIVE_ROOM_TIME_LIMIT_MS / 1000
+  );
+}
 
 function slugify(title: string): string {
   return title
@@ -24,6 +40,9 @@ export function exportQuiz(quiz: SavedQuiz): ExportedQuiz {
     questions: cloneQuestions(quiz.questions),
     exportedAt: Date.now(),
     optionPaletteId: resolveQuizOptionPaletteId(quiz.optionPaletteId),
+    questionTimeLimitMs: resolveExportedQuestionTimeLimitMs(
+      quiz.questionTimeLimitMs
+    ),
   };
 }
 
@@ -123,6 +142,11 @@ export function validateExportedQuiz(data: unknown): ExportedQuiz {
   if (obj.optionPaletteId !== undefined) {
     exported.optionPaletteId = resolveQuizOptionPaletteId(obj.optionPaletteId);
   }
+  if (obj.questionTimeLimitMs !== undefined) {
+    exported.questionTimeLimitMs = resolveExportedQuestionTimeLimitMs(
+      obj.questionTimeLimitMs
+    );
+  }
   return exported;
 }
 
@@ -131,6 +155,9 @@ export function importQuiz(exported: ExportedQuiz): SavedQuiz {
     title: exported.title,
     questions: exported.questions,
     optionPaletteId: resolveQuizOptionPaletteId(exported.optionPaletteId),
+    questionTimeLimitMs: resolveExportedQuestionTimeLimitMs(
+      exported.questionTimeLimitMs
+    ),
   });
 }
 

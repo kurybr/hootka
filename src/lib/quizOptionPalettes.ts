@@ -8,33 +8,41 @@ export interface QuizOptionPalette {
   id: QuizOptionPaletteId;
   label: string;
   colors: [string, string, string, string];
+  discardedColor: string;
 }
+
+export type OptionButtonVisualState = "active" | "selected" | "discarded";
 
 export const QUIZ_OPTION_PALETTES: QuizOptionPalette[] = [
   {
     id: "hootka",
     label: "Hootka",
     colors: ["#3F7B70", "#D14B24", "#8E2E1E", "#D9C491"],
+    discardedColor: "#B5A99A",
   },
   {
     id: "copa",
     label: "Copa",
     colors: ["#009739", "#FFDF00", "#002776", "#F5F5F5"],
+    discardedColor: "#BDBDBD",
   },
   {
     id: "lgbt",
     label: "LGBTQIA+",
     colors: ["#E40303", "#FF8C00", "#FFED00", "#740787"],
+    discardedColor: "#B0B0B0",
   },
   {
     id: "dia",
     label: "Dia",
     colors: ["#4FC3F7", "#FFD54F", "#FF8A65", "#66BB6A"],
+    discardedColor: "#B0BEC5",
   },
   {
     id: "lua",
     label: "Lua",
     colors: ["#283593", "#5E35B1", "#90A4AE", "#1A237E"],
+    discardedColor: "#78909C",
   },
 ];
 
@@ -140,13 +148,7 @@ export interface OptionButtonStyle {
   selectionRingColor: string;
 }
 
-export function getOptionButtonStyle(
-  paletteId: QuizOptionPaletteId | undefined,
-  index: number
-): OptionButtonStyle {
-  const palette = getQuizOptionPalette(paletteId);
-  const safeIndex = Math.max(0, Math.min(index, palette.colors.length - 1));
-  const backgroundColor = palette.colors[safeIndex];
+function buildOptionButtonStyle(backgroundColor: string): OptionButtonStyle {
   const textStyle = getReadableTextStyle(backgroundColor);
 
   return {
@@ -158,16 +160,31 @@ export function getOptionButtonStyle(
   };
 }
 
-export function getOptionButtonClassName(disabled = false): string {
+export function getOptionButtonStyle(
+  paletteId: QuizOptionPaletteId | undefined,
+  index: number,
+  state: OptionButtonVisualState = "active"
+): OptionButtonStyle {
+  const palette = getQuizOptionPalette(paletteId);
+
+  if (state === "discarded") {
+    return buildOptionButtonStyle(palette.discardedColor);
+  }
+
+  const safeIndex = Math.max(0, Math.min(index, palette.colors.length - 1));
+  return buildOptionButtonStyle(palette.colors[safeIndex]);
+}
+
+export function getOptionButtonClassName(
+  disabled = false,
+  isDiscarded = false
+): string {
   return [
-    "relative flex min-h-[80px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-medium transition-colors",
-    disabled ? "cursor-not-allowed opacity-70" : "hover:brightness-95",
+    "relative flex min-h-[80px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-semibold transition-colors duration-300",
+    disabled || isDiscarded ? "cursor-not-allowed" : "hover:brightness-95",
   ].join(" ");
 }
 
-export function getOptionResultClassName(disabled = false): string {
-  return [
-    "flex min-h-[60px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-medium transition-colors",
-    disabled ? "opacity-70" : "",
-  ].join(" ");
+export function getOptionResultClassName(): string {
+  return "flex min-h-[60px] items-center justify-center rounded-xl border-2 px-4 py-3 text-center font-semibold transition-colors duration-300";
 }

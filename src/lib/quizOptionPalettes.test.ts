@@ -52,6 +52,36 @@ function testKnownContrastCases() {
   assert.equal(getOptionSelectionRingColor("#283593"), OPTION_TEXT_LIGHT);
 }
 
+function testAllPalettesHaveDiscardedColor() {
+  for (const palette of QUIZ_OPTION_PALETTES) {
+    assert.ok(palette.discardedColor.startsWith("#"));
+    assert.equal(
+      getOptionButtonStyle(palette.id, 0, "discarded").backgroundColor,
+      palette.discardedColor
+    );
+  }
+}
+
+function testDiscardedColorsMeetContrastRequirements() {
+  for (const palette of QUIZ_OPTION_PALETTES) {
+    const style = getOptionButtonStyle(palette.id, 0, "discarded");
+    const contrast = getContrastRatio(style.color, palette.discardedColor);
+    const meetsContrast =
+      contrast >= MIN_CONTRAST_RATIO || Boolean(style.textShadow);
+
+    assert.ok(
+      meetsContrast,
+      `${palette.id} discarded ${palette.discardedColor} contrast ${contrast.toFixed(2)}`
+    );
+  }
+}
+
+function testSelectedUsesActiveColor() {
+  const active = getOptionButtonStyle("lgbt", 2, "active");
+  const selected = getOptionButtonStyle("lgbt", 2, "selected");
+  assert.equal(selected.backgroundColor, active.backgroundColor);
+}
+
 function testAllPaletteColorsMeetContrastRequirements() {
   for (const palette of QUIZ_OPTION_PALETTES) {
     palette.colors.forEach((backgroundColor, index) => {
@@ -71,8 +101,11 @@ function testAllPaletteColorsMeetContrastRequirements() {
 testResolvePaletteId();
 testPaletteColors();
 testAllPalettesHaveFourColors();
+testAllPalettesHaveDiscardedColor();
 testContrastRatioIsSymmetric();
 testKnownContrastCases();
+testDiscardedColorsMeetContrastRequirements();
+testSelectedUsesActiveColor();
 testAllPaletteColorsMeetContrastRequirements();
 
 console.log("quizOptionPalettes.test.ts: ok");

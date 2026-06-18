@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { motion, useSpring, useTransform } from "framer-motion";
 import { Check, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   getOptionButtonStyle,
   getOptionResultClassName,
@@ -70,36 +69,45 @@ export function ResultCard({
         {question.options.map((option, index) => {
           const isCorrect = index === question.correctOptionIndex;
           const isSelected = index === selectedIndex;
-          const showWrong = !correct && isSelected;
-          const optionStyle = getOptionButtonStyle(optionPaletteId, index);
+          const showWrong = !correct && isSelected && !isCorrect;
+          const visualState =
+            isCorrect || showWrong ? "active" : "discarded";
+          const optionStyle = getOptionButtonStyle(
+            optionPaletteId,
+            index,
+            visualState
+          );
 
           return (
             <div
               key={index}
-              className={cn(
-                getOptionResultClassName(),
-                isCorrect && "ring-2 ring-green-400",
-                showWrong && "ring-2 ring-red-400"
-              )}
+              className={getOptionResultClassName()}
               style={{
-                backgroundColor: isCorrect
-                  ? "#22c55e"
+                backgroundColor: optionStyle.backgroundColor,
+                borderColor: optionStyle.borderColor,
+                color: optionStyle.color,
+                textShadow: optionStyle.textShadow,
+                boxShadow: isCorrect
+                  ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px ${optionStyle.selectionRingColor}`
                   : showWrong
-                    ? "#ef4444"
-                    : optionStyle.backgroundColor,
-                borderColor: isCorrect
-                  ? "#16a34a"
-                  : showWrong
-                    ? "#dc2626"
-                    : optionStyle.borderColor,
-                color:
-                  isCorrect || showWrong ? "#FFFFFF" : optionStyle.color,
-                textShadow:
-                  isCorrect || showWrong ? undefined : optionStyle.textShadow,
+                    ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px #f87171`
+                    : undefined,
               }}
             >
               {option}
-              {isCorrect && <Check className="ml-2 h-5 w-5 text-white" />}
+              {isCorrect && (
+                <Check
+                  className="ml-2 h-5 w-5 shrink-0"
+                  style={{ color: optionStyle.color }}
+                  aria-hidden
+                />
+              )}
+              {showWrong && (
+                <X
+                  className="ml-2 h-5 w-5 shrink-0 text-red-600"
+                  aria-hidden
+                />
+              )}
             </div>
           );
         })}

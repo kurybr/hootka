@@ -95,9 +95,21 @@ export function QuestionCard({
         custom={0}
       >
         {question.options.map((option, index) => {
-          const optionStyle = getOptionButtonStyle(optionPaletteId, index);
+          const hasSelection = selectedIndex !== null;
           const isSelected = selectedIndex === index;
+          const isDiscarded = hasSelection && !isSelected;
+          const visualState = isDiscarded
+            ? "discarded"
+            : isSelected
+              ? "selected"
+              : "active";
+          const optionStyle = getOptionButtonStyle(
+            optionPaletteId,
+            index,
+            visualState
+          );
           const isKeyPressed = keyPressed === index && selectedIndex === null;
+          const isInteractive = !disabled && visualState === "active";
           const selectionOutline = isSelected
             ? `0 0 0 2px hsl(var(--background)), 0 0 0 6px ${optionStyle.selectionRingColor}`
             : isKeyPressed
@@ -111,8 +123,8 @@ export function QuestionCard({
               onClick={() => handleAnswer(index)}
               disabled={disabled}
               variants={itemVariants}
-              whileHover={!disabled ? { scale: 1.02 } : undefined}
-              whileTap={!disabled ? { scale: 0.98 } : undefined}
+              whileHover={isInteractive ? { scale: 1.02 } : undefined}
+              whileTap={isInteractive ? { scale: 0.98 } : undefined}
               animate={
                 isSelected
                   ? { scale: [1, 1.05, 1] }
@@ -125,7 +137,7 @@ export function QuestionCard({
                   ? { duration: 0.35, ease: "easeOut" }
                   : { type: "spring", stiffness: 400, damping: 25 }
               }
-              className={getOptionButtonClassName(disabled)}
+              className={getOptionButtonClassName(disabled, isDiscarded)}
               style={{
                 backgroundColor: optionStyle.backgroundColor,
                 borderColor: optionStyle.borderColor,
@@ -134,7 +146,13 @@ export function QuestionCard({
                 boxShadow: selectionOutline,
               }}
             >
-              <span className="absolute left-2 top-2 rounded bg-white/80 px-1.5 py-0.5 font-mono text-xs font-bold text-black/80">
+              <span
+                className={
+                  isDiscarded
+                    ? "absolute left-2 top-2 rounded bg-muted px-1.5 py-0.5 font-mono text-xs font-bold text-muted-foreground"
+                    : "absolute left-2 top-2 rounded bg-white/80 px-1.5 py-0.5 font-mono text-xs font-bold text-black/80"
+                }
+              >
                 {QUESTION_SHORTCUT_KEYS[index].toUpperCase()}
               </span>
               {option}

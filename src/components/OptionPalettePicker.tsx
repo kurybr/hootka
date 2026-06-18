@@ -27,17 +27,25 @@ function PaletteSwatches({ paletteId }: { paletteId: QuizOptionPaletteId }) {
           aria-hidden
         />
       ))}
+      <span
+        className="h-6 w-6 rounded-md border border-dashed border-black/20 shadow-sm"
+        style={{ backgroundColor: palette.discardedColor }}
+        title="Descartada / errada"
+        aria-hidden
+      />
     </div>
   );
 }
 
 function PalettePreview({ paletteId }: { paletteId: QuizOptionPaletteId }) {
-  const labels = ["A", "B", "C", "D"];
+  const activeLabels = ["A", "B", "C", "D"];
+  const discardedStyle = getOptionButtonStyle(paletteId, 0, "discarded");
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-      {labels.map((label, index) => {
-        const style = getOptionButtonStyle(paletteId, index);
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+      {activeLabels.map((label, index) => {
+        const style = getOptionButtonStyle(paletteId, index, "active");
+
         return (
           <div
             key={label}
@@ -53,6 +61,17 @@ function PalettePreview({ paletteId }: { paletteId: QuizOptionPaletteId }) {
           </div>
         );
       })}
+      <div
+        className="flex min-h-10 items-center justify-center rounded-lg border-2 px-2 py-2 text-xs font-semibold sm:text-sm"
+        style={{
+          backgroundColor: discardedStyle.backgroundColor,
+          borderColor: discardedStyle.borderColor,
+          color: discardedStyle.color,
+          textShadow: discardedStyle.textShadow,
+        }}
+      >
+        Errado
+      </div>
     </div>
   );
 }

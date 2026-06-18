@@ -13,6 +13,7 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { AdSenseScript } from "@/components/AdSense";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { PlayerMobileFocusProvider } from "@/providers/PlayerMobileFocusProvider";
 
 /** Corpo — substituto open source da Gotham (SIL Open Font License). */
 const montserrat = Montserrat({
@@ -51,11 +52,13 @@ export default function RootLayout({
             <AuthProvider>
               <RealTimeProvider>
                 <SoundProvider>
-                  <Header />
-                  {children}
-                  <ReconnectingOverlay />
-                  <Toaster />
-                  <CookieConsentBanner />
+                  <PlayerMobileFocusProvider>
+                    <Header />
+                    {children}
+                    <ReconnectingOverlay />
+                    <Toaster />
+                    <CookieConsentBanner />
+                  </PlayerMobileFocusProvider>
                 </SoundProvider>
               </RealTimeProvider>
             </AuthProvider>

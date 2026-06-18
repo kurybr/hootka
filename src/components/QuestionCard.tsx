@@ -46,6 +46,7 @@ interface QuestionCardProps {
   disabled?: boolean;
   selectedIndex?: number | null;
   timedOut?: boolean;
+  mobileCompact?: boolean;
 }
 
 export function QuestionCard({
@@ -55,6 +56,7 @@ export function QuestionCard({
   disabled = false,
   selectedIndex = null,
   timedOut = false,
+  mobileCompact = false,
 }: QuestionCardProps) {
   const { playSelect } = useSound();
   const [keyPressed, setKeyPressed] = useState<number | null>(null);
@@ -91,9 +93,12 @@ export function QuestionCard({
   }, [disabled, selectedIndex, playSelect, onAnswer, question.options.length]);
 
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", mobileCompact && "max-md:space-y-4")}>
       <motion.p
-        className="text-xl font-medium"
+        className={cn(
+          "text-xl font-medium",
+          mobileCompact && "max-md:text-lg max-md:leading-snug"
+        )}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.2 }}
@@ -102,7 +107,10 @@ export function QuestionCard({
       </motion.p>
 
       <motion.div
-        className="grid auto-rows-fr gap-3 sm:grid-cols-2"
+        className={cn(
+          "grid auto-rows-fr gap-3 sm:grid-cols-2",
+          mobileCompact && "max-md:gap-2"
+        )}
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -144,7 +152,8 @@ export function QuestionCard({
                   disabled,
                   optionStyle.usesSubtleBorder
                 ),
-                "transition-all duration-300"
+                "transition-all duration-300",
+                mobileCompact && "max-md:min-h-[72px] max-md:px-3 max-md:py-2"
               )}
               style={{
                 backgroundColor: optionStyle.backgroundColor,

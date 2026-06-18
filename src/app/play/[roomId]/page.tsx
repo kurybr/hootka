@@ -17,7 +17,6 @@ import { QuestionCard } from "@/components/QuestionCard";
 import { LiveQuizPageShell } from "@/components/LiveQuizPageShell";
 import {
   QUIZ_PLAYER_CARD_CONTENT_CLASS,
-  QUIZ_PLAYER_CARD_HEADER_CLASS,
   QUIZ_PLAYER_RESULT_HEADER_CLASS,
   QUIZ_SURFACE_CARD_CLASS,
   QuizQuestionCardHeader,
@@ -50,6 +49,7 @@ import {
 import { SoundToggle } from "@/components/SoundToggle";
 import { fireConfetti } from "@/lib/confetti";
 import { trackEvent } from "@/lib/gtag";
+import { usePlayerMobileFocus } from "@/providers/PlayerMobileFocusProvider";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 const PARTICIPANT_ID_KEY = "quiz_participantId";
@@ -182,6 +182,13 @@ export default function PlayRoomPage() {
 
   const myParticipant = participantId ? room?.participants[participantId] : null;
   const myTotalScore = myParticipant?.totalScore ?? 0;
+  const isRoundActive = status === "playing" || status === "result";
+  const { setActive: setMobileFocus } = usePlayerMobileFocus();
+
+  useEffect(() => {
+    setMobileFocus(isRoundActive);
+    return () => setMobileFocus(false);
+  }, [isRoundActive, setMobileFocus]);
 
   if (!roomId) {
     router.replace("/");
@@ -192,6 +199,7 @@ export default function PlayRoomPage() {
     <LiveQuizPageShell
       title={formatRoomCodeLabel(room)}
       description={room ? formatLiveRoomSubtitle(room) : undefined}
+      mobileFocusActive={isRoundActive}
       actions={
         <>
           <SoundToggle />
@@ -299,13 +307,19 @@ export default function PlayRoomPage() {
               questionCount={room?.questions.length ?? 0}
               questionStartTimestamp={questionStartTimestamp}
               timeLimitMs={questionTimeLimitMs}
+              mobileCompact
               roundStatus={resolvePlayingRoundStatus(
                 isExpired,
                 selectedIndex,
                 selectedIndex !== null
               )}
             />
-            <CardContent className={cn(QUIZ_PLAYER_CARD_CONTENT_CLASS, "space-y-6")}>
+            <CardContent
+              className={cn(
+                QUIZ_PLAYER_CARD_CONTENT_CLASS,
+                "space-y-6 max-md:space-y-4 max-md:px-4 max-md:pb-5"
+              )}
+            >
               <QuestionCard
                 question={currentQuestion}
                 optionPaletteId={room?.optionPaletteId}
@@ -313,8 +327,9 @@ export default function PlayRoomPage() {
                 disabled={isExpired || selectedIndex !== null}
                 selectedIndex={selectedIndex}
                 timedOut={isExpired && selectedIndex === null}
+                mobileCompact
               />
-              <p className="text-center text-sm text-muted-foreground">
+              <p className="max-md:hidden text-center text-sm text-muted-foreground">
                 Pontuação total: {myTotalScore} pontos
               </p>
             </CardContent>
@@ -330,7 +345,12 @@ export default function PlayRoomPage() {
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
           <Card className={QUIZ_SURFACE_CARD_CLASS}>
-            <CardHeader className={QUIZ_PLAYER_RESULT_HEADER_CLASS}>
+            <CardHeader
+              className={cn(
+                QUIZ_PLAYER_RESULT_HEADER_CLASS,
+                "max-md:px-4 max-md:pt-4 max-md:pb-3"
+              )}
+            >
               {(() => {
                 const qKey = String(currentQuestionIndex);
                 const answer = participantId
@@ -345,11 +365,14 @@ export default function PlayRoomPage() {
                     state={resolveResultRoundStatus(correct)}
                     score={score}
                     size="large"
+                    mobileCompact
                   />
                 );
               })()}
             </CardHeader>
-            <CardContent className={QUIZ_PLAYER_CARD_CONTENT_CLASS}>
+            <CardContent
+              className={cn(QUIZ_PLAYER_CARD_CONTENT_CLASS, "max-md:px-4 max-md:pb-5")}
+            >
               {(() => {
                 const qKey = String(currentQuestionIndex);
                 const answer = participantId
@@ -369,8 +392,8 @@ export default function PlayRoomPage() {
                   />
                 );
               })()}
-              <div className="mt-6 space-y-3">
-                <p className="text-center text-sm text-muted-foreground">
+              <div className="mt-6 space-y-3 max-md:mt-4">
+                <p className="max-md:hidden text-center text-sm text-muted-foreground">
                   Pontuação total: {myTotalScore} pontos
                 </p>
                 {ranking.length > 1 && (() => {

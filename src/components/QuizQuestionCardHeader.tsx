@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card";
 import { RoundStatusHeader, type RoundStatus } from "@/components/RoundStatusHeader";
 import { Timer } from "@/components/Timer";
+import { cn } from "@/lib/utils";
 
 export const QUIZ_SURFACE_CARD_CLASS = "rounded-xl shadow-sm";
 
@@ -26,6 +27,7 @@ interface QuizQuestionCardHeaderProps {
   timeLimitMs: number;
   roundStatus?: RoundStatus;
   roundScore?: number;
+  mobileCompact?: boolean;
 }
 
 export function QuizQuestionCardHeader({
@@ -36,15 +38,24 @@ export function QuizQuestionCardHeader({
   timeLimitMs,
   roundStatus,
   roundScore,
+  mobileCompact = false,
 }: QuizQuestionCardHeaderProps) {
   return (
     <CardHeader
-      className={roundStatus !== undefined ? QUIZ_PLAYER_CARD_HEADER_CLASS : undefined}
+      className={cn(
+        roundStatus !== undefined ? QUIZ_PLAYER_CARD_HEADER_CLASS : undefined,
+        mobileCompact &&
+          "max-md:space-y-2 max-md:px-4 max-md:pt-4 max-md:pb-3"
+      )}
     >
-      <CardTitle className="leading-snug">
+      <CardTitle className={cn("leading-snug", mobileCompact && "max-md:text-lg")}>
         Pergunta {questionIndex + 1} de {questionCount}
       </CardTitle>
-      {subtitle ? <CardDescription>{subtitle}</CardDescription> : null}
+      {subtitle ? (
+        <CardDescription className={mobileCompact ? "max-md:hidden" : undefined}>
+          {subtitle}
+        </CardDescription>
+      ) : null}
       {roundStatus !== undefined ? (
         <RoundStatusHeader
           state={roundStatus}
@@ -52,6 +63,7 @@ export function QuizQuestionCardHeader({
           timeLimitMs={timeLimitMs}
           score={roundScore}
           size="large"
+          mobileCompact={mobileCompact}
         />
       ) : (
         <Timer

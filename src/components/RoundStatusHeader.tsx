@@ -25,6 +25,8 @@ interface RoundStatusHeaderProps {
   score?: number;
   size?: "default" | "large";
   className?: string;
+  /** Layout compacto no mobile — somente fluxo do jogador em rodada ativa. */
+  mobileCompact?: boolean;
 }
 
 interface FrozenTimerSnapshot {
@@ -110,6 +112,7 @@ export function RoundStatusHeader({
   score = 0,
   size = "large",
   className,
+  mobileCompact = false,
 }: RoundStatusHeaderProps) {
   const { timeLeft, isExpired, progress } = useTimer(
     questionStartTimestamp,
@@ -200,6 +203,12 @@ export function RoundStatusHeader({
   })();
 
   const isAnswering = state === "answering";
+  const hideStatusRowOnMobile = mobileCompact && isAnswering;
+  const stackResultOnMobile =
+    mobileCompact && (state === "correct" || state === "incorrect");
+  const hideSecondaryOnMobile =
+    mobileCompact &&
+    (state === "answer-registered" || state === "timed-out");
 
   const barColor =
     state === "timed-out" || state === "correct" || state === "incorrect"
@@ -211,6 +220,7 @@ export function RoundStatusHeader({
       className={cn(
         "space-y-2",
         size === "large" && "space-y-3",
+        mobileCompact && "max-md:space-y-2",
         className
       )}
       role="status"
@@ -220,10 +230,18 @@ export function RoundStatusHeader({
       <div
         className={cn(
           "flex justify-between gap-4",
-          isAnswering ? "items-end" : "items-center"
+          isAnswering ? "items-end" : "items-center",
+          hideStatusRowOnMobile && "max-md:hidden",
+          stackResultOnMobile && "max-md:flex-col max-md:items-start max-md:gap-1",
+          hideSecondaryOnMobile && "max-md:justify-start"
         )}
       >
-        <span className={isAnswering ? ANSWERING_LABEL_CLASS : STATUS_LABEL_CLASS}>
+        <span
+          className={cn(
+            isAnswering ? ANSWERING_LABEL_CLASS : STATUS_LABEL_CLASS,
+            hideSecondaryOnMobile && "max-md:text-base max-md:font-semibold"
+          )}
+        >
           {STATUS_LABEL[state]}
         </span>
         <span
@@ -234,7 +252,9 @@ export function RoundStatusHeader({
                   ANSWERING_COUNTER_CLASS,
                   isCritical && "text-destructive"
                 )
-              : SECONDARY_RIGHT_TEXT_CLASS
+              : SECONDARY_RIGHT_TEXT_CLASS,
+            hideSecondaryOnMobile && "max-md:hidden",
+            stackResultOnMobile && "max-md:text-left"
           )}
         >
           <RoundStatusRight
@@ -247,7 +267,8 @@ export function RoundStatusHeader({
       <div
         className={cn(
           "overflow-hidden rounded-full bg-muted",
-          size === "large" ? "h-3" : "h-2"
+          size === "large" ? "h-3" : "h-2",
+          mobileCompact && "max-md:h-2"
         )}
       >
         <motion.div

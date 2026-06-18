@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,6 +15,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/providers/AuthProvider";
+import { usePlayerMobileFocus } from "@/providers/PlayerMobileFocusProvider";
 import { toast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -34,8 +35,15 @@ const secondaryNavItems = [
 export function Header() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { active: mobileFocusActive } = usePlayerMobileFocus();
   const { user, profile, loading, signOut, signInWithGoogle } = useAuth();
   const isAdmin = profile?.role === "admin";
+
+  useEffect(() => {
+    if (mobileFocusActive) {
+      setMobileOpen(false);
+    }
+  }, [mobileFocusActive]);
 
   const sessionLabel = user
     ? user.isAnonymous
@@ -83,7 +91,12 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+        mobileFocusActive && "max-md:hidden"
+      )}
+    >
       <div className="container flex h-14 items-center justify-between px-4 sm:px-6">
         <Link
           href="/"

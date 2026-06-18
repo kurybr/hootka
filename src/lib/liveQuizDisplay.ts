@@ -8,7 +8,9 @@ export function formatLiveRoomSubtitle(room: Room | null): string {
     room.questions.length === 1
       ? "1 pergunta"
       : `${room.questions.length} perguntas`;
-  return `Sala ${room.code} · ${questionLabel} · ${timeSec}s por pergunta`;
+  const timeLabel =
+    timeSec === 1 ? "1 segundo por pergunta" : `${timeSec} segundos por pergunta`;
+  return `${questionLabel} • ${timeLabel}`;
 }
 
 export function formatRoomCodeLabel(room: Room | null): string {

@@ -8,7 +8,6 @@ import {
   getOptionButtonStyle,
   OPTION_DEEMPHASIZED_OPACITY,
 } from "@/lib/quizOptionPalettes";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { QUESTION_SHORTCUT_KEYS } from "@/lib/questionUtils";
 import type { PublicQuestion, QuizOptionPaletteId } from "@/types/quiz";
@@ -46,7 +45,6 @@ interface QuestionCardProps {
   onAnswer: (optionIndex: number) => void;
   disabled?: boolean;
   selectedIndex?: number | null;
-  awaitingResult?: boolean;
   timedOut?: boolean;
 }
 
@@ -56,14 +54,12 @@ export function QuestionCard({
   onAnswer,
   disabled = false,
   selectedIndex = null,
-  awaitingResult = false,
   timedOut = false,
 }: QuestionCardProps) {
   const { playSelect } = useSound();
   const [keyPressed, setKeyPressed] = useState<number | null>(null);
 
   const hasSelection = selectedIndex !== null;
-  const isAwaitingOthers = awaitingResult && hasSelection && !timedOut;
 
   const handleAnswer = (index: number) => {
     if (disabled) return;
@@ -95,7 +91,7 @@ export function QuestionCard({
   }, [disabled, selectedIndex, playSelect, onAnswer, question.options.length]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <motion.p
         className="text-xl font-medium"
         initial={{ opacity: 0 }}
@@ -104,22 +100,6 @@ export function QuestionCard({
       >
         {question.text}
       </motion.p>
-
-      {timedOut && (
-        <div className="flex flex-col items-center gap-2 text-center">
-          <p className="text-sm font-medium text-foreground">⌛ Tempo esgotado</p>
-          <p className="text-sm text-muted-foreground">Aguardando próxima pergunta...</p>
-        </div>
-      )}
-
-      {isAwaitingOthers && (
-        <div className="flex flex-col items-center gap-2">
-          <Badge variant="secondary">✓ Resposta enviada</Badge>
-          <p className="text-sm text-muted-foreground">
-            Aguardando os demais participantes...
-          </p>
-        </div>
-      )}
 
       <motion.div
         className="grid auto-rows-fr gap-3 sm:grid-cols-2"

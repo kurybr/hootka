@@ -12,6 +12,8 @@ interface TimerProps {
   timeLimitMs?: number;
   className?: string;
   size?: "default" | "large";
+  /** Oculta o anúncio "Tempo esgotado!" no cabeçalho; a mensagem fica no corpo da pergunta. */
+  quietWhenExpired?: boolean;
 }
 
 export function Timer({
@@ -19,6 +21,7 @@ export function Timer({
   timeLimitMs = DEFAULT_QUESTION_TIME_LIMIT_MS,
   className,
   size = "default",
+  quietWhenExpired = false,
 }: TimerProps) {
   const { timeLeft, isExpired, progress } = useTimer(
     questionStartTimestamp,
@@ -27,7 +30,13 @@ export function Timer({
   const { playTick } = useSound();
   const lastTickRef = useRef<number | null>(null);
 
-  const displayText = isExpired ? "Tempo esgotado!" : `${timeLeft}s`;
+  const displayText =
+    isExpired && quietWhenExpired
+      ? "0s"
+      : isExpired
+        ? "Tempo esgotado!"
+        : `${timeLeft}s`;
+  const isQuietExpired = isExpired && quietWhenExpired;
 
   const getBarColor = () => {
     if (timeLeft > 30) return "bg-green-500";
@@ -54,7 +63,8 @@ export function Timer({
           className={cn(
             "font-mono font-bold",
             size === "large" ? "text-3xl lg:text-4xl" : "text-2xl",
-            isExpired && "text-destructive"
+            isQuietExpired && "text-muted-foreground",
+            isExpired && !quietWhenExpired && "text-destructive"
           )}
           animate={
             isCritical

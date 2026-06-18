@@ -7,10 +7,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GlobalQuizPlayerStartCard } from "@/components/GlobalQuizPlayerStartCard";
-import { QUIZ_SURFACE_CARD_CLASS } from "@/components/QuizQuestionCardHeader";
+import { QUIZ_SURFACE_CARD_CLASS, QUIZ_PLAYER_CARD_CONTENT_CLASS, QUIZ_PLAYER_CARD_HEADER_CLASS, QUIZ_PLAYER_RESULT_HEADER_CLASS } from "@/components/QuizQuestionCardHeader";
 import { QuestionCard } from "@/components/QuestionCard";
 import { ResultCard } from "@/components/ResultCard";
-import { Timer } from "@/components/Timer";
+import {
+  resolvePlayingRoundStatus,
+  resolveResultRoundStatus,
+  RoundStatusHeader,
+} from "@/components/RoundStatusHeader";
 import { usePublicGlobalQuiz } from "@/hooks/usePublicGlobalQuiz";
 import {
   finishGlobalQuizAttempt,
@@ -19,7 +23,7 @@ import {
 } from "@/lib/globalQuizClient";
 import { useAuth } from "@/providers/AuthProvider";
 import { isValidPlayerDisplayName } from "@/lib/playerIdentity";
-import { trackEvent } from "@/lib/gtag";
+import { cn } from "@/lib/utils";
 import { useTimer } from "@/hooks/useTimer";
 import type {
   GlobalQuizAttempt,
@@ -201,13 +205,14 @@ export default function GlobalQuizPlayPage({
               transition={{ duration: 0.25, ease: "easeOut" }}
             >
               <Card className={QUIZ_SURFACE_CARD_CLASS}>
-                <CardHeader>
-                  <CardTitle>Resultado da Rodada</CardTitle>
-                  <CardDescription>
-                    Confira seu desempenho nesta pergunta
-                  </CardDescription>
+                <CardHeader className={QUIZ_PLAYER_RESULT_HEADER_CLASS}>
+                  <RoundStatusHeader
+                    state={resolveResultRoundStatus(lastFeedback.answer.correct)}
+                    score={lastFeedback.answer.score}
+                    size="large"
+                  />
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className={QUIZ_PLAYER_CARD_CONTENT_CLASS}>
                   <ResultCard
                     question={lastFeedback.question}
                     optionPaletteId={quiz.optionPaletteId}
@@ -215,8 +220,8 @@ export default function GlobalQuizPlayPage({
                     score={lastFeedback.answer.score}
                     correct={lastFeedback.answer.correct}
                   />
-                  <p className="text-center text-sm text-muted-foreground">
-                    Pontuação atual: {lastFeedback.attempt.totalScore} pontos
+                  <p className="mt-6 text-center text-sm text-muted-foreground">
+                    Pontuação total: {lastFeedback.attempt.totalScore} pontos
                   </p>
                   <Button
                     size="lg"
@@ -233,18 +238,22 @@ export default function GlobalQuizPlayPage({
           </AnimatePresence>
         ) : (
           <Card className={QUIZ_SURFACE_CARD_CLASS}>
-            <CardHeader>
-              <CardTitle>
+            <CardHeader className={QUIZ_PLAYER_CARD_HEADER_CLASS}>
+              <CardTitle className="leading-snug">
                 Pergunta {attempt.currentQuestionIndex + 1} de {quiz.questions.length}
               </CardTitle>
-              <CardDescription>{quiz.title}</CardDescription>
-              <Timer
+              <RoundStatusHeader
+                state={resolvePlayingRoundStatus(
+                  isExpired,
+                  selectedIndex,
+                  selectedIndex !== null && submitting
+                )}
                 questionStartTimestamp={attempt.questionStartTimestamp}
                 timeLimitMs={quiz.questionTimeLimitMs}
                 size="large"
               />
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className={cn(QUIZ_PLAYER_CARD_CONTENT_CLASS, "space-y-6")}>
               <QuestionCard
                 question={currentQuestion}
                 optionPaletteId={quiz.optionPaletteId}
@@ -254,11 +263,10 @@ export default function GlobalQuizPlayPage({
                 }}
                 disabled={submitting || selectedIndex !== null || isExpired}
                 selectedIndex={selectedIndex}
-                awaitingResult={selectedIndex !== null && submitting}
                 timedOut={isExpired && selectedIndex === null}
               />
               <p className="text-center text-sm text-muted-foreground">
-                Pontuação atual: {attempt.totalScore} pontos
+                Pontuação total: {attempt.totalScore} pontos
               </p>
             </CardContent>
           </Card>

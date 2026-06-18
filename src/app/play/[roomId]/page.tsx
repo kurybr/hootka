@@ -16,10 +16,19 @@ import {
 import { QuestionCard } from "@/components/QuestionCard";
 import { LiveQuizPageShell } from "@/components/LiveQuizPageShell";
 import {
+  QUIZ_PLAYER_CARD_CONTENT_CLASS,
+  QUIZ_PLAYER_CARD_HEADER_CLASS,
+  QUIZ_PLAYER_RESULT_HEADER_CLASS,
   QUIZ_SURFACE_CARD_CLASS,
   QuizQuestionCardHeader,
 } from "@/components/QuizQuestionCardHeader";
 import { formatLiveRoomSubtitle, formatRoomCodeLabel } from "@/lib/liveQuizDisplay";
+import {
+  formatPlayerRankHighlight,
+  isTopThreeRank,
+  PLAYER_RANK_HIGHLIGHT_CLASS,
+  PLAYER_RANK_NEUTRAL_CLASS,
+} from "@/lib/playerMicrocopy";
 import { useRealTime } from "@/hooks/useRealTime";
 import { useRoom } from "@/hooks/useRoom";
 import { useParticipants } from "@/hooks/useParticipants";
@@ -32,9 +41,15 @@ import { FinalRanking } from "@/components/FinalRanking";
 import { PlayerRankingReport } from "@/components/PlayerRankingReport";
 import { buildLivePlayerRankingReport } from "@/lib/playerRankingReportUtils";
 import { ResultCard } from "@/components/ResultCard";
+import {
+  resolvePlayingRoundStatus,
+  resolveResultRoundStatus,
+  RoundStatusHeader,
+} from "@/components/RoundStatusHeader";
 import { SoundToggle } from "@/components/SoundToggle";
 import { fireConfetti } from "@/lib/confetti";
 import { trackEvent } from "@/lib/gtag";
+import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 const PARTICIPANT_ID_KEY = "quiz_participantId";
 
@@ -213,9 +228,9 @@ export default function PlayRoomPage() {
           <Card className={QUIZ_SURFACE_CARD_CLASS}>
             <CardHeader>
               <CardTitle>Aguardando o host</CardTitle>
-              <CardDescription>
-                {room ? formatLiveRoomSubtitle(room) : "Preparando a sala..."}
-              </CardDescription>
+              {!room && (
+                <CardDescription>Preparando a sala...</CardDescription>
+              )}
             </CardHeader>
             <CardContent>
               <p className="mb-6 text-sm text-muted-foreground">
@@ -281,22 +296,25 @@ export default function PlayRoomPage() {
             <QuizQuestionCardHeader
               questionIndex={currentQuestionIndex}
               questionCount={room?.questions.length ?? 0}
-              subtitle={formatLiveRoomSubtitle(room)}
               questionStartTimestamp={questionStartTimestamp}
               timeLimitMs={questionTimeLimitMs}
+              roundStatus={resolvePlayingRoundStatus(
+                isExpired,
+                selectedIndex,
+                selectedIndex !== null
+              )}
             />
-            <CardContent className="space-y-6">
+            <CardContent className={cn(QUIZ_PLAYER_CARD_CONTENT_CLASS, "space-y-6")}>
               <QuestionCard
                 question={currentQuestion}
                 optionPaletteId={room?.optionPaletteId}
                 onAnswer={handleAnswer}
                 disabled={isExpired || selectedIndex !== null}
                 selectedIndex={selectedIndex}
-                awaitingResult={selectedIndex !== null}
                 timedOut={isExpired && selectedIndex === null}
               />
               <p className="text-center text-sm text-muted-foreground">
-                Pontuação atual: {myTotalScore} pontos
+                Pontuação total: {myTotalScore} pontos
               </p>
             </CardContent>
           </Card>
@@ -311,13 +329,26 @@ export default function PlayRoomPage() {
                 transition={{ duration: 0.25, ease: "easeOut" }}
               >
           <Card className={QUIZ_SURFACE_CARD_CLASS}>
-            <CardHeader>
-              <CardTitle>Resultado da Rodada</CardTitle>
-              <CardDescription>
-                Confira seu desempenho nesta pergunta
-              </CardDescription>
+            <CardHeader className={QUIZ_PLAYER_RESULT_HEADER_CLASS}>
+              {(() => {
+                const qKey = String(currentQuestionIndex);
+                const answer = participantId
+                  ? room?.answers?.[qKey]?.[participantId]
+                  : null;
+                const correct = answer
+                  ? answer.optionIndex === currentQuestion.correctOptionIndex
+                  : false;
+                const score = answer?.score ?? 0;
+                return (
+                  <RoundStatusHeader
+                    state={resolveResultRoundStatus(correct)}
+                    score={score}
+                    size="large"
+                  />
+                );
+              })()}
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className={QUIZ_PLAYER_CARD_CONTENT_CLASS}>
               {(() => {
                 const qKey = String(currentQuestionIndex);
                 const answer = participantId
@@ -337,34 +368,37 @@ export default function PlayRoomPage() {
                   />
                 );
               })()}
-              <p className="text-center text-sm text-muted-foreground">
-                Pontuação atual: {myTotalScore} pontos
-              </p>
-              {ranking.length > 0 && (() => {
-                const myRank = ranking.find((p) => p.id === participantId);
-                return (
-                  <div className="space-y-2">
-                    {myRank && (
-                      <motion.p
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="rounded-lg bg-primary/15 px-4 py-2 text-center font-medium text-primary"
-                      >
-                        Você ficou em {myRank.position}º lugar!
-                      </motion.p>
-                    )}
-                    <Ranking
-                      participants={ranking}
-                      currentParticipantId={participantId}
-                      previousParticipants={previousRankingRef.current}
-                      onCurrentPlayerEnterTop3={() => setTimeout(fireConfetti, 400)}
-                    />
-                  </div>
-                );
-              })()}
-              <p className="text-center text-muted-foreground">
-                Aguardando próxima pergunta...
-              </p>
+              <div className="mt-6 space-y-3">
+                <p className="text-center text-sm text-muted-foreground">
+                  Pontuação total: {myTotalScore} pontos
+                </p>
+                {ranking.length > 1 && (() => {
+                  const myRank = ranking.find((p) => p.id === participantId);
+                  return (
+                    <div className="space-y-3">
+                      {myRank && (
+                        <motion.p
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={
+                            isTopThreeRank(myRank.position)
+                              ? PLAYER_RANK_HIGHLIGHT_CLASS
+                              : PLAYER_RANK_NEUTRAL_CLASS
+                          }
+                        >
+                          {formatPlayerRankHighlight(myRank.position)}
+                        </motion.p>
+                      )}
+                      <Ranking
+                        participants={ranking}
+                        currentParticipantId={participantId}
+                        previousParticipants={previousRankingRef.current}
+                        onCurrentPlayerEnterTop3={() => setTimeout(fireConfetti, 400)}
+                      />
+                    </div>
+                  );
+                })()}
+              </div>
             </CardContent>
           </Card>
               </motion.div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { motion, useSpring, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import {
   getOptionButtonStyle,
@@ -32,43 +32,15 @@ export function ResultCard({
 }: ResultCardProps) {
   const { playVictory, playDefeat } = useSound();
   const didNotAnswer = selectedIndex === null;
-  const spring = useSpring(0, { stiffness: 50, damping: 25 });
-  const displayScore = useTransform(spring, (v) => Math.round(v));
 
   useEffect(() => {
     if (correct) playVictory();
     else playDefeat();
   }, [correct, playVictory, playDefeat]);
 
-  useEffect(() => {
-    spring.set(score);
-  }, [score, spring]);
-
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-center gap-4">
-        {correct ? (
-          <div className="flex items-center gap-2 rounded-lg bg-green-100 px-4 py-2 text-green-800 dark:bg-green-900/50 dark:text-green-200">
-            <Check className="h-6 w-6" />
-            <span className="font-bold">Acertou!</span>
-          </div>
-        ) : didNotAnswer ? (
-          <div className="flex items-center gap-2 rounded-lg bg-amber-100 px-4 py-2 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200">
-            <X className="h-6 w-6" />
-            <span className="font-bold">Tempo esgotado!</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 rounded-lg bg-red-100 px-4 py-2 text-red-800 dark:bg-red-900/50 dark:text-red-200">
-            <X className="h-6 w-6" />
-            <span className="font-bold">Errou!</span>
-          </div>
-        )}
-        <motion.span className="font-mono text-lg font-bold">
-          +<motion.span>{displayScore}</motion.span> pts
-        </motion.span>
-      </div>
-
-      <p className="text-lg font-medium">{question.text}</p>
+    <div>
+      <p className="mb-6 text-lg font-medium">{question.text}</p>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {question.options.map((option, index) => {

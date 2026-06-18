@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Medal, Award, WifiOff, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PLAYER_SOLO_LABEL } from "@/lib/playerMicrocopy";
 import type { RankedParticipant } from "@/hooks/useRanking";
 
 interface RankingProps {
@@ -79,6 +80,45 @@ export function Ranking({
 
     return () => timeouts.forEach(clearTimeout);
   }, [participants, previousParticipants, currentParticipantId, onCurrentPlayerEnterTop3]);
+
+  if (participants.length === 1) {
+    const player = participants[0];
+    const isCurrent = player.id === currentParticipantId;
+
+    return (
+      <div className={cn("space-y-2 text-center", className)}>
+        <p className="text-xs text-muted-foreground">{PLAYER_SOLO_LABEL}</p>
+        <div
+          className={cn(
+            "rounded-xl border border-border bg-muted/30 px-4 py-4",
+            size === "large" && "py-5"
+          )}
+        >
+          <p
+            className={cn(
+              "font-medium",
+              size === "large" ? "text-lg" : "text-base"
+            )}
+          >
+            {player.name}
+            {isCurrent && player.connected !== false && (
+              <span className="ml-1 text-sm font-normal text-muted-foreground">
+                (você)
+              </span>
+            )}
+          </p>
+          <p
+            className={cn(
+              "mt-1 font-mono font-semibold tabular-nums text-foreground",
+              size === "large" ? "text-xl" : "text-lg"
+            )}
+          >
+            {player.totalScore} pts
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("space-y-2", size === "large" && "space-y-3", className)}>

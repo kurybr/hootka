@@ -6,9 +6,14 @@ import { Check, X } from "lucide-react";
 import {
   getOptionButtonStyle,
   getOptionResultClassName,
+  OPTION_DEEMPHASIZED_OPACITY,
+  type OptionButtonVisualState,
 } from "@/lib/quizOptionPalettes";
+import { cn } from "@/lib/utils";
 import { useSound } from "@/providers/SoundProvider";
 import type { Question, QuizOptionPaletteId } from "@/types/quiz";
+
+const OPTION_TRANSITION = { duration: 0.3 } as const;
 
 interface ResultCardProps {
   question: Question;
@@ -67,10 +72,22 @@ export function ResultCard({
 
       <div className="grid gap-3 sm:grid-cols-2">
         {question.options.map((option, index) => {
-          const isCorrect = index === question.correctOptionIndex;
+          const isCorrectOption = index === question.correctOptionIndex;
           const isSelected = index === selectedIndex;
-          const showWrong = !correct && isSelected && !isCorrect;
-          const visualState = isCorrect ? "correct" : "discarded";
+          const showWrong = !correct && isSelected && !isCorrectOption;
+
+          let visualState: OptionButtonVisualState = "active";
+          if (!didNotAnswer) {
+            if (isCorrectOption) {
+              visualState = "correct";
+            } else if (showWrong) {
+              visualState = "incorrect";
+            }
+          }
+
+          const isHighlighted = visualState === "correct" || visualState === "incorrect";
+          const isDeemphasized = didNotAnswer || !isHighlighted;
+
           const optionStyle = getOptionButtonStyle(
             optionPaletteId,
             index,
@@ -78,21 +95,26 @@ export function ResultCard({
           );
 
           return (
-            <div
+            <motion.div
               key={index}
-              className={getOptionResultClassName(optionStyle.usesSubtleBorder)}
+              className={cn(
+                getOptionResultClassName(optionStyle.usesSubtleBorder),
+                "transition-all duration-300"
+              )}
               style={{
                 backgroundColor: optionStyle.backgroundColor,
                 borderColor: optionStyle.borderColor,
                 color: optionStyle.color,
                 textShadow: optionStyle.textShadow,
-                boxShadow: isCorrect
-                  ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px ${optionStyle.selectionRingColor}`
-                  : undefined,
               }}
+              animate={{
+                opacity: isDeemphasized ? OPTION_DEEMPHASIZED_OPACITY : 1,
+                scale: 1,
+              }}
+              transition={OPTION_TRANSITION}
             >
               {option}
-              {isCorrect && (
+              {isCorrectOption && !didNotAnswer && (
                 <Check
                   className="ml-2 h-5 w-5 shrink-0"
                   style={{ color: optionStyle.color }}
@@ -106,7 +128,7 @@ export function ResultCard({
                   aria-hidden
                 />
               )}
-            </div>
+            </motion.div>
           );
         })}
       </div>

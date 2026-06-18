@@ -293,12 +293,8 @@ export default function PlayRoomPage() {
                 disabled={isExpired || selectedIndex !== null}
                 selectedIndex={selectedIndex}
                 awaitingResult={selectedIndex !== null}
+                timedOut={isExpired && selectedIndex === null}
               />
-              {isExpired && (
-                <p className="text-center font-medium text-destructive">
-                  Tempo esgotado!
-                </p>
-              )}
               <p className="text-center text-sm text-muted-foreground">
                 Pontuação atual: {myTotalScore} pontos
               </p>

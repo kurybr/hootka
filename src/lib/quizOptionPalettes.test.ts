@@ -55,7 +55,8 @@ function testKnownContrastCases() {
 
 function testFeedbackColorsMeetContrastRequirements() {
   for (const [name, backgroundColor] of Object.entries(QUIZ_FEEDBACK_COLORS)) {
-    const style = getOptionButtonStyle("hootka", 0, name === "correct" ? "correct" : "wrong");
+    const state = name === "correct" ? "correct" : "incorrect";
+    const style = getOptionButtonStyle("hootka", 0, state);
     const contrast = getContrastRatio(style.color, backgroundColor);
     const meetsContrast =
       contrast >= MIN_CONTRAST_RATIO || Boolean(style.textShadow);
@@ -69,25 +70,31 @@ function testFeedbackColorsMeetContrastRequirements() {
 
 function testFeedbackStatesUseGlobalColors() {
   assert.equal(
-    getOptionButtonStyle("hootka", 0, "discarded").backgroundColor,
-    QUIZ_FEEDBACK_COLORS.wrong
-  );
-  assert.equal(
-    getOptionButtonStyle("hootka", 0, "wrong").backgroundColor,
-    QUIZ_FEEDBACK_COLORS.wrong
-  );
-  assert.equal(
     getOptionButtonStyle("hootka", 0, "correct").backgroundColor,
     QUIZ_FEEDBACK_COLORS.correct
+  );
+  assert.equal(
+    getOptionButtonStyle("hootka", 0, "incorrect").backgroundColor,
+    QUIZ_FEEDBACK_COLORS.incorrect
+  );
+}
+
+function testIncorrectFeedbackUsesRed() {
+  assert.equal(
+    getOptionButtonStyle("hootka", 0, "incorrect").backgroundColor,
+    QUIZ_FEEDBACK_COLORS.incorrect
   );
 }
 
 function testBrasilPaletteUsesFlagColors() {
   const brasil = getQuizOptionPalette("copa");
-  assert.deepEqual(brasil.colors, ["#009C3B", "#FFDF00", "#002776", "#FFFFFF"]);
+  assert.deepEqual(brasil.colors, ["#007A33", "#FFDF00", "#002776", "#FFFFFF"]);
+
+  const greenOption = getOptionButtonStyle("copa", 0);
+  assert.equal(greenOption.backgroundColor, "#007A33");
+  assert.equal(greenOption.color, OPTION_TEXT_LIGHT);
 
   const whiteOption = getOptionButtonStyle("copa", 3);
-  assert.equal(whiteOption.backgroundColor, "#FFFFFF");
   assert.equal(whiteOption.color, OPTION_TEXT_DARK);
   assert.equal(whiteOption.usesSubtleBorder, true);
   assert.equal(whiteOption.borderColor, "hsl(var(--border))");
@@ -122,6 +129,7 @@ testContrastRatioIsSymmetric();
 testKnownContrastCases();
 testFeedbackStatesUseGlobalColors();
 testFeedbackColorsMeetContrastRequirements();
+testIncorrectFeedbackUsesRed();
 testBrasilPaletteUsesFlagColors();
 testSelectedUsesActiveColor();
 testAllPaletteColorsMeetContrastRequirements();

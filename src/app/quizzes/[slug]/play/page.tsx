@@ -252,9 +252,10 @@ export default function GlobalQuizPlayPage({
                   setSelectedIndex(index);
                   void handleSubmit(index);
                 }}
-                disabled={submitting || selectedIndex !== null}
+                disabled={submitting || selectedIndex !== null || isExpired}
                 selectedIndex={selectedIndex}
-                awaitingResult={submitting}
+                awaitingResult={selectedIndex !== null && submitting}
+                timedOut={isExpired && selectedIndex === null}
               />
               <p className="text-center text-sm text-muted-foreground">
                 Pontuação atual: {attempt.totalScore} pontos

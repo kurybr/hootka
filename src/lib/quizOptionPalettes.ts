@@ -7,9 +7,13 @@ export const MIN_CONTRAST_RATIO = 4.5;
 export const LIGHT_BACKGROUND_LUMINANCE = 0.85;
 
 export const QUIZ_FEEDBACK_COLORS = {
+  /** success — acerto */
   correct: "#22C55E",
-  wrong: "#6B7280",
+  /** destructive — erro do jogador */
+  incorrect: "#DC2626",
 } as const;
+
+export const OPTION_DEEMPHASIZED_OPACITY = 0.5;
 
 export interface QuizOptionPalette {
   id: QuizOptionPaletteId;
@@ -20,9 +24,8 @@ export interface QuizOptionPalette {
 export type OptionButtonVisualState =
   | "active"
   | "selected"
-  | "discarded"
   | "correct"
-  | "wrong";
+  | "incorrect";
 
 export const QUIZ_OPTION_PALETTES: QuizOptionPalette[] = [
   {
@@ -33,7 +36,7 @@ export const QUIZ_OPTION_PALETTES: QuizOptionPalette[] = [
   {
     id: "copa",
     label: "Brasil",
-    colors: ["#009C3B", "#FFDF00", "#002776", "#FFFFFF"],
+    colors: ["#007A33", "#FFDF00", "#002776", "#FFFFFF"],
   },
   {
     id: "lgbt",
@@ -189,8 +192,8 @@ export function getOptionButtonStyle(
     return buildOptionButtonStyle(QUIZ_FEEDBACK_COLORS.correct);
   }
 
-  if (state === "discarded" || state === "wrong") {
-    return buildOptionButtonStyle(QUIZ_FEEDBACK_COLORS.wrong);
+  if (state === "incorrect") {
+    return buildOptionButtonStyle(QUIZ_FEEDBACK_COLORS.incorrect);
   }
 
   const palette = getQuizOptionPalette(paletteId);
@@ -200,15 +203,14 @@ export function getOptionButtonStyle(
 
 export function getOptionButtonClassName(
   disabled = false,
-  isDiscarded = false,
   usesSubtleBorder = false
 ): string {
   return [
-    `relative flex min-h-[80px] items-center justify-center rounded-xl ${usesSubtleBorder ? "border" : "border-2"} px-4 py-3 text-center font-semibold transition-colors duration-300`,
-    disabled || isDiscarded ? "cursor-not-allowed" : "hover:brightness-95",
+    `relative flex min-h-[80px] items-center justify-center rounded-xl ${usesSubtleBorder ? "border" : "border-2"} px-4 py-3 text-center font-semibold transition-all duration-300`,
+    disabled ? "cursor-not-allowed" : "hover:brightness-95",
   ].join(" ");
 }
 
 export function getOptionResultClassName(usesSubtleBorder = false): string {
-  return `flex min-h-[60px] items-center justify-center rounded-xl ${usesSubtleBorder ? "border" : "border-2"} px-4 py-3 text-center font-semibold transition-colors duration-300`;
+  return `flex min-h-[60px] items-center justify-center rounded-xl ${usesSubtleBorder ? "border" : "border-2"} px-4 py-3 text-center font-semibold transition-all duration-300`;
 }

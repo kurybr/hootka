@@ -10,11 +10,11 @@ test.describe("Explore quizzes flow", () => {
   test("navigates from home to quizzes page via link", async ({ page }) => {
     await expect(
       page.getByRole("heading", {
-        name: "Aprenda, ensine e se divirta com quizzes ao vivo.",
+        name: "Aprenda, ensine e se divirta.",
       })
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Explorar quizzes" }).click();
+    await page.getByRole("navigation", { name: "Ações principais" }).getByRole("link", { name: "Explorar desafios" }).click();
 
     await expect(page).toHaveURL(/\/quizzes/);
     await expect(page.getByRole("heading", { name: "Explorar" })).toBeVisible();
@@ -53,7 +53,7 @@ test.describe("Explore quizzes flow", () => {
     await expect(page).toHaveURL(BASE_URL + "/");
     await expect(
       page.getByRole("heading", {
-        name: "Aprenda, ensine e se divirta com quizzes ao vivo.",
+        name: "Aprenda, ensine e se divirta.",
       })
     ).toBeVisible();
   });

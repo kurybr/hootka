@@ -10,15 +10,17 @@ test.describe("Join room flow", () => {
   test("navigates from home to join page via room code", async ({ page }) => {
     await expect(
       page.getByRole("heading", {
-        name: "Aprenda, ensine e se divirta com quizzes ao vivo.",
+        name: "Aprenda, ensine e se divirta.",
       })
     ).toBeVisible();
 
-    await page.getByLabel("Código da sala").fill("ABC123");
-    await page.getByRole("button", { name: "Entrar" }).click();
+    await page.getByRole("navigation", { name: "Ações principais" }).getByRole("link", { name: "Ir para uma sala" }).click();
 
-    await expect(page).toHaveURL(/\/join\?code=ABC123/);
+    await expect(page).toHaveURL(/\/join$/);
     await expect(page.getByRole("heading", { name: "Entrar em Sala" })).toBeVisible();
+
+    await page.getByLabel("Código da sala").fill("ABC123");
+
     await expect(page.getByLabel("Código da sala")).toHaveValue("A B C 1 2 3");
   });
 
@@ -87,7 +89,7 @@ test.describe("Join room flow", () => {
     await expect(page).toHaveURL(BASE_URL + "/");
     await expect(
       page.getByRole("heading", {
-        name: "Aprenda, ensine e se divirta com quizzes ao vivo.",
+        name: "Aprenda, ensine e se divirta.",
       })
     ).toBeVisible();
   });

@@ -13,6 +13,7 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { AdSenseScript } from "@/components/AdSense";
 import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { DonateProvider } from "@/providers/DonateProvider";
 import { PlayerMobileFocusProvider } from "@/providers/PlayerMobileFocusProvider";
 
 /** Corpo — substituto open source da Gotham (SIL Open Font License). */
@@ -53,11 +54,13 @@ export default function RootLayout({
               <RealTimeProvider>
                 <SoundProvider>
                   <PlayerMobileFocusProvider>
-                    <Header />
-                    {children}
-                    <ReconnectingOverlay />
-                    <Toaster />
-                    <CookieConsentBanner />
+                    <DonateProvider>
+                      <Header />
+                      {children}
+                      <ReconnectingOverlay />
+                      <Toaster />
+                      <CookieConsentBanner />
+                    </DonateProvider>
                   </PlayerMobileFocusProvider>
                 </SoundProvider>
               </RealTimeProvider>

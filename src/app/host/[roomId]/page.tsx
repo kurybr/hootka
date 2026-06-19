@@ -41,11 +41,16 @@ import { fireConfettiLight } from "@/lib/confetti";
 import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
 import { resolveQuestionTimeLimitMs } from "@/lib/questionUtils";
+import { DonatePromptCard } from "@/components/DonatePromptCard";
+import { showDonateSuccessToast } from "@/lib/donateToast";
+import { incrementLocalCounter } from "@/lib/donatePromptStorage";
+import { useDonate } from "@/providers/DonateProvider";
 export default function HostRoomPage() {
   const params = useParams();
   const router = useRouter();
   const roomId = params.roomId as string;
   const provider = useRealTime();
+  const { enabled: donateEnabled, isHostContext, openDonateDialog } = useDonate();
   const [copied, setCopied] = useState(false);
   const [exportingKind, setExportingKind] = useState<LiveReportCsvKind | null>(
     null
@@ -108,12 +113,12 @@ export default function HostRoomPage() {
       setExportingKind(kind);
       try {
         await downloadRoomReportCsv(roomId, room.hostId, kind);
-        toast({
-          title: "CSV exportado",
-          description:
-            kind === "ranking"
-              ? "O ranking foi baixado com sucesso."
-              : "O relatório de respostas foi baixado com sucesso.",
+        showDonateSuccessToast({
+          trigger: "csv_export",
+          csvKind: kind,
+          isHostContext,
+          enabled: donateEnabled,
+          onOpenDonate: (source) => openDonateDialog({ source }),
         });
       } catch (error) {
         toast({
@@ -128,7 +133,7 @@ export default function HostRoomPage() {
         setExportingKind(null);
       }
     },
-    [room?.hostId, roomId]
+    [room?.hostId, roomId, isHostContext, donateEnabled, openDonateDialog]
   );
   const isLastQuestion =
     room &&
@@ -143,6 +148,15 @@ export default function HostRoomPage() {
   }, [status, ranking]);
 
   const lastResultFiredFor = useRef<number>(-1);
+  const prevStatusRef = useRef(status);
+
+  useEffect(() => {
+    if (prevStatusRef.current !== "finished" && status === "finished") {
+      incrementLocalCounter("games_finished");
+    }
+    prevStatusRef.current = status;
+  }, [status]);
+
   useEffect(() => {
     if (status === "result" && lastResultFiredFor.current !== currentQuestionIndex) {
       lastResultFiredFor.current = currentQuestionIndex;
@@ -478,6 +492,7 @@ export default function HostRoomPage() {
                   }
                 />
               )}
+              <DonatePromptCard trigger="host_game_finished" />
               <Button asChild className="w-full">
                 <Link href="/">Voltar ao início</Link>
               </Button>

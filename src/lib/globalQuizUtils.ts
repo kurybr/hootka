@@ -78,11 +78,11 @@ export function sanitizeGlobalQuizInput(input: {
   const questions = cloneQuestions(input.questions).map(trimQuestion);
 
   if (!title) {
-    throw new Error("Título do quiz é obrigatório");
+    throw new Error("Título do desafio é obrigatório");
   }
 
   if (questions.length === 0) {
-    throw new Error("Adicione pelo menos uma pergunta ao quiz");
+    throw new Error("Adicione pelo menos uma pergunta ao desafio");
   }
 
   const validationError = validateQuestions(questions);

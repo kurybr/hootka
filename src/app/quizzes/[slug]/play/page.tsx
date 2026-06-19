@@ -191,7 +191,7 @@ export default function GlobalQuizPlayPage({
         )}
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Carregando quiz...</p>
+          <p className="text-sm text-muted-foreground">Carregando desafio...</p>
         ) : !quiz ? null : !identityReady ? (
           <GlobalQuizPlayerStartCard submitLabel="Continuar" />
         ) : attemptLoading || !attempt || !currentQuestion ? (

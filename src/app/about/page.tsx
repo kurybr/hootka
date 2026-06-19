@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 export const metadata = {
   title: "Sobre o Hootka",
   description:
-    "Conheça o Hootka: quizzes com ranking global e salas ao vivo para jogar em grupo.",
+    "Conheça o Hootka: desafios com ranking global e salas ao vivo para jogar em grupo.",
 };
 
 export default function AboutPage() {
@@ -22,37 +22,37 @@ export default function AboutPage() {
       <article className="space-y-6">
         <h1 className="text-3xl font-bold tracking-tight font-heading">Sobre o Hootka</h1>
         <p className="text-muted-foreground leading-relaxed">
-          O Hootka é uma plataforma gratuita de quizzes em português. Você pode jogar quizzes
-          públicos com ranking global ou reunir amigos em uma sala ao vivo, com pontuação por
-          acerto e velocidade de resposta.
+          O Hootka é uma plataforma gratuita em português. Você pode jogar desafios públicos com
+          ranking global ou reunir amigos em uma sala ao vivo, com pontuação por acerto e
+          velocidade de resposta.
         </p>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold font-heading">Quiz global</h2>
+          <h2 className="text-xl font-semibold font-heading">Desafios</h2>
           <p className="text-muted-foreground leading-relaxed">
-            No catálogo de quizzes globais, cada desafio traz título, tema e descrição. Ao
-            iniciar uma tentativa, você responde no tempo limite de cada pergunta e sua
-            pontuação entra no ranking daquele quiz. Quizzes oficiais são curados pela equipe;
-            quizzes comunitários são criados por usuários com conta Google.
+            No catálogo, cada desafio traz título, tema e descrição. Ao iniciar uma tentativa,
+            você responde no tempo limite de cada pergunta e sua pontuação entra no ranking
+            daquele desafio. Desafios oficiais são curados pela equipe; desafios comunitários
+            são criados por usuários com conta Google.
           </p>
         </section>
 
         <section className="space-y-3">
           <h2 className="text-xl font-semibold font-heading">Sala ao vivo</h2>
           <p className="text-muted-foreground leading-relaxed">
-            Para jogar em grupo, um participante atua como host: cria a sala, escolhe o quiz e
-            compartilha o código. Os demais entram com o código e um nome de exibição. O host
+            Para jogar em grupo, um participante atua como host: cria a sala, monta as perguntas
+            e compartilha o código. Os demais entram com o código e um nome de exibição. O host
             controla quando cada pergunta é liberada; todos veem o ranking atualizado em tempo
             real. É ideal para aulas, eventos e encontros informais.
           </p>
         </section>
 
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold font-heading">Criar seus quizzes</h2>
+          <h2 className="text-xl font-semibold font-heading">Criar conteúdo</h2>
           <p className="text-muted-foreground leading-relaxed">
-            Com login Google, você pode montar quizzes manualmente ou com ajuda de IA, publicar
-            na comunidade e acompanhar tentativas. A biblioteca do host também permite importar
-            e exportar quizzes em JSON para reutilizar em salas ao vivo.
+            Com login Google, você pode montar desafios manualmente ou com ajuda de IA e publicar
+            na comunidade. Em Minhas salas, o host também pode importar e exportar conteúdo em JSON
+            para reutilizar em salas ao vivo.
           </p>
         </section>
 
@@ -60,7 +60,7 @@ export default function AboutPage() {
           <h2 className="text-xl font-semibold font-heading">Privacidade e anúncios</h2>
           <p className="text-muted-foreground leading-relaxed">
             O site pode exibir anúncios do Google AdSense apenas em páginas informativas (como
-            esta e o catálogo de quizzes), nunca durante partidas ou em telas de ferramenta
+            esta e o catálogo de desafios), nunca durante partidas ou em telas de ferramenta
             (criar sala, lobby, jogo). Você controla cookies de análise e publicidade no banner
             de consentimento. Detalhes na{" "}
             <Link href="/privacy" className="underline hover:text-foreground">
@@ -73,7 +73,7 @@ export default function AboutPage() {
 
       <div className="flex flex-wrap gap-3 pt-4">
         <Button asChild>
-          <Link href="/quizzes">Ver quizzes</Link>
+          <Link href="/quizzes">Explorar desafios</Link>
         </Button>
         <Button variant="outline" asChild>
           <Link href="/">Página inicial</Link>

@@ -17,9 +17,9 @@ export default function CommunityQuizzesPage() {
       <div className="mx-auto w-full max-w-5xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Meus quizzes globais</h1>
+            <h1 className="text-3xl font-bold">Meus desafios</h1>
             <p className="text-muted-foreground max-w-xl">
-              Entre com <strong>Google</strong> para publicar quizzes comunitários. Jogadores usam só
+              Entre com <strong>Google</strong> para publicar desafios comunitários. Jogadores usam só
               um nome no catálogo — sem fila de e-mail.
             </p>
           </div>
@@ -29,7 +29,7 @@ export default function CommunityQuizzesPage() {
             </Button>
             {user && !user.isAnonymous && (
               <Button asChild>
-                <Link href="/community/quizzes/create">Novo quiz</Link>
+                <Link href="/community/quizzes/create">Novo desafio</Link>
               </Button>
             )}
           </div>
@@ -37,8 +37,8 @@ export default function CommunityQuizzesPage() {
 
         {!isCreator ? (
           <GoogleSignInCard
-            title="Entre com Google para criar quizzes"
-            description="Publique quizzes comunitários, salve na nuvem e gerencie tentativas. Jogadores podem usar só um nome no catálogo."
+            title="Entre com Google para criar desafios"
+            description="Publique desafios comunitários, salve na nuvem e gerencie tentativas. Jogadores podem usar só um nome no catálogo."
           />
         ) : (
           <>
@@ -46,7 +46,7 @@ export default function CommunityQuizzesPage() {
               <CardHeader>
                 <CardTitle>{profile?.username || user?.email}</CardTitle>
                 <CardDescription>
-                  Seus quizzes ficam salvos na nuvem e podem aparecer no catálogo global.
+                  Seus desafios ficam salvos na nuvem e podem aparecer no catálogo global.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -58,15 +58,15 @@ export default function CommunityQuizzesPage() {
             )}
 
             {loading ? (
-              <p className="text-sm text-muted-foreground">Carregando seus quizzes...</p>
+              <p className="text-sm text-muted-foreground">Carregando seus desafios...</p>
             ) : quizzes.length === 0 ? (
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                   <p className="text-muted-foreground mb-4">
-                    Você ainda não criou nenhum quiz global.
+                    Você ainda não criou nenhum desafio.
                   </p>
                   <Button asChild>
-                    <Link href="/community/quizzes/create">Criar quiz</Link>
+                    <Link href="/community/quizzes/create">Criar desafio</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -93,7 +93,7 @@ export default function CommunityQuizzesPage() {
                           <Link href={`/community/quizzes/${quiz.id}/edit`}>Editar</Link>
                         </Button>
                         <Button size="sm" variant="secondary" asChild>
-                          <Link href={`/quizzes/${quiz.slug}`}>Abrir público</Link>
+                          <Link href={`/quizzes/${quiz.slug}`}>Jogar público</Link>
                         </Button>
                       </div>
                     </CardContent>

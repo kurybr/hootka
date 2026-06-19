@@ -38,7 +38,7 @@ export default function EditCommunityQuizPage({
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Erro ao carregar quiz");
+          setError(err instanceof Error ? err.message : "Erro ao carregar desafio");
         }
       } finally {
         if (!cancelled) {
@@ -62,8 +62,8 @@ export default function EditCommunityQuizPage({
             <Link href="/community/quizzes">Voltar</Link>
           </Button>
           <GoogleSignInCard
-            title="Entre com Google para editar seu quiz"
-            description="A edição de quizzes públicos exige uma conta Google com e-mail verificado."
+            title="Entre com Google para editar seu desafio"
+            description="A edição de desafios públicos exige uma conta Google com e-mail verificado."
           />
         </div>
       </main>
@@ -75,9 +75,9 @@ export default function EditCommunityQuizPage({
       <div className="mx-auto w-full max-w-5xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Editar quiz global</h1>
+            <h1 className="text-3xl font-bold">Editar desafio</h1>
             <p className="text-muted-foreground">
-              Ajuste perguntas, tentativas e publicação do seu quiz.
+              Ajuste perguntas, tentativas e publicação do seu desafio.
             </p>
           </div>
           <Button variant="outline" asChild>
@@ -92,7 +92,7 @@ export default function EditCommunityQuizPage({
         )}
 
         {loading || !quiz ? (
-          <p className="text-sm text-muted-foreground">Carregando quiz...</p>
+          <p className="text-sm text-muted-foreground">Carregando desafio...</p>
         ) : (
           <GlobalQuizForm
             initialValues={quiz}
@@ -105,7 +105,7 @@ export default function EditCommunityQuizPage({
                 const { quiz: updated } = await updateGlobalQuiz(quiz.id, values);
                 setQuiz(updated);
                 toast({
-                  title: "Quiz atualizado",
+                  title: "Desafio atualizado",
                   description: "As alterações foram salvas.",
                 });
                 router.push(`/community/quizzes/${quiz.id}`);

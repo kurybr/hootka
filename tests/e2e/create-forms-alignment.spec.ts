@@ -21,7 +21,7 @@ async function readCreateFormAudit(page: import("@playwright/test").Page) {
       .filter((title): title is string => Boolean(title));
     const mainText = main.textContent ?? "";
     const submit = [...main.querySelectorAll("button")].find((button) =>
-      /Criar Sala|Criar quiz global/.test(button.textContent ?? "")
+      /Criar Sala|Criar desafio/.test(button.textContent ?? "")
     );
 
     return {
@@ -32,9 +32,9 @@ async function readCreateFormAudit(page: import("@playwright/test").Page) {
       submitFullWidth: submit?.className.includes("w-full") ?? false,
       hasAiSection:
         sectionTitles.some((title) =>
-          /Gerar sala com IA|Gerar quiz com IA/.test(title ?? "")
+          /Gerar sala com IA|Gerar desafio com IA|Gerar quiz com IA/.test(title ?? "")
         ) ||
-        /Gerar sala com IA|Gerar quiz com IA/.test(mainText),
+        /Gerar sala com IA|Gerar desafio com IA|Gerar quiz com IA/.test(mainText),
       hasDataCard: sectionTitles.some((title) =>
         title === "Dados da sala"
       ),
@@ -59,7 +59,7 @@ test.describe("Create forms visual alignment", () => {
     expect(audit?.hasQuestionCard).toBe(true);
     expect(audit?.submitFullWidth).toBe(true);
     const aiSectionIndex = audit?.sectionTitles?.findIndex((title) =>
-      /Gerar sala com IA|Gerar quiz com IA/.test(title ?? "")
+      /Gerar sala com IA|Gerar desafio com IA|Gerar quiz com IA/.test(title ?? "")
     );
     if (aiSectionIndex !== undefined && aiSectionIndex >= 0) {
       expect(aiSectionIndex).toBeLessThan(
@@ -69,12 +69,15 @@ test.describe("Create forms visual alignment", () => {
     expect(audit?.sectionTitles?.indexOf("Dados da sala")).toBeLessThan(
       audit?.sectionTitles?.findIndex((title) => title.startsWith("Pergunta")) ?? -1
     );
-    await expect(page.getByText(/Gerar sala com IA|Gerar quiz com IA/)).toBeVisible();
+    await expect(page.getByText(/Gerar sala com IA|Gerar desafio com IA|Gerar quiz com IA/)).toBeVisible();
     const livePrompt = page.getByLabel("O que você quer nesta sala?");
-    const globalPrompt = page.getByLabel("O que você quer neste quiz?");
+    const globalPrompt = page.getByLabel("O que você quer neste desafio?");
+    const legacyGlobalPrompt = page.getByLabel("O que você quer neste quiz?");
     if (await livePrompt.isVisible().catch(() => false)) {
       await expect(page.getByRole("button", { name: "Gerar sala completa" })).toBeVisible();
     } else if (await globalPrompt.isVisible().catch(() => false)) {
+      await expect(page.getByRole("button", { name: "Gerar desafio completo" })).toBeVisible();
+    } else if (await legacyGlobalPrompt.isVisible().catch(() => false)) {
       await expect(page.getByRole("button", { name: "Gerar quiz completo" })).toBeVisible();
     }
   });
@@ -83,13 +86,13 @@ test.describe("Create forms visual alignment", () => {
     await page.goto(GLOBAL_CREATE);
     await dismissCookies(page);
 
-    await expect(page.getByRole("heading", { name: "Novo quiz global" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Novo desafio" })).toBeVisible();
     await expect(
-      page.getByText("Publique um quiz comunitário com ranking global.")
+      page.getByText("Publique um desafio comunitário com ranking global.")
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Voltar" })).toBeVisible();
     await expect(
-      page.getByText("Entre com Google para criar um quiz")
+      page.getByText("Entre com Google para criar um desafio")
     ).toBeVisible();
   });
 });

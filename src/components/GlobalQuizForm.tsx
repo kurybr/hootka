@@ -183,7 +183,7 @@ export function GlobalQuizForm({
     setError(null);
 
     if (!title.trim()) {
-      setError("Informe um título para o quiz.");
+      setError("Informe um título para o desafio.");
       return;
     }
 
@@ -219,7 +219,7 @@ export function GlobalQuizForm({
         clearQuizFormDraft(GLOBAL_QUIZ_CREATE_DRAFT_KEY);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível salvar o quiz.");
+      setError(err instanceof Error ? err.message : "Não foi possível salvar o desafio.");
     }
   };
 
@@ -238,9 +238,9 @@ export function GlobalQuizForm({
 
       <Card className={QUIZ_SURFACE_CARD_CLASS}>
         <CardHeader>
-          <CardTitle>Dados do quiz</CardTitle>
+          <CardTitle>Dados do desafio</CardTitle>
           <CardDescription>
-            Configure como o quiz aparecerá para o público e como o ranking será
+            Configure como o desafio aparecerá para o público e como o ranking será
             controlado.
           </CardDescription>
         </CardHeader>
@@ -263,7 +263,7 @@ export function GlobalQuizForm({
             <label className="text-sm font-medium">Descrição</label>
             <textarea
               value={description}
-              placeholder="Explique o objetivo do quiz."
+              placeholder="Explique o objetivo do desafio."
               onChange={(event) => setDescription(event.target.value)}
               className="min-h-[110px] w-full rounded-md border bg-background px-3 py-2 text-sm"
             />

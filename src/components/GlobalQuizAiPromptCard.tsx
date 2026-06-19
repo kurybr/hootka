@@ -41,16 +41,16 @@ interface GlobalQuizAiPromptCardProps {
 
 const COPY = {
   global: {
-    title: "Gerar quiz com IA",
-    titleCompact: "Gerar quiz com IA",
+    title: "Gerar desafio com IA",
+    titleCompact: "Gerar desafio com IA",
     description:
-      "Descreva o quiz abaixo. A IA preenche título, tema, descrição e perguntas — você pode editar tudo antes de publicar. O prompt permanece para você ajustar e gerar de novo.",
+      "Descreva o desafio abaixo. A IA preenche título, tema, descrição e perguntas — você pode editar tudo antes de publicar. O prompt permanece para você ajustar e gerar de novo.",
     descriptionAnonymous:
       "Entre com Google para gerar título, descrição e perguntas de uma vez (OpenRouter).",
-    promptLabel: "O que você quer neste quiz?",
+    promptLabel: "O que você quer neste desafio?",
     placeholder:
-      "Ex.: Quiz introdutório de astronomia para adolescentes, 5 perguntas fáceis sobre planetas e constelações.",
-    submit: "Gerar quiz completo",
+      "Ex.: Desafio introdutório de astronomia para adolescentes, 5 perguntas fáceis sobre planetas e constelações.",
+    submit: "Gerar desafio completo",
   },
   live: {
     title: "Gerar sala com IA",
@@ -281,6 +281,7 @@ export function GlobalQuizAiPromptCard({
       onOpenChange={handleDonateSuccessOpenChange}
       onHowToSupport={handleDonateSupport}
       onContinue={handleDonateContinue}
+      variant={variant}
     />
     </>
   );

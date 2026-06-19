@@ -21,15 +21,15 @@ export default function GlobalQuizCatalogPage() {
           <div>
             <h1 className="font-heading text-3xl font-bold">Explorar</h1>
             <p className="text-muted-foreground max-w-xl">
-              Quizzes públicos, seus quizzes e novos desafios para jogar ou publicar.
+              Desafios públicos para jogar ou publicar.
             </p>
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
             <Button variant="outline" asChild>
-              <Link href="/community/quizzes">Meus quizzes</Link>
+              <Link href="/community/quizzes">Meus desafios</Link>
             </Button>
             <Button asChild>
-              <Link href="/community/quizzes/create">Criar quiz</Link>
+              <Link href="/community/quizzes/create">Criar desafio</Link>
             </Button>
           </div>
         </div>
@@ -41,15 +41,15 @@ export default function GlobalQuizCatalogPage() {
         )}
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Carregando quizzes...</p>
+          <p className="text-sm text-muted-foreground">Carregando desafios...</p>
         ) : quizzes.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
               <p className="text-muted-foreground mb-4">
-                Nenhum quiz disponível no momento.
+                Nenhum desafio disponível no momento.
               </p>
               <Button asChild>
-                <Link href="/community/quizzes/create">Criar quiz</Link>
+                <Link href="/community/quizzes/create">Criar desafio</Link>
               </Button>
             </CardContent>
           </Card>
@@ -58,7 +58,7 @@ export default function GlobalQuizCatalogPage() {
             {/* Quizzes em destaque - placeholder for future */}
             {featuredQuizzes.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4">Quizzes em destaque</h2>
+                <h2 className="text-xl font-semibold mb-4">Desafios em destaque</h2>
                 <div className="grid gap-4 lg:grid-cols-2">
                   {featuredQuizzes.map((quiz) => (
                     <QuizCard key={quiz.id} quiz={quiz} />
@@ -70,7 +70,7 @@ export default function GlobalQuizCatalogPage() {
             {/* Quizzes oficiais */}
             {officialQuizzes.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4">Quizzes oficiais</h2>
+                <h2 className="text-xl font-semibold mb-4">Desafios oficiais</h2>
                 <div className="grid gap-4 lg:grid-cols-2">
                   {officialQuizzes.map((quiz) => (
                     <QuizCard key={quiz.id} quiz={quiz} />
@@ -82,7 +82,7 @@ export default function GlobalQuizCatalogPage() {
             {/* Quizzes da comunidade */}
             {communityQuizzes.length > 0 && (
               <section>
-                <h2 className="text-xl font-semibold mb-4">Quizzes da comunidade</h2>
+                <h2 className="text-xl font-semibold mb-4">Desafios da comunidade</h2>
                 <div className="grid gap-4 lg:grid-cols-2">
                   {communityQuizzes.map((quiz) => (
                     <QuizCard key={quiz.id} quiz={quiz} />
@@ -140,7 +140,7 @@ function QuizCard({ quiz }: { quiz: PublicGlobalQuiz }) {
           <span>{quiz.questionTimeLimitMs / 1000}s por pergunta</span>
         </div>
         <Button asChild className="w-full">
-          <Link href={`/quizzes/${quiz.slug}`}>Abrir quiz</Link>
+          <Link href={`/quizzes/${quiz.slug}`}>Jogar</Link>
         </Button>
       </CardContent>
     </Card>

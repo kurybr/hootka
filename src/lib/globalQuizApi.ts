@@ -33,8 +33,8 @@ export function globalQuizErrorResponse(error: unknown) {
     PROFILE_USERNAME_REQUIRED:
       "Informe um nome de 2 a 30 caracteres para aparecer no ranking.",
     FORBIDDEN: "Você não tem permissão para realizar esta ação.",
-    QUIZ_NOT_FOUND: "Quiz não encontrado.",
-    ATTEMPT_LIMIT_REACHED: "Você atingiu o limite de tentativas deste quiz.",
+    QUIZ_NOT_FOUND: "Desafio não encontrado.",
+    ATTEMPT_LIMIT_REACHED: "Você atingiu o limite de tentativas deste desafio.",
     NO_ACTIVE_ATTEMPT: "Nenhuma tentativa ativa encontrada.",
     ANSWER_ALREADY_SUBMITTED: "Esta pergunta já foi respondida.",
     INVALID_OPTION: "Alternativa inválida.",

@@ -9,11 +9,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+const COPY = {
+  global: {
+    title: "✨ Desafio gerado com sucesso",
+    description: "Seu desafio está pronto para edição.",
+  },
+  live: {
+    title: "✨ Sala montada com sucesso",
+    description: "Suas perguntas estão prontas para edição.",
+  },
+} as const;
+
 interface DonateQuizAiSuccessDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onHowToSupport: () => void;
   onContinue: () => void;
+  variant?: "live" | "global";
 }
 
 export function DonateQuizAiSuccessDialog({
@@ -21,16 +33,19 @@ export function DonateQuizAiSuccessDialog({
   onOpenChange,
   onHowToSupport,
   onContinue,
+  variant = "global",
 }: DonateQuizAiSuccessDialogProps) {
+  const copy = COPY[variant];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[480px] gap-0 px-6 py-7 sm:px-8 sm:py-8">
         <DialogHeader className="space-y-3 text-left sm:text-left">
           <DialogTitle className="font-heading text-xl font-normal leading-snug">
-            ✨ Quiz gerado com sucesso
+            {copy.title}
           </DialogTitle>
           <DialogDescription asChild>
-            <p className="text-sm text-muted-foreground">Seu quiz está pronto para edição.</p>
+            <p className="text-sm text-muted-foreground">{copy.description}</p>
           </DialogDescription>
         </DialogHeader>
 

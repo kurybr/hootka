@@ -15,7 +15,7 @@ test.describe("Global room - quiz flow with Firebase Emulator", () => {
       page.getByRole("heading", { name: "Explorar" })
     ).toBeVisible();
 
-    const quizLink = page.getByRole("link", { name: "Abrir quiz" }).first();
+    const quizLink = page.getByRole("link", { name: "Jogar" }).first();
     if (await quizLink.isVisible({ timeout: 5000 })) {
       await quizLink.click();
       await expect(page).toHaveURL(new RegExp(`/quizzes/${SEED_QUIZ.slug}`));

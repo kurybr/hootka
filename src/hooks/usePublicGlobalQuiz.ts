@@ -19,7 +19,7 @@ export function usePublicGlobalQuiz(slug: string) {
       setLeaderboard(data.leaderboard);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar o quiz");
+      setError(err instanceof Error ? err.message : "Erro ao carregar o desafio");
     } finally {
       if (!silent) setLoading(false);
     }

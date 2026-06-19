@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM node:25.6.1-alpine AS builder
 
 WORKDIR /app
 
@@ -11,7 +11,7 @@ COPY . .
 RUN mkdir -p public
 RUN npm run build:all
 
-FROM node:22-alpine AS runner
+FROM node:25.6.1-alpine AS runner
 
 WORKDIR /app
 

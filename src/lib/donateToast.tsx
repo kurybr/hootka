@@ -22,13 +22,12 @@ interface ShowDonateSuccessToastOptions extends DonateToastCopyInput {
 
 export function showDonateSuccessToast({
   trigger,
-  csvKind,
   importCount,
   isHostContext,
   enabled,
   onOpenDonate,
 }: ShowDonateSuccessToastOptions): void {
-  const copy = getDonateToastCopy({ trigger, csvKind, importCount });
+  const copy = getDonateToastCopy({ trigger, importCount });
 
   const canInvite =
     enabled &&
@@ -57,13 +56,13 @@ export function showDonateSuccessToast({
     ),
     action: (
       <ToastAction
-        altText="Apoiar"
+        altText="Pagar um café"
         onClick={() => {
           recordDonatePromptShown(trigger, "opened");
           onOpenDonate(trigger);
         }}
       >
-        Apoiar
+        ☕ Pagar um café
       </ToastAction>
     ),
   });

@@ -3,8 +3,6 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const {
-  getLocalCounter,
-  incrementLocalCounter,
   recordDonatePromptShown,
   resetDonatePromptStorageForTests,
   shouldShowDonatePrompt,
@@ -42,20 +40,9 @@ assert.equal(
 );
 
 resetDonatePromptStorageForTests();
-assert.equal(shouldShowDonatePrompt("host_game_finished"), false);
-incrementLocalCounter("games_finished");
-incrementLocalCounter("games_finished");
-assert.equal(shouldShowDonatePrompt("host_game_finished"), false);
-incrementLocalCounter("games_finished");
-assert.equal(shouldShowDonatePrompt("host_game_finished"), true);
-
-resetDonatePromptStorageForTests();
 assert.equal(shouldShowDonatePrompt("library_import"), true);
 recordDonatePromptShown("library_import", "opened");
 assert.equal(shouldShowDonatePrompt("library_import"), false);
-
-resetDonatePromptStorageForTests();
-assert.equal(getLocalCounter("games_finished"), 0);
 
 resetDonatePromptStorageForTests();
 recordDonatePromptShown("csv_export", "dismiss", Date.now());

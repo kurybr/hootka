@@ -13,13 +13,13 @@ O Hootka é gratuito, possui código open source e é desenvolvido no tempo livr
 
 **Mensagem de referência:**
 
-> ☕ O relatório foi exportado com sucesso.
+> ✓ CSV exportado com sucesso
 >
-> O Hootka é gratuito e desenvolvido no tempo livre.
+> Gostou do relatório?
 >
-> Se ele te ajudou hoje, considere pagar um café para o desenvolvedor.
+> Se o Hootka te ajudou hoje, me paga um ☕
 >
-> [Apoiar com Pix]
+> [☕ Pagar um café]
 
 ## Princípios observados no produto
 
@@ -39,9 +39,8 @@ Não há rodapé global hoje; o `layout.tsx` só renderiza `Header` + conteúdo.
 
 | # | Local sugerido | Motivo (valor já percebido) | Frequência recomendada | Componente visual |
 |---|----------------|----------------------------|------------------------|-------------------|
-| **1** | **Exportação CSV na sala encerrada** — após sucesso em `handleExportReport` (`/host/[roomId]`, status `finished`) | O host acabou de extrair dados úteis (ranking ou respostas) para uso externo — exatamente o cenário da mensagem de referência | **1× por exportação bem-sucedida**, com cooldown global de **30 dias** após o usuário dispensar ou clicar em “Apoiar” | **Toast enriquecido** (título de sucesso + 2ª linha com convite + botão “Apoiar com Pix”), ou **card inline** logo abaixo do botão “Exportar CSV” que aparece só após o download |
-| **2** | **Tela “Jogo encerrado” do host** — bloco final em `/host/[roomId]` (ranking final + relatórios, antes de “Voltar ao início”) | A partida terminou com sucesso; o host viu ranking, distribuição de respostas e pode exportar — momento forte de “missão cumprida” (aula, evento, encontro) | **1× a cada 3ª partida concluída** ou **1× por mês** (o que ocorrer primeiro); nunca na 1ª partida de um usuário novo | **Card dismissível** (`border-dashed`, tom de agradecimento ☕), abaixo dos relatórios |
-| **3** | **Importação concluída na biblioteca** — após `handleImportConfirm` em `/host` | O usuário recuperou/reutilizou conteúdo sem retrabalho; percebeu utilidade prática imediata | **1× por sessão de importação**; cooldown de **14 dias** se dispensado | **Toast com ação secundária** (“Apoiar com Pix”) ou card pequeno que some ao fechar, exibido uma vez após o toast de sucesso |
+| **1** | **Exportação CSV na sala encerrada** — após sucesso em `handleExportReport` (`/host/[roomId]`, status `finished`) | O host acabou de extrair dados úteis (ranking ou respostas) para uso externo — exatamente o cenário da mensagem de referência | **1× por exportação bem-sucedida**, com cooldown global de **30 dias** após o usuário dispensar ou clicar em “Pagar um café” | **Toast contextual** (título de sucesso + convite + botão “☕ Pagar um café”) |
+| **2** | **Importação concluída na biblioteca** — após `handleImportConfirm` em `/host` | O usuário recuperou/reutilizou conteúdo sem retrabalho; percebeu utilidade prática imediata | **1× por sessão de importação**; cooldown de **14 dias** se dispensado | **Toast contextual** com ação “☕ Pagar um café” |
 
 ---
 
@@ -83,6 +82,7 @@ Não há rodapé global hoje; o `layout.tsx` só renderiza `Header` + conteúdo.
 | Login / `GoogleSignInCard` / fluxos de auth | Antes de qualquer valor; friccionaria onboarding |
 | `status === "playing"` ou `"result"` em `/host/[roomId]` e `/play/[roomId]` | Rodada ativa ou transição rápida (4s auto-avanço no host) |
 | `/host/create`, `/host/edit/*`, `/community/quizzes/*/edit` | Telas de edição |
+| Tela final do host (`/host/[roomId]`, status `finished`) | Compete com ranking, relatórios e "Voltar ao início"; apoio só após ações úteis (ex.: exportar CSV) |
 | `/join` | Pré-partida; valor ainda não entregue |
 | Cópia do código no lobby **isolada** | Toast “Código copiado!” ocorre **antes** da partida — compartilhar ≠ sucesso do evento |
 | Modal obrigatório ou overlay bloqueante | Contraria a intenção de gratuidade voluntária |
@@ -94,13 +94,13 @@ Não há rodapé global hoje; o `layout.tsx` só renderiza `Header` + conteúdo.
 
 ### Segmentação por persona
 
-- **Host** → prioridades 1, 2, 3, 5, 9 (maior ROI provável: relatórios e biblioteca).
+- **Host** → prioridades 1, 2, 5, 9 (maior ROI provável: relatórios e biblioteca).
 - **Jogador casual** → 4 e 7, com frequência bem menor.
 - **Criador comunitário** → 6 e 8.
 
 ### Controle de frequência
 
-- Usar `localStorage` (padrão já usado no projeto para som, consentimento, hostId) com chaves como `hootka_support_prompt_last_shown` e contadores por evento (`games_finished`, `exports_done`).
+- Usar `localStorage` (padrão já usado no projeto para som, consentimento, hostId) com chaves como `hootka_donate_last_shown_*` e flags por sessão (ex.: importação).
 - Regra sugerida: **nunca na 1ª sessão**; respeitar **“Não mostrar novamente”** por 90 dias.
 
 ### Tom e copy
@@ -119,18 +119,17 @@ Não há rodapé global hoje; o `layout.tsx` só renderiza `Header` + conteúdo.
 ## Ordem sugerida para um MVP futuro
 
 1. **Exportação CSV (host)** — `src/app/host/[roomId]/page.tsx` (`handleExportReport`)
-2. **Tela “Jogo encerrado” do host** — `src/app/host/[roomId]/page.tsx` (status `finished`)
-3. **Importação na biblioteca** — `src/app/host/page.tsx` (`handleImportConfirm`)
-4. **Ranking global pós-tentativa** — `src/app/quizzes/[slug]/ranking/page.tsx`
-5. Demais pontos conforme métricas de dismiss/clique
+2. **Importação na biblioteca** — `src/app/host/page.tsx` (`handleImportConfirm`)
+3. **Exportação PDF, compartilhar quiz, criar quiz** — mesmo padrão de toast contextual
+4. Demais pontos conforme métricas de dismiss/clique
 
 ---
 
 ## Resumo executivo
 
-Os melhores momentos são **depois de uma entrega concreta**: exportar relatório, encerrar partida ao vivo (lado host), importar quiz, concluir tentativa no ranking global e publicar quiz comunitário.
+Os melhores momentos são **depois de uma entrega concreta**: exportar relatório, importar quiz, compartilhar quiz, criar quiz.
 
-O padrão visual mais natural no Hootka atual é **toast enriquecido com ação** (exportações) e **card dismissível** (telas de conclusão). Frequência baixa e cooldown longo mantêm o convite como agradecimento, não como cobrança.
+O padrão visual mais natural no Hootka atual é **toast contextual com ação** após ações úteis. Frequência baixa e cooldown longo mantêm o convite como agradecimento, não como cobrança. **Evitar cards fixos** na tela de fim de jogo — competem com o conteúdo principal.
 
 ---
 
@@ -138,13 +137,25 @@ O padrão visual mais natural no Hootka atual é **toast enriquecido com ação*
 
 Convenção técnica: prefixo **`donate`** no código (`DonateDialog`, `/api/donate/config`, `NEXT_PUBLIC_DONATE_*`).
 
+**Filosofia:** o convite é um agradecimento espontâneo após uma ação útil — nunca um elemento fixo da interface, assinatura ou cobrança.
+
 **Regra de audiência:** convites e dialog aparecem **apenas em rotas `/host/*`**. Players (`/play/*`, ranking global, etc.) nunca veem doação.
 
-**Gatilhos implementados no MVP:**
+**Gatilhos implementados:**
 
-1. Exportação CSV na sala encerrada — toast com ação "Apoiar com Pix"
-2. Jogo encerrado (host) — `DonatePromptCard` abaixo dos relatórios
-3. Importação na biblioteca — toast com ação "Apoiar com Pix"
+1. Exportação CSV na sala encerrada — toast contextual com ação "☕ Pagar um café"
+2. Importação na biblioteca — toast contextual com ação "☕ Pagar um café"
+
+**Não exibir apoio em:** tela inicial, login, durante partida, tela final do host, ranking final, edição de quiz.
+
+**Copy do toast (CSV):**
+
+- ✓ CSV exportado com sucesso
+- Gostou do relatório?
+- Se o **Hootka** te ajudou hoje, me paga um ☕
+- [☕ Pagar um café] → abre o modal Pix existente
+
+**Gatilhos futuros (mesmo padrão de toast):** exportar PDF, compartilhar quiz, criar quiz.
 
 **Configuração:** variáveis em `.env.local.example` (`NEXT_PUBLIC_DONATE_PIX_KEY`, `NEXT_PUBLIC_DONATE_MERCHANT_NAME`, `NEXT_PUBLIC_DONATE_MERCHANT_CITY`).
 

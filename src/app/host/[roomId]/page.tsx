@@ -41,9 +41,7 @@ import { fireConfettiLight } from "@/lib/confetti";
 import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
 import { resolveQuestionTimeLimitMs } from "@/lib/questionUtils";
-import { DonatePromptCard } from "@/components/DonatePromptCard";
 import { showDonateSuccessToast } from "@/lib/donateToast";
-import { incrementLocalCounter } from "@/lib/donatePromptStorage";
 import { useDonate } from "@/providers/DonateProvider";
 export default function HostRoomPage() {
   const params = useParams();
@@ -115,7 +113,6 @@ export default function HostRoomPage() {
         await downloadRoomReportCsv(roomId, room.hostId, kind);
         showDonateSuccessToast({
           trigger: "csv_export",
-          csvKind: kind,
           isHostContext,
           enabled: donateEnabled,
           onOpenDonate: (source) => openDonateDialog({ source }),
@@ -148,14 +145,6 @@ export default function HostRoomPage() {
   }, [status, ranking]);
 
   const lastResultFiredFor = useRef<number>(-1);
-  const prevStatusRef = useRef(status);
-
-  useEffect(() => {
-    if (prevStatusRef.current !== "finished" && status === "finished") {
-      incrementLocalCounter("games_finished");
-    }
-    prevStatusRef.current = status;
-  }, [status]);
 
   useEffect(() => {
     if (status === "result" && lastResultFiredFor.current !== currentQuestionIndex) {
@@ -492,7 +481,6 @@ export default function HostRoomPage() {
                   }
                 />
               )}
-              <DonatePromptCard trigger="host_game_finished" />
               <Button asChild className="w-full">
                 <Link href="/">Voltar ao início</Link>
               </Button>

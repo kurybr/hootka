@@ -34,6 +34,10 @@ function generateId(): string {
 export class GameEngine {
   constructor(private store: IGameStore) {}
 
+  async getRoom(roomId: string): Promise<Room | null> {
+    return this.store.getRoom(roomId);
+  }
+
   async createRoom(
     questions: Question[],
     hostId: string,

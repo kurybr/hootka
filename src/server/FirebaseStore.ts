@@ -3,6 +3,10 @@ import type { IGameStore } from "./IGameStore";
 import { resolveQuestionTimeLimitMs } from "../lib/questionUtils";
 import { resolveQuizOptionPaletteId } from "../lib/quizOptionPalettes";
 import {
+  normalizeAnswersFromRtdb,
+  normalizeQuestionsFromRtdb,
+} from "../lib/roomRtdbNormalization";
+import {
   getFirebaseAdminDatabase,
   ROOMS_PATH,
 } from "../lib/firebaseAdmin";
@@ -26,23 +30,8 @@ function normalizeRoomData(data: unknown): Room | null {
     !Array.isArray(r.participants)
       ? (r.participants as Record<string, Participant>)
       : {};
-  const answers: Room["answers"] =
-    r.answers != null &&
-    typeof r.answers === "object" &&
-    !Array.isArray(r.answers)
-      ? (r.answers as Room["answers"])
-      : {};
-  let questions: Question[] = [];
-  const q = r.questions;
-  if (Array.isArray(q)) {
-    questions = q as Question[];
-  } else if (q != null && typeof q === "object") {
-    const obj = q as Record<string, Question>;
-    questions = Object.keys(obj)
-      .sort((a, b) => Number(a) - Number(b))
-      .map((k) => obj[k])
-      .filter((item): item is Question => item != null && typeof item === "object");
-  }
+  const answers = normalizeAnswersFromRtdb(r.answers);
+  const questions = normalizeQuestionsFromRtdb(r.questions);
   const validStatuses: Room["status"][] = [
     "waiting",
     "playing",

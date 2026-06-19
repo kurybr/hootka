@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { AnswerDistribution } from "@/components/AnswerDistribution";
 import {
   Card,
@@ -17,6 +18,7 @@ interface QuizAnswerReportProps {
   optionPaletteId?: QuizOptionPaletteId;
   title?: string;
   description?: string;
+  headerAction?: ReactNode;
 }
 
 export function QuizAnswerReport({
@@ -24,6 +26,7 @@ export function QuizAnswerReport({
   optionPaletteId,
   title = "Relatório de respostas",
   description = "Distribuição agregada por pergunta, sem identificar participantes.",
+  headerAction,
 }: QuizAnswerReportProps) {
   if (report.questionCount === 0) {
     return (
@@ -58,8 +61,13 @@ export function QuizAnswerReport({
   return (
     <Card className={QUIZ_SURFACE_CARD_CLASS}>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1.5">
+            <CardTitle>{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+          {headerAction}
+        </div>
       </CardHeader>
       <CardContent className="space-y-8">
         <div className="grid gap-3 sm:grid-cols-2">

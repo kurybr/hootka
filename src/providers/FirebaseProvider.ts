@@ -12,6 +12,10 @@ import type { Answer, Participant, Question, QuizOptionPaletteId, Room } from "@
 import { getFirebaseDatabase, ROOMS_PATH } from "@/lib/firebase";
 import { resolveQuestionTimeLimitMs } from "@/lib/questionUtils";
 import { resolveQuizOptionPaletteId } from "@/lib/quizOptionPalettes";
+import {
+  normalizeAnswersFromRtdb,
+  normalizeQuestionsFromRtdb,
+} from "@/lib/roomRtdbNormalization";
 
 const HOST_ID_KEY = "quiz_hostId";
 const PARTICIPANT_ID_KEY = "quiz_participantId";
@@ -53,30 +57,6 @@ function getAnswerCount(
   const qKey = String(questionIndex);
   const count = Object.keys(answers[qKey] ?? {}).length;
   return { count, total };
-}
-
-/** RTDB pode serializar arrays como objetos com chaves "0","1",… */
-function normalizeQuestionsFromRtdb(raw: unknown): Question[] | undefined {
-  if (raw == null) return undefined;
-  if (Array.isArray(raw)) return raw as Question[];
-  if (typeof raw === "object") {
-    const obj = raw as Record<string, Question>;
-    return Object.keys(obj)
-      .sort((a, b) => Number(a) - Number(b))
-      .map((k) => obj[k]);
-  }
-  return undefined;
-}
-
-function normalizeAnswersFromRtdb(raw: unknown): Room["answers"] {
-  if (raw == null || typeof raw !== "object") return {};
-  const result: Room["answers"] = {};
-  for (const [qKey, qAnswers] of Object.entries(raw as Record<string, unknown>)) {
-    if (qAnswers != null && typeof qAnswers === "object" && !Array.isArray(qAnswers)) {
-      result[qKey] = qAnswers as Record<string, Answer>;
-    }
-  }
-  return result;
 }
 
 async function apiFetch(

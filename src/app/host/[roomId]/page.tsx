@@ -33,7 +33,10 @@ import { PlayerRankingReport } from "@/components/PlayerRankingReport";
 import { AnswerDistribution } from "@/components/AnswerDistribution";
 import { buildRoomAnswerReport } from "@/lib/answerReportUtils";
 import { buildLivePlayerRankingReport } from "@/lib/playerRankingReportUtils";
+import { downloadRoomReportCsv } from "@/lib/liveReportCsvClient";
+import type { LiveReportCsvKind } from "@/lib/liveReportCsvExport";
 import { SoundToggle } from "@/components/SoundToggle";
+import { Download } from "lucide-react";
 import { fireConfettiLight } from "@/lib/confetti";
 import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
@@ -44,6 +47,9 @@ export default function HostRoomPage() {
   const roomId = params.roomId as string;
   const provider = useRealTime();
   const [copied, setCopied] = useState(false);
+  const [exportingKind, setExportingKind] = useState<LiveReportCsvKind | null>(
+    null
+  );
 
   const { room, loading, error } = useRoom({ roomId, role: "host" });
   const participants = useParticipants(room);
@@ -94,6 +100,35 @@ export default function HostRoomPage() {
   const playerRankingReport = useMemo(
     () => buildLivePlayerRankingReport(ranking),
     [ranking]
+  );
+
+  const handleExportReport = useCallback(
+    async (kind: LiveReportCsvKind) => {
+      if (!room?.hostId) return;
+      setExportingKind(kind);
+      try {
+        await downloadRoomReportCsv(roomId, room.hostId, kind);
+        toast({
+          title: "CSV exportado",
+          description:
+            kind === "ranking"
+              ? "O ranking foi baixado com sucesso."
+              : "O relatório de respostas foi baixado com sucesso.",
+        });
+      } catch (error) {
+        toast({
+          title: "Falha na exportação",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Não foi possível exportar o relatório.",
+          variant: "destructive",
+        });
+      } finally {
+        setExportingKind(null);
+      }
+    },
+    [room?.hostId, roomId]
   );
   const isLastQuestion =
     room &&
@@ -395,12 +430,52 @@ export default function HostRoomPage() {
               {ranking.length > 0 && (
                 <FinalRanking participants={ranking} />
               )}
-              <PlayerRankingReport report={playerRankingReport} />
+              <PlayerRankingReport
+                report={playerRankingReport}
+                headerAction={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={
+                      playerRankingReport.totalPlayers === 0 ||
+                      exportingKind !== null
+                    }
+                    aria-busy={exportingKind === "ranking"}
+                    aria-label="Exportar ranking completo em CSV"
+                    onClick={() => handleExportReport("ranking")}
+                  >
+                    <Download className="mr-1 h-4 w-4" aria-hidden />
+                    {exportingKind === "ranking"
+                      ? "Exportando..."
+                      : "Exportar CSV"}
+                  </Button>
+                }
+              />
               {answerReport && (
                 <QuizAnswerReport
                   report={answerReport}
                   optionPaletteId={room?.optionPaletteId}
                   description="Resumo agregado de todas as perguntas desta partida."
+                  headerAction={
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={
+                        answerReport.totalSessions === 0 ||
+                        exportingKind !== null
+                      }
+                      aria-busy={exportingKind === "respostas"}
+                      aria-label="Exportar relatório de respostas em CSV"
+                      onClick={() => handleExportReport("respostas")}
+                    >
+                      <Download className="mr-1 h-4 w-4" aria-hidden />
+                      {exportingKind === "respostas"
+                        ? "Exportando..."
+                        : "Exportar CSV"}
+                    </Button>
+                  }
                 />
               )}
               <Button asChild className="w-full">

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Award, Medal, Trophy } from "lucide-react";
 import {
   Card,
@@ -17,6 +18,7 @@ interface PlayerRankingReportProps {
   title?: string;
   description?: string;
   currentPlayerId?: string | null;
+  headerAction?: ReactNode;
 }
 
 function getPositionIcon(position: number) {
@@ -37,6 +39,7 @@ export function PlayerRankingReport({
   title = "Ranking completo",
   description,
   currentPlayerId = null,
+  headerAction,
 }: PlayerRankingReportProps) {
   if (report.totalPlayers === 0) {
     return (
@@ -57,17 +60,22 @@ export function PlayerRankingReport({
   return (
     <Card className={QUIZ_SURFACE_CARD_CLASS}>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description ? (
-          <CardDescription>{description}</CardDescription>
-        ) : (
-          <CardDescription>
-            {report.totalPlayers}{" "}
-            {report.totalPlayers === 1
-              ? report.playersLabel.replace(/s$/, "")
-              : report.playersLabel}
-          </CardDescription>
-        )}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1.5">
+            <CardTitle>{title}</CardTitle>
+            {description ? (
+              <CardDescription>{description}</CardDescription>
+            ) : (
+              <CardDescription>
+                {report.totalPlayers}{" "}
+                {report.totalPlayers === 1
+                  ? report.playersLabel.replace(/s$/, "")
+                  : report.playersLabel}
+              </CardDescription>
+            )}
+          </div>
+          {headerAction}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="hidden gap-3 border-b px-3 pb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground sm:grid sm:grid-cols-[4rem,1fr,6rem]">

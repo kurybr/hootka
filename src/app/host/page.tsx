@@ -38,6 +38,7 @@ import {
   exportQuizToFile,
   exportMultipleQuizzes,
   parseImportFile,
+  exportedQuizToSavePayload,
 } from "@/lib/quizExportImport";
 import type { SavedQuiz, ExportedQuiz } from "@/types/quiz";
 import { useQuizLibrary } from "@/hooks/useQuizLibrary";
@@ -250,7 +251,7 @@ export default function HostDashboardPage() {
 
   const handleImportConfirm = async (selected: ExportedQuiz[]) => {
     for (const q of selected) {
-      await libSaveQuiz({ title: q.title, questions: q.questions });
+      await libSaveQuiz(exportedQuizToSavePayload(q));
     }
     await refresh();
     setImportDialogData(null);

@@ -6,12 +6,13 @@ import {
   ContactWhatsAppLink,
   useContactWhatsAppEnabled,
 } from "@/components/ContactWhatsAppLink";
-import { getGitHubRepoUrl } from "@/lib/siteLinks";
+import { getGitHubRepoUrl, isGitHubLinkVisible } from "@/lib/siteLinks";
 
 const footerLinkClass =
   "underline-offset-4 hover:text-foreground hover:underline";
 
 export function HomeFooter() {
+  const githubVisible = isGitHubLinkVisible();
   const githubUrl = getGitHubRepoUrl();
   const whatsAppEnabled = useContactWhatsAppEnabled();
 
@@ -28,15 +29,19 @@ export function HomeFooter() {
         <Link href="/privacy" className={footerLinkClass}>
           Privacidade
         </Link>
-        <span aria-hidden="true">·</span>
-        <a
-          href={githubUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={footerLinkClass}
-        >
-          GitHub
-        </a>
+        {githubVisible && (
+          <>
+            <span aria-hidden="true">·</span>
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={footerLinkClass}
+            >
+              GitHub
+            </a>
+          </>
+        )}
         {whatsAppEnabled && (
           <>
             <span aria-hidden="true">·</span>

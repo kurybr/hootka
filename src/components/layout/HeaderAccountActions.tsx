@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { getGitHubRepoUrl } from "@/lib/siteLinks";
+import { getGitHubRepoUrl, isGitHubLinkVisible } from "@/lib/siteLinks";
 import { useDonate } from "@/providers/DonateProvider";
 
 interface HeaderAccountActionsProps {
@@ -41,6 +41,7 @@ export function HeaderAccountActions({
 }: HeaderAccountActionsProps) {
   const { enabled: donateEnabled, openDonateDialog } = useDonate();
   const whatsAppEnabled = useContactWhatsAppEnabled();
+  const githubVisible = isGitHubLinkVisible();
   const githubUrl = getGitHubRepoUrl();
 
   const handleDonate = () => {
@@ -65,16 +66,18 @@ export function HeaderAccountActions({
             onNavigate={onNavigate}
           />
         )}
-        <DropdownMenuItem asChild>
-          <a
-            href={githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Github className="h-4 w-4" aria-hidden="true" />
-            GitHub
-          </a>
-        </DropdownMenuItem>
+        {githubVisible && (
+          <DropdownMenuItem asChild>
+            <a
+              href={githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Github className="h-4 w-4" aria-hidden="true" />
+              GitHub
+            </a>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link href="/about" onClick={onNavigate}>
             <Info className="h-4 w-4" aria-hidden="true" />
@@ -124,16 +127,18 @@ export function HeaderAccountActions({
           onNavigate={onNavigate}
         />
       )}
-      <a
-        href={githubUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors hover:bg-muted"
-        onClick={onNavigate}
-      >
-        <Github className="h-5 w-5" aria-hidden="true" />
-        GitHub
-      </a>
+      {githubVisible && (
+        <a
+          href={githubUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors hover:bg-muted"
+          onClick={onNavigate}
+        >
+          <Github className="h-5 w-5" aria-hidden="true" />
+          GitHub
+        </a>
+      )}
       <Link
         href="/about"
         onClick={onNavigate}

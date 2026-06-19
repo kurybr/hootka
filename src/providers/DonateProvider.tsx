@@ -30,8 +30,9 @@ interface DonateContextValue {
 const defaultConfig: DonateConfig = {
   enabled: false,
   pixKey: "",
-  merchantName: "Hootka",
+  merchantName: "Jorge Rafael Lopes Soares",
   merchantCity: "Sao Paulo",
+  suggestedAmount: 50,
 };
 
 const DonateContext = createContext<DonateContextValue>({

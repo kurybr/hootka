@@ -41,7 +41,7 @@ import { fireConfettiLight } from "@/lib/confetti";
 import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
 import { resolveQuestionTimeLimitMs } from "@/lib/questionUtils";
-import { showDonateSuccessToast } from "@/lib/donateToast";
+import { promptDonateAfterCsvExport } from "@/lib/donateCsvExportPrompt";
 import { useDonate } from "@/providers/DonateProvider";
 export default function HostRoomPage() {
   const params = useParams();
@@ -111,11 +111,10 @@ export default function HostRoomPage() {
       setExportingKind(kind);
       try {
         await downloadRoomReportCsv(roomId, room.hostId, kind);
-        showDonateSuccessToast({
-          trigger: "csv_export",
-          isHostContext,
+        promptDonateAfterCsvExport({
           enabled: donateEnabled,
-          onOpenDonate: (source) => openDonateDialog({ source }),
+          isHostContext,
+          onOpenDonate: () => openDonateDialog({ source: "csv_export" }),
         });
       } catch (error) {
         toast({

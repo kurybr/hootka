@@ -143,22 +143,19 @@ Convenção técnica: prefixo **`donate`** no código (`DonateDialog`, `/api/don
 
 **Gatilhos implementados:**
 
-1. Exportação CSV na sala encerrada — toast contextual com ação "☕ Pagar um café"
+1. Exportação CSV (ranking ou respostas) — após download bem-sucedido, abre o modal de apoio (sem toast nem alteração no card)
 2. Importação na biblioteca — toast contextual com ação "☕ Pagar um café"
 
-**Não exibir apoio em:** tela inicial, login, durante partida, tela final do host, ranking final, edição de quiz.
+**Fluxo CSV:**
 
-**Copy do toast (CSV):**
-
-- ✓ CSV exportado com sucesso
-- Gostou do relatório?
-- Se o **Hootka** te ajudou hoje, me paga um ☕
-- [☕ Pagar um café] → abre o modal Pix existente
+```
+Exportar CSV → download iniciado → modal de apoio (se habilitado e dentro da frequência)
+```
 
 **Gatilhos futuros (mesmo padrão de toast):** exportar PDF, compartilhar quiz, criar quiz.
 
 **Configuração:** variáveis em `.env.local.example` (`NEXT_PUBLIC_DONATE_PIX_KEY`, `NEXT_PUBLIC_DONATE_MERCHANT_NAME`, `NEXT_PUBLIC_DONATE_MERCHANT_CITY`).
 
-**QR Code:** gerado em runtime a partir da chave Pix via `pix-utils` (`src/lib/donatePixQr.ts`). O dialog exibe apenas o QR e o botão "Copiar chave PIX" (chave não visível na tela).
+**QR Code:** gerado em runtime via `pix-utils` (`src/lib/donatePixQr.ts`). O dialog exibe o QR e o botão "Copiar Pix copia e cola" (payload EMV completo, não a chave isolada).
 
 **Frequência dos convites:** por padrão segue cooldowns em `donatePromptStorage`. Para validar a UX sem esperar, use `NEXT_PUBLIC_DONATE_PROMPT_ALWAYS_SHOW=true` no `.env.local` (reinicie o dev server).

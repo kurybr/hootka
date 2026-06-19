@@ -5,38 +5,31 @@ export interface DonatePixQrInput {
   merchantName: string;
   merchantCity: string;
   infoAdicional?: string;
+  transactionAmount?: number;
 }
 
-export function buildDonatePixBrCode(input: DonatePixQrInput): string {
+function createDonatePix(input: DonatePixQrInput) {
   const pix = createStaticPix({
     merchantName: input.merchantName,
     merchantCity: input.merchantCity,
     pixKey: input.pixKey,
     infoAdicional: input.infoAdicional ?? "Apoio Hootka",
-    transactionAmount: 0,
+    transactionAmount: input.transactionAmount ?? 0,
   });
 
   if (hasError(pix)) {
     throw new Error("Não foi possível gerar o Pix.");
   }
 
-  return pix.toBRCode();
+  return pix;
+}
+
+export function buildDonatePixBrCode(input: DonatePixQrInput): string {
+  return createDonatePix(input).toBRCode();
 }
 
 export async function buildDonatePixQrImage(
   input: DonatePixQrInput
 ): Promise<string> {
-  const pix = createStaticPix({
-    merchantName: input.merchantName,
-    merchantCity: input.merchantCity,
-    pixKey: input.pixKey,
-    infoAdicional: input.infoAdicional ?? "Apoio Hootka",
-    transactionAmount: 0,
-  });
-
-  if (hasError(pix)) {
-    throw new Error("Não foi possível gerar o QR Code Pix.");
-  }
-
-  return pix.toImage();
+  return createDonatePix(input).toImage();
 }

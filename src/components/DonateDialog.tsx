@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +11,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { DonateConfig } from "@/lib/donateConfig";
-import { buildDonatePixQrImage } from "@/lib/donatePixQr";
+import {
+  buildDonatePixBrCode,
+  buildDonatePixQrImage,
+  type DonatePixQrInput,
+} from "@/lib/donatePixQr";
 import { toast } from "@/hooks/use-toast";
 import { trackEvent } from "@/lib/gtag";
 
@@ -32,6 +36,24 @@ export function DonateDialog({
   const [qrError, setQrError] = useState(false);
   const [loadingQr, setLoadingQr] = useState(false);
 
+  const pixInput = useMemo<DonatePixQrInput>(
+    () => ({
+      pixKey: config.pixKey,
+      merchantName: config.merchantName,
+      merchantCity: config.merchantCity,
+      infoAdicional: "Um cafézinho por usar o Hootka",
+    }),
+    [config.pixKey, config.merchantName, config.merchantCity]
+  );
+
+  const suggestedAmountLabel =
+    config.suggestedAmount !== null
+      ? config.suggestedAmount.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        })
+      : null;
+
   useEffect(() => {
     if (!open) return;
 
@@ -42,11 +64,7 @@ export function DonateDialog({
     setQrError(false);
     setQrImage(null);
 
-    void buildDonatePixQrImage({
-      pixKey: config.pixKey,
-      merchantName: config.merchantName,
-      merchantCity: config.merchantCity,
-    })
+    void buildDonatePixQrImage(pixInput)
       .then((image) => {
         if (!cancelled) setQrImage(image);
       })
@@ -60,15 +78,16 @@ export function DonateDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, config.pixKey, config.merchantName, config.merchantCity, source]);
+  }, [open, pixInput, source]);
 
-  const handleCopyKey = async () => {
+  const handleCopyBrCode = async () => {
     try {
-      await navigator.clipboard.writeText(config.pixKey);
+      const brCode = buildDonatePixBrCode(pixInput);
+      await navigator.clipboard.writeText(brCode);
       trackEvent("donate_pix_key_copied", { source: source ?? "unknown" });
       toast({
-        title: "Chave copiada",
-        description: "Cole no app do seu banco quando quiser.",
+        title: "Pix copia e cola copiado",
+        description: "Cole no app do seu banco para concluir o pagamento.",
       });
     } catch {
       toast({
@@ -87,7 +106,8 @@ export function DonateDialog({
             Se o <span className="font-bold">Hootka</span> te ajudou hoje, me paga um ☕
           </DialogTitle>
           <DialogDescription className="sr-only">
-            Escaneie o QR Code ou copie a chave para agradecer pelo uso do Hootka.
+            Escaneie o QR Code ou copie o Pix copia e cola para agradecer pelo uso
+            do Hootka.
           </DialogDescription>
         </DialogHeader>
 
@@ -111,15 +131,21 @@ export function DonateDialog({
                 Não foi possível gerar o QR Code. Use o botão abaixo para copiar.
               </p>
             )}
+            {/* {!loadingQr && !qrError && suggestedAmountLabel && (
+              <p className="text-center text-sm text-muted-foreground">
+                Sugestão: {suggestedAmountLabel} (um café). Você pode pagar o valor
+                que quiser.
+              </p>
+            )} */}
           </div>
 
           <div className="flex justify-center">
             <Button
               type="button"
               variant="outline"
-              onClick={handleCopyKey}
+              onClick={handleCopyBrCode}
             >
-              Copiar chave PIX
+              Copiar PIX copia e cola
             </Button>
           </div>
 

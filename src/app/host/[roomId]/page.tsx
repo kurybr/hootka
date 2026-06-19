@@ -41,11 +41,14 @@ import { fireConfettiLight } from "@/lib/confetti";
 import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
 import { resolveQuestionTimeLimitMs } from "@/lib/questionUtils";
+import { promptDonateAfterCsvExport } from "@/lib/donateCsvExportPrompt";
+import { useDonate } from "@/providers/DonateProvider";
 export default function HostRoomPage() {
   const params = useParams();
   const router = useRouter();
   const roomId = params.roomId as string;
   const provider = useRealTime();
+  const { enabled: donateEnabled, isHostContext, openDonateDialog } = useDonate();
   const [copied, setCopied] = useState(false);
   const [exportingKind, setExportingKind] = useState<LiveReportCsvKind | null>(
     null
@@ -108,12 +111,10 @@ export default function HostRoomPage() {
       setExportingKind(kind);
       try {
         await downloadRoomReportCsv(roomId, room.hostId, kind);
-        toast({
-          title: "CSV exportado",
-          description:
-            kind === "ranking"
-              ? "O ranking foi baixado com sucesso."
-              : "O relatório de respostas foi baixado com sucesso.",
+        promptDonateAfterCsvExport({
+          enabled: donateEnabled,
+          isHostContext,
+          onOpenDonate: () => openDonateDialog({ source: "csv_export" }),
         });
       } catch (error) {
         toast({
@@ -128,7 +129,7 @@ export default function HostRoomPage() {
         setExportingKind(null);
       }
     },
-    [room?.hostId, roomId]
+    [room?.hostId, roomId, isHostContext, donateEnabled, openDonateDialog]
   );
   const isLastQuestion =
     room &&
@@ -143,6 +144,7 @@ export default function HostRoomPage() {
   }, [status, ranking]);
 
   const lastResultFiredFor = useRef<number>(-1);
+
   useEffect(() => {
     if (status === "result" && lastResultFiredFor.current !== currentQuestionIndex) {
       lastResultFiredFor.current = currentQuestionIndex;

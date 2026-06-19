@@ -38,6 +38,7 @@ import {
   exportQuizToFile,
   exportMultipleQuizzes,
   parseImportFile,
+  exportedQuizToSavePayload,
 } from "@/lib/quizExportImport";
 import type { SavedQuiz, ExportedQuiz } from "@/types/quiz";
 import { useQuizLibrary } from "@/hooks/useQuizLibrary";
@@ -45,6 +46,8 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useRealTime } from "@/providers/RealTimeContext";
 import { trackEvent } from "@/lib/gtag";
 import { toast } from "@/hooks/use-toast";
+import { showDonateSuccessToast } from "@/lib/donateToast";
+import { useDonate } from "@/providers/DonateProvider";
 import { ImportQuizDialog } from "@/components/ImportQuizDialog";
 import { cn } from "@/lib/utils";
 import {
@@ -93,6 +96,7 @@ export default function HostDashboardPage() {
     refresh,
   } = useQuizLibrary();
   const { user, signInWithGoogle, signOut, loading: authLoading } = useAuth();
+  const { enabled: donateEnabled, isHostContext, openDonateDialog } = useDonate();
   const [deleteTarget, setDeleteTarget] = useState<SavedQuiz | null>(null);
   const [startingQuizId, setStartingQuizId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -247,16 +251,16 @@ export default function HostDashboardPage() {
 
   const handleImportConfirm = async (selected: ExportedQuiz[]) => {
     for (const q of selected) {
-      await libSaveQuiz({ title: q.title, questions: q.questions });
+      await libSaveQuiz(exportedQuizToSavePayload(q));
     }
     await refresh();
     setImportDialogData(null);
-    toast({
-      title: "Quiz(zes) importado(s)",
-      description:
-        selected.length === 1
-          ? `"${selected[0].title}" foi adicionado à biblioteca.`
-          : `${selected.length} quizzes foram adicionados à biblioteca.`,
+    showDonateSuccessToast({
+      trigger: "library_import",
+      importCount: selected.length,
+      isHostContext,
+      enabled: donateEnabled,
+      onOpenDonate: (source) => openDonateDialog({ source }),
     });
   };
 

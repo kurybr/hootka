@@ -20,7 +20,11 @@ export type GAEventName =
   | "game_started"
   | "game_finished"
   | "global_quiz_attempt_started"
-  | "global_quiz_attempt_completed";
+  | "global_quiz_attempt_completed"
+  | "donate_prompt_shown"
+  | "donate_dialog_opened"
+  | "donate_pix_key_copied"
+  | "donate_prompt_dismissed";
 
 export function trackEvent(
   eventName: GAEventName,

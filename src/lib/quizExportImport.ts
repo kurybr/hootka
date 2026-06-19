@@ -150,15 +150,21 @@ export function validateExportedQuiz(data: unknown): ExportedQuiz {
   return exported;
 }
 
-export function importQuiz(exported: ExportedQuiz): SavedQuiz {
-  return saveQuiz({
+export function exportedQuizToSavePayload(
+  exported: ExportedQuiz
+): Omit<SavedQuiz, "id" | "createdAt" | "updatedAt"> {
+  return {
     title: exported.title,
     questions: exported.questions,
     optionPaletteId: resolveQuizOptionPaletteId(exported.optionPaletteId),
     questionTimeLimitMs: resolveExportedQuestionTimeLimitMs(
       exported.questionTimeLimitMs
     ),
-  });
+  };
+}
+
+export function importQuiz(exported: ExportedQuiz): SavedQuiz {
+  return saveQuiz(exportedQuizToSavePayload(exported));
 }
 
 export function importMultipleQuizzes(exported: ExportedQuiz[]): SavedQuiz[] {

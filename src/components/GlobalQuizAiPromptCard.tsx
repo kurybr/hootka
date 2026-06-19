@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,12 +11,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DonateQuizAiSuccessDialog } from "@/components/DonateQuizAiSuccessDialog";
 import {
   generateFullGlobalQuizWithAi,
   getQuizAiGenerationUsage,
   type QuizAiUsage,
 } from "@/lib/globalQuizClient";
+import {
+  recordDonatePromptShown,
+  shouldShowDonatePrompt,
+} from "@/lib/donatePromptStorage";
+import { trackEvent } from "@/lib/gtag";
 import { useAuth } from "@/providers/AuthProvider";
+import { useDonate } from "@/providers/DonateProvider";
 import type { Question } from "@/types/quiz";
 
 export interface GeneratedGlobalQuizDraft {
@@ -33,11 +40,14 @@ interface GlobalQuizAiPromptCardProps {
 
 export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPromptCardProps) {
   const { user } = useAuth();
+  const { enabled: donateEnabled, isHostContext, openDonateDialog } = useDonate();
   const [prompt, setPrompt] = useState("");
   const [count, setCount] = useState("5");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [usage, setUsage] = useState<QuizAiUsage | null>(null);
+  const [donateSuccessOpen, setDonateSuccessOpen] = useState(false);
+  const donatePromptRecordedRef = useRef(false);
 
   const refreshUsage = useCallback(async () => {
     if (!user || user.isAnonymous) {
@@ -55,6 +65,49 @@ export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPro
     void refreshUsage();
   }, [refreshUsage]);
 
+  const atLimit = usage !== null && usage.remaining <= 0;
+
+  const recordDonatePromptOnce = useCallback((action: "dismiss" | "opened") => {
+    if (donatePromptRecordedRef.current) return;
+    donatePromptRecordedRef.current = true;
+    recordDonatePromptShown("quiz_ai_generate", action);
+  }, []);
+
+  const maybeShowDonatePrompt = useCallback(() => {
+    if (
+      !donateEnabled ||
+      !isHostContext ||
+      !shouldShowDonatePrompt("quiz_ai_generate", { isHostContext })
+    ) {
+      return;
+    }
+
+    donatePromptRecordedRef.current = false;
+    trackEvent("donate_prompt_shown", { trigger: "quiz_ai_generate" });
+    setDonateSuccessOpen(true);
+  }, [donateEnabled, isHostContext]);
+
+  const handleDonateSuccessOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open) {
+        recordDonatePromptOnce("dismiss");
+      }
+      setDonateSuccessOpen(open);
+    },
+    [recordDonatePromptOnce]
+  );
+
+  const handleDonateSupport = useCallback(() => {
+    recordDonatePromptOnce("opened");
+    setDonateSuccessOpen(false);
+    openDonateDialog({ source: "quiz_ai_generate" });
+  }, [openDonateDialog, recordDonatePromptOnce]);
+
+  const handleDonateContinue = useCallback(() => {
+    recordDonatePromptOnce("dismiss");
+    setDonateSuccessOpen(false);
+  }, [recordDonatePromptOnce]);
+
   if (!user || user.isAnonymous) {
     return (
       <Card className="border-dashed">
@@ -67,8 +120,6 @@ export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPro
       </Card>
     );
   }
-
-  const atLimit = usage !== null && usage.remaining <= 0;
 
   const handleGenerate = async () => {
     setError(null);
@@ -93,6 +144,7 @@ export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPro
       if (draft.usage) setUsage(draft.usage);
       else void refreshUsage();
       setError(null);
+      maybeShowDonatePrompt();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha ao gerar.");
     } finally {
@@ -114,6 +166,7 @@ export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPro
   };
 
   return (
+    <>
     <Card className="border-primary/20 bg-muted/20">
       <CardHeader className="pb-2">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -191,5 +244,12 @@ export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPro
         )}
       </CardContent>
     </Card>
+    <DonateQuizAiSuccessDialog
+      open={donateSuccessOpen}
+      onOpenChange={handleDonateSuccessOpenChange}
+      onHowToSupport={handleDonateSupport}
+      onContinue={handleDonateContinue}
+    />
+    </>
   );
 }

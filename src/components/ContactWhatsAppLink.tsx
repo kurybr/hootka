@@ -17,6 +17,7 @@ interface ContactWhatsAppLinkProps {
   source?: string;
   className?: string;
   onNavigate?: () => void;
+  children?: React.ReactNode;
 }
 
 export function ContactWhatsAppLink({
@@ -24,6 +25,7 @@ export function ContactWhatsAppLink({
   source = "unknown",
   className,
   onNavigate,
+  children,
 }: ContactWhatsAppLinkProps) {
   const config = readContactWhatsAppEnvConfig();
   const href = buildWhatsAppUrl(config);
@@ -50,7 +52,7 @@ export function ContactWhatsAppLink({
         aria-label="Fale comigo no WhatsApp (abre em nova aba)"
         onClick={handleClick}
       >
-        WhatsApp
+        {children ?? "WhatsApp"}
       </a>
     );
   }

@@ -7,14 +7,19 @@ test.describe("Join room flow", () => {
     await page.goto(BASE_URL);
   });
 
-  test("navigates from home to join page via link", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Hootka" })).toBeVisible();
+  test("navigates from home to join page via room code", async ({ page }) => {
+    await expect(
+      page.getByRole("heading", {
+        name: "Aprenda, ensine e se divirta com quizzes ao vivo.",
+      })
+    ).toBeVisible();
 
-    await page.getByRole("link", { name: "Entrar em sala" }).click();
+    await page.getByLabel("Código da sala").fill("ABC123");
+    await page.getByRole("button", { name: "Entrar" }).click();
 
-    await expect(page).toHaveURL(/\/join/);
+    await expect(page).toHaveURL(/\/join\?code=ABC123/);
     await expect(page.getByRole("heading", { name: "Entrar em Sala" })).toBeVisible();
-    await expect(page.getByText("Digite o código da sala")).toBeVisible();
+    await expect(page.getByLabel("Código da sala")).toHaveValue("A B C 1 2 3");
   });
 
   test("shows error when submitting empty form", async ({ page }) => {
@@ -80,7 +85,11 @@ test.describe("Join room flow", () => {
     await page.getByRole("link", { name: "Voltar" }).click();
 
     await expect(page).toHaveURL(BASE_URL + "/");
-    await expect(page.getByRole("heading", { name: "Hootka" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: "Aprenda, ensine e se divirta com quizzes ao vivo.",
+      })
+    ).toBeVisible();
   });
 
   test("form displays code with spaces for readability", async ({ page }) => {

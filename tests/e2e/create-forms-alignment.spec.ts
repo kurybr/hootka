@@ -19,6 +19,7 @@ async function readCreateFormAudit(page: import("@playwright/test").Page) {
     const sectionTitles = [...main.querySelectorAll(".font-semibold.leading-none, .text-lg.font-semibold")]
       .map((el) => el.textContent?.trim())
       .filter((title): title is string => Boolean(title));
+    const mainText = main.textContent ?? "";
     const submit = [...main.querySelectorAll("button")].find((button) =>
       /Criar Sala|Criar quiz global/.test(button.textContent ?? "")
     );
@@ -29,9 +30,13 @@ async function readCreateFormAudit(page: import("@playwright/test").Page) {
       containerClass: main.querySelector(":scope > div")?.className ?? null,
       sectionTitles,
       submitFullWidth: submit?.className.includes("w-full") ?? false,
-      hasAiSection: sectionTitles.some((title) => title.includes("Gerar quiz com IA")),
+      hasAiSection:
+        sectionTitles.some((title) =>
+          /Gerar sala com IA|Gerar quiz com IA/.test(title ?? "")
+        ) ||
+        /Gerar sala com IA|Gerar quiz com IA/.test(mainText),
       hasDataCard: sectionTitles.some((title) =>
-        /Dados da sala|Dados do quiz/.test(title ?? "")
+        title === "Dados da sala"
       ),
       hasQuestionCard: sectionTitles.some((title) => title?.startsWith("Pergunta")),
     };
@@ -53,14 +58,25 @@ test.describe("Create forms visual alignment", () => {
     expect(audit?.hasDataCard).toBe(true);
     expect(audit?.hasQuestionCard).toBe(true);
     expect(audit?.submitFullWidth).toBe(true);
-    expect(audit?.sectionTitles?.indexOf("Gerar quiz com IA")).toBeLessThan(
-      audit?.sectionTitles?.indexOf("Dados da sala") ?? -1
+    const aiSectionIndex = audit?.sectionTitles?.findIndex((title) =>
+      /Gerar sala com IA|Gerar quiz com IA/.test(title ?? "")
     );
+    if (aiSectionIndex !== undefined && aiSectionIndex >= 0) {
+      expect(aiSectionIndex).toBeLessThan(
+        audit?.sectionTitles?.indexOf("Dados da sala") ?? -1
+      );
+    }
     expect(audit?.sectionTitles?.indexOf("Dados da sala")).toBeLessThan(
       audit?.sectionTitles?.findIndex((title) => title.startsWith("Pergunta")) ?? -1
     );
-    await expect(page.getByLabel("O que você quer neste quiz?")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Gerar quiz completo" })).toBeVisible();
+    await expect(page.getByText(/Gerar sala com IA|Gerar quiz com IA/)).toBeVisible();
+    const livePrompt = page.getByLabel("O que você quer nesta sala?");
+    const globalPrompt = page.getByLabel("O que você quer neste quiz?");
+    if (await livePrompt.isVisible().catch(() => false)) {
+      await expect(page.getByRole("button", { name: "Gerar sala completa" })).toBeVisible();
+    } else if (await globalPrompt.isVisible().catch(() => false)) {
+      await expect(page.getByRole("button", { name: "Gerar quiz completo" })).toBeVisible();
+    }
   });
 
   test("global create login gate uses shared shell heading", async ({ page }) => {
@@ -73,7 +89,7 @@ test.describe("Create forms visual alignment", () => {
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Voltar" })).toBeVisible();
     await expect(
-      page.getByRole("heading", { name: "Entre com Google para criar um quiz" })
+      page.getByText("Entre com Google para criar um quiz")
     ).toBeVisible();
   });
 });

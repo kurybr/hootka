@@ -36,11 +36,11 @@ export function getDonateToastCopy({
   const plural = importCount !== 1;
   return {
     successTitle: plural
-      ? `✓ ${importCount} quizzes importados com sucesso`
-      : "✓ Quiz importado com sucesso",
-    hookLine: plural ? "Gostou dos quizzes?" : "Gostou do quiz?",
+      ? `✓ ${importCount} salas importadas com sucesso`
+      : "✓ Sala importada com sucesso",
+    hookLine: plural ? "Gostou das salas?" : "Gostou da sala?",
     fallbackDescription: plural
-      ? `${importCount} quizzes foram adicionados à biblioteca.`
-      : "O quiz foi adicionado à biblioteca.",
+      ? `${importCount} salas foram adicionadas a Minhas salas.`
+      : "A sala foi adicionada a Minhas salas.",
   };
 }

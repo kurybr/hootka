@@ -7,10 +7,14 @@ test.describe("Explore quizzes flow", () => {
     await page.goto(BASE_URL);
   });
 
-  test("navigates from home to quizzes page via card", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "Hootka" })).toBeVisible();
+  test("navigates from home to quizzes page via link", async ({ page }) => {
+    await expect(
+      page.getByRole("heading", {
+        name: "Aprenda, ensine e se divirta com quizzes ao vivo.",
+      })
+    ).toBeVisible();
 
-    await page.getByRole("link", { name: "Explorar" }).first().click();
+    await page.getByRole("link", { name: "Explorar quizzes" }).click();
 
     await expect(page).toHaveURL(/\/quizzes/);
     await expect(page.getByRole("heading", { name: "Explorar" })).toBeVisible();
@@ -47,7 +51,11 @@ test.describe("Explore quizzes flow", () => {
     await page.getByRole("link", { name: "Hootka" }).click();
 
     await expect(page).toHaveURL(BASE_URL + "/");
-    await expect(page.getByRole("heading", { name: "Hootka" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: "Aprenda, ensine e se divirta com quizzes ao vivo.",
+      })
+    ).toBeVisible();
   });
 
   test("has link to create quiz when no quizzes available", async ({ page }) => {

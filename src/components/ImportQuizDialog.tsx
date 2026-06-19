@@ -83,11 +83,11 @@ export function ImportQuizDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Importar quiz{items.length > 1 ? "s" : ""}</DialogTitle>
+          <DialogTitle>Importar sala{items.length > 1 ? "s" : ""}</DialogTitle>
           <DialogDescription>
             {items.length > 1
-              ? `O arquivo contém ${items.length} quizzes. Selecione quais deseja importar.`
-              : "Confira o preview e clique em Importar para adicionar à biblioteca."}
+              ? `O arquivo contém ${items.length} salas. Selecione quais deseja importar.`
+              : "Confira o preview e clique em Importar para adicionar a Minhas salas."}
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto space-y-2 py-2 -mx-1 px-1">

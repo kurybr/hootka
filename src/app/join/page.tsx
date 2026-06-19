@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
 
@@ -16,64 +16,50 @@ import {
 } from "@/components/ui/card";
 import { useRealTime } from "@/providers/RealTimeContext";
 import { trackEvent } from "@/lib/gtag";
+import {
+  formatRoomCodeDisplay,
+  mapJoinError,
+  normalizeRoomCode,
+  validatePlayerName,
+  validateRoomCode,
+} from "@/lib/joinRoomForm";
 
-function mapJoinError(raw: string): string {
-  const lower = raw.toLowerCase();
-  if (lower.includes("sala não encontrada") || raw === "SALA_NAO_ENCONTRADA") {
-    return "Sala não encontrada";
-  }
-  if (lower.includes("sala cheia") || raw === "SALA_CHEIA") {
-    return "Sala cheia";
-  }
-  if (
-    lower.includes("não foi possível conectar") ||
-    lower.includes("servidor indisponível") ||
-    lower.includes("conexão perdida") ||
-    lower.includes("timeout")
-  ) {
-    return "Conexão perdida. Tente novamente.";
-  }
-  return raw;
-}
-
-export default function JoinPage() {
+function JoinPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const provider = useRealTime();
   const codeInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const fromQuery = searchParams.get("code");
+    if (fromQuery) {
+      setCode(normalizeRoomCode(fromQuery));
+      nameInputRef.current?.focus();
+      return;
+    }
+    codeInputRef.current?.focus();
+  }, [searchParams]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const trimmedCode = code.trim().toUpperCase();
+    const trimmedCode = normalizeRoomCode(code);
     const trimmedName = name.trim();
 
-    if (!trimmedCode) {
-      setError("Informe o código da sala");
+    const codeError = validateRoomCode(trimmedCode);
+    if (codeError) {
+      setError(codeError);
       return;
     }
-    if (trimmedCode.length !== 6) {
-      setError("O código deve ter exatamente 6 caracteres");
-      return;
-    }
-    if (!/^[A-Z0-9]+$/.test(trimmedCode)) {
-      setError("O código deve conter apenas letras e números");
-      return;
-    }
-    if (!trimmedName) {
-      setError("Informe seu nome");
-      return;
-    }
-    if (trimmedName.length < 2) {
-      setError("O nome deve ter pelo menos 2 caracteres");
-      return;
-    }
-    if (trimmedName.length > 30) {
-      setError("O nome deve ter no máximo 30 caracteres");
+    const nameError = validatePlayerName(trimmedName);
+    if (nameError) {
+      setError(nameError);
       return;
     }
 
@@ -100,20 +86,11 @@ export default function JoinPage() {
     }
   };
 
-  useEffect(() => {
-    codeInputRef.current?.focus();
-  }, []);
-
-  const formatCodeDisplay = (val: string) => {
-    const upper = val.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
-    return upper.split("").join(" ");
-  };
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
       <div className="mx-auto w-full max-w-md space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Entrar em Sala</h1>
+          <h1 className="font-heading text-2xl font-bold">Entrar em Sala</h1>
           <Button variant="outline" asChild>
             <Link href="/">Voltar</Link>
           </Button>
@@ -136,8 +113,10 @@ export default function JoinPage() {
                   ref={codeInputRef}
                   id="code"
                   placeholder="A B C 1 2 3"
-                  value={formatCodeDisplay(code)}
-                  onChange={(e) => setCode(e.target.value.replace(/\s/g, "").toUpperCase().slice(0, 6))}
+                  value={formatRoomCodeDisplay(code)}
+                  onChange={(e) =>
+                    setCode(e.target.value.replace(/\s/g, "").toUpperCase().slice(0, 6))
+                  }
                   onKeyDown={(e) => {
                     if (e.key === " ") e.preventDefault();
                   }}
@@ -153,6 +132,7 @@ export default function JoinPage() {
                   Seu nome
                 </label>
                 <Input
+                  ref={nameInputRef}
                   id="name"
                   placeholder="Como deseja ser chamado"
                   value={name}
@@ -172,5 +152,19 @@ export default function JoinPage() {
         </Card>
       </div>
     </main>
+  );
+}
+
+export default function JoinPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center p-8">
+          <p className="text-sm text-muted-foreground">Carregando...</p>
+        </main>
+      }
+    >
+      <JoinPageContent />
+    </Suspense>
   );
 }

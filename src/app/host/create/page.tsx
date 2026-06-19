@@ -55,7 +55,7 @@ function CreateRoomContent() {
   return (
     <QuizCreatePageShell
       title="Criar Sala"
-      description="Monte o quiz da sala ao vivo. Cada pergunta tem até 4 alternativas e uma resposta correta."
+      description="Monte a sala ao vivo. Cada pergunta tem até 4 alternativas e uma resposta correta."
       backHref="/host"
     >
       <LiveRoomForm
@@ -71,7 +71,7 @@ function CreateRoomContent() {
           setLoading(true);
           try {
             if (values.saveToLibrary) {
-              const title = values.quizTitle || "Quiz sem título";
+              const title = values.quizTitle || "Sala sem título";
               await libSaveQuiz({
                 title,
                 questions: values.questions,
@@ -79,7 +79,7 @@ function CreateRoomContent() {
                 questionTimeLimitMs: values.questionTimeLimitMs,
               });
               toast({
-                title: "Quiz salvo na biblioteca",
+                title: "Sala salva em Minhas salas",
                 description: `"${title}" foi adicionado.`,
               });
             }

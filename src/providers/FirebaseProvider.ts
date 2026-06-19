@@ -68,6 +68,17 @@ function normalizeQuestionsFromRtdb(raw: unknown): Question[] | undefined {
   return undefined;
 }
 
+function normalizeAnswersFromRtdb(raw: unknown): Room["answers"] {
+  if (raw == null || typeof raw !== "object") return {};
+  const result: Room["answers"] = {};
+  for (const [qKey, qAnswers] of Object.entries(raw as Record<string, unknown>)) {
+    if (qAnswers != null && typeof qAnswers === "object" && !Array.isArray(qAnswers)) {
+      result[qKey] = qAnswers as Record<string, Answer>;
+    }
+  }
+  return result;
+}
+
 async function apiFetch(
   url: string,
   body: Record<string, unknown>
@@ -100,6 +111,8 @@ export class FirebaseProvider implements IRealTimeProvider {
   private participantId: string | null = null;
   private roomUnsubscribers: Unsubscribe[] = [];
   private answersUnsubscribe: Unsubscribe | null = null;
+  private answersSubscriptionMode: "question" | "full" | null = null;
+  private subscribedQuestionIndex: number | null = null;
   private lastRoomState: Room | null = null;
   private _connected = false;
   private roomParts: RoomParts = { id: "" };
@@ -160,25 +173,92 @@ export class FirebaseProvider implements IRealTimeProvider {
     return null;
   }
 
-  private subscribeAnswersBranch(roomId: string, questionIndex: number): void {
-    const db = getFirebaseDatabase();
-    if (!db) return;
-
+  private clearAnswersSubscription(): void {
     if (this.answersUnsubscribe) {
       this.answersUnsubscribe();
       this.answersUnsubscribe = null;
     }
+    this.answersSubscriptionMode = null;
+    this.subscribedQuestionIndex = null;
+  }
+
+  private mergeQuestionAnswers(
+    questionIndex: number,
+    val: Record<string, Answer> | null
+  ): void {
+    const qKey = String(questionIndex);
+    this.roomParts.answers = {
+      ...(this.roomParts.answers ?? {}),
+      [qKey]: val ?? {},
+    };
+    const room = this.composeRoom();
+    if (room) this.handleRoomUpdate(room);
+  }
+
+  private subscribeAnswersBranch(roomId: string, questionIndex: number): void {
+    const db = getFirebaseDatabase();
+    if (!db) return;
+
+    if (
+      this.answersSubscriptionMode === "question" &&
+      this.subscribedQuestionIndex === questionIndex &&
+      this.answersUnsubscribe
+    ) {
+      return;
+    }
+
+    this.clearAnswersSubscription();
+    this.answersSubscriptionMode = "question";
+    this.subscribedQuestionIndex = questionIndex;
 
     this.answersUnsubscribe = onValue(
       ref(db, `${ROOMS_PATH}/${roomId}/answers/${questionIndex}`),
       (snapshot) => {
-        const val = snapshot.val() as Record<string, Answer> | null;
-        const qKey = String(questionIndex);
-        this.roomParts.answers = { [qKey]: val ?? {} };
+        this.mergeQuestionAnswers(
+          questionIndex,
+          snapshot.val() as Record<string, Answer> | null
+        );
+      }
+    );
+  }
+
+  /** Carrega todas as respostas — usado ao encerrar ou reconectar numa partida finalizada. */
+  private subscribeAllAnswers(roomId: string): void {
+    const db = getFirebaseDatabase();
+    if (!db) return;
+
+    if (this.answersSubscriptionMode === "full" && this.answersUnsubscribe) {
+      return;
+    }
+
+    this.clearAnswersSubscription();
+    this.answersSubscriptionMode = "full";
+
+    this.answersUnsubscribe = onValue(
+      ref(db, `${ROOMS_PATH}/${roomId}/answers`),
+      (snapshot) => {
+        this.roomParts.answers = normalizeAnswersFromRtdb(snapshot.val());
         const room = this.composeRoom();
         if (room) this.handleRoomUpdate(room);
       }
     );
+  }
+
+  private syncAnswersSubscription(roomId: string): void {
+    const status = this.roomParts.status;
+    const questionIndex = this.roomParts.currentQuestionIndex ?? 0;
+
+    if (status === "finished") {
+      this.subscribeAllAnswers(roomId);
+      return;
+    }
+
+    if (status === "playing" || status === "result") {
+      this.subscribeAnswersBranch(roomId, questionIndex);
+      return;
+    }
+
+    this.clearAnswersSubscription();
   }
 
   private mergeRoomParts(partial: Partial<RoomParts>): void {
@@ -256,6 +336,8 @@ export class FirebaseProvider implements IRealTimeProvider {
       this.answersUnsubscribe();
       this.answersUnsubscribe = null;
     }
+    this.answersSubscriptionMode = null;
+    this.subscribedQuestionIndex = null;
 
     this.roomParts = { id: roomId, participants: {}, answers: {} };
     const base = `${ROOMS_PATH}/${roomId}`;
@@ -273,15 +355,16 @@ export class FirebaseProvider implements IRealTimeProvider {
       )
     );
     pushUnsub(
-      onValue(ref(db, `${base}/status`), (s) =>
-        this.mergeRoomParts({ status: s.val() as Room["status"] })
-      )
+      onValue(ref(db, `${base}/status`), (s) => {
+        this.mergeRoomParts({ status: s.val() as Room["status"] });
+        this.syncAnswersSubscription(roomId);
+      })
     );
     pushUnsub(
       onValue(ref(db, `${base}/currentQuestionIndex`), (s) => {
         const idx = typeof s.val() === "number" ? s.val() : Number(s.val()) || 0;
         this.mergeRoomParts({ currentQuestionIndex: idx });
-        this.subscribeAnswersBranch(roomId, idx);
+        this.syncAnswersSubscription(roomId);
       })
     );
     pushUnsub(
@@ -333,6 +416,8 @@ export class FirebaseProvider implements IRealTimeProvider {
       this.answersUnsubscribe();
       this.answersUnsubscribe = null;
     }
+    this.answersSubscriptionMode = null;
+    this.subscribedQuestionIndex = null;
     this._roomId = null;
     this.role = null;
     this.participantId = null;

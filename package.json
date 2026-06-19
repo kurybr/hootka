@@ -23,7 +23,8 @@
     "test:e2e:global": "NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true NEXT_PUBLIC_PROVIDER=firebase NEXT_PUBLIC_FIREBASE_DATABASE_URL=http://127.0.0.1:9000?ns=hootkaapp NEXT_PUBLIC_FIREBASE_PROJECT_ID=hootkaapp FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_DATABASE_EMULATOR_HOST=127.0.0.1:9000 playwright test --project=global-room",
     "test:e2e:global:headed": "NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true NEXT_PUBLIC_PROVIDER=firebase NEXT_PUBLIC_FIREBASE_DATABASE_URL=http://127.0.0.1:9000?ns=hootkaapp NEXT_PUBLIC_FIREBASE_PROJECT_ID=hootkaapp FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_DATABASE_EMULATOR_HOST=127.0.0.1:9000 playwright test --project=global-room --headed",
     "emulators:start": "npx firebase emulators:start --only auth,database",
-    "emulators:seed": "FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_DATABASE_EMULATOR_HOST=127.0.0.1:9000 NEXT_PUBLIC_FIREBASE_DATABASE_URL=http://127.0.0.1:9000?ns=hootkaapp NEXT_PUBLIC_FIREBASE_PROJECT_ID=hootkaapp npx tsx scripts/seed-emulator.ts"
+    "emulators:seed": "FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_DATABASE_EMULATOR_HOST=127.0.0.1:9000 NEXT_PUBLIC_FIREBASE_DATABASE_URL=http://127.0.0.1:9000?ns=hootkaapp NEXT_PUBLIC_FIREBASE_PROJECT_ID=hootkaapp npx tsx scripts/seed-emulator.ts",
+    "simulate:players": "tsx scripts/simulate-players.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.4",

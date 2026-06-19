@@ -4,19 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  PlusCircle,
+  ChevronDown,
   LogIn,
-  LogOut,
-  Trophy,
   Menu,
-  Shield,
-  BookOpen,
+  Mic,
+  Trophy,
+  User,
+  type LucideIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/providers/AuthProvider";
-import { usePlayerMobileFocus } from "@/providers/PlayerMobileFocusProvider";
-import { toast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -24,17 +21,49 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { HeaderAccountActions } from "@/components/layout/HeaderAccountActions";
+import { useAuth } from "@/providers/AuthProvider";
+import { usePlayerMobileFocus } from "@/providers/PlayerMobileFocusProvider";
+import { toast } from "@/hooks/use-toast";
+import {
+  getUserNavbarLabel,
+  getUserProfileHeading,
+  truncateEmail,
+} from "@/lib/userDisplay";
 import { cn } from "@/lib/utils";
 
-const secondaryNavItems = [
-  { href: "/quizzes", label: "Quizzes", icon: Trophy },
-  { href: "/community/quizzes", label: "Criar quiz", icon: BookOpen },
-  { href: "/join", label: "Entrar em sala", icon: LogIn },
+const mainNavItems: {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  primary?: boolean;
+}[] = [
+  { href: "/quizzes", label: "Explorar", icon: Trophy },
+  { href: "/host", label: "Criar sala", icon: Mic, primary: true },
 ];
+
+function NavLinkLabel({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+  return (
+    <>
+      <Icon className="h-4 w-4" aria-hidden="true" />
+      {label}
+    </>
+  );
+}
 
 export function Header() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const { active: mobileFocusActive } = usePlayerMobileFocus();
   const { user, profile, loading, signOut, signInWithGoogle } = useAuth();
   const isAdmin = profile?.role === "admin";
@@ -45,17 +74,28 @@ export function Header() {
     }
   }, [mobileFocusActive]);
 
-  const sessionLabel = user
-    ? user.isAnonymous
-      ? profile?.username?.trim() ||
-        user.displayName?.trim() ||
-        "Sessão de jogo"
-      : user.email?.trim() ||
-        profile?.email?.trim() ||
-        profile?.username?.trim() ||
-        user.displayName?.trim() ||
-        "Conta Google"
+  const profileHeading = user
+    ? getUserProfileHeading({
+        displayName: user.displayName,
+        username: profile?.username,
+        email: user.email ?? profile?.email,
+        isAnonymous: user.isAnonymous,
+      })
     : null;
+
+  const navbarLabel = user
+    ? getUserNavbarLabel({
+        displayName: user.displayName,
+        username: profile?.username,
+        email: user.email ?? profile?.email,
+        isAnonymous: user.isAnonymous,
+      })
+    : null;
+
+  const profileEmail =
+    user && !user.isAnonymous
+      ? user.email?.trim() || profile?.email?.trim() || null
+      : null;
 
   const handleSignInGoogle = async () => {
     try {
@@ -90,6 +130,20 @@ export function Header() {
     }
   };
 
+  const closeMobile = () => setMobileOpen(false);
+
+  const isNavActive = (href: string) => {
+    if (href === "/host") {
+      return pathname === "/host" || pathname.startsWith("/host/");
+    }
+    if (href === "/quizzes") {
+      return (
+        pathname.startsWith("/quizzes") || pathname.startsWith("/community/quizzes")
+      );
+    }
+    return pathname.startsWith(href);
+  };
+
   return (
     <header
       className={cn(
@@ -97,98 +151,127 @@ export function Header() {
         mobileFocusActive && "max-md:hidden"
       )}
     >
-      <div className="container flex h-14 items-center justify-between px-4 sm:px-6">
+      <div className="container flex h-14 items-center justify-between gap-4 px-4 sm:px-6">
         <Link
           href="/"
-          className="flex items-center gap-2 font-semibold text-lg hover:opacity-90 transition-opacity"
+          className="flex shrink-0 items-center gap-2 text-lg font-semibold transition-opacity hover:opacity-90"
         >
           Hootka
         </Link>
 
-        {/* Desktop nav: primary action + secondary links */}
-        <nav className="hidden md:flex items-center gap-2" aria-label="Navegação principal">
-          {secondaryNavItems.map(({ href, label, icon: Icon }) => (
+        <nav
+          className="hidden min-w-0 flex-1 items-center justify-end gap-1 md:flex"
+          aria-label="Navegação principal"
+        >
+          {mainNavItems.map(({ href, label, icon, primary }) => (
             <Button
               key={href}
-              variant={pathname.startsWith(href) ? "secondary" : "ghost"}
+              variant={isNavActive(href) ? "secondary" : primary ? "outline" : "ghost"}
               size="sm"
               asChild
+              className="shrink-0"
             >
-              <Link href={href} className="flex items-center gap-2">
-                <Icon className="h-4 w-4" aria-hidden="true" />
-                {label}
+              <Link href={href} className="flex items-center gap-1.5">
+                <NavLinkLabel icon={icon} label={label} />
               </Link>
             </Button>
           ))}
-          {isAdmin && (
-            <Button
-              variant="ghost"
-              size="sm"
-              asChild
-            >
-              <Link href="/admin" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" aria-hidden="true" />
-                Admin
-              </Link>
-            </Button>
-          )}
-          <Button size="sm" variant="outline" asChild>
-            <Link href="/host" className="flex items-center gap-2">
-              <PlusCircle className="h-4 w-4" aria-hidden="true" />
-              Sala ao vivo
-            </Link>
-          </Button>
-          {!loading &&
-            (user ? (
-              <div className="flex items-center gap-2 border-l pl-3 ml-1 max-w-[200px]">
-                <span className="text-xs text-muted-foreground truncate hidden lg:inline" title={sessionLabel ?? undefined}>
-                  {sessionLabel}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="shrink-0 gap-1"
-                  onClick={() => void handleSignOut()}
-                >
-                  <LogOut className="h-4 w-4" aria-hidden="true" />
-                  Sair
-                </Button>
-              </div>
-            ) : (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="gap-1 shrink-0 ml-1"
-                onClick={() => void handleSignInGoogle()}
-              >
-                <LogIn className="h-4 w-4" aria-hidden="true" />
-                Entrar
-              </Button>
-            ))}
         </nav>
 
-        {/* Mobile nav */}
+        <div className="hidden items-center gap-2 md:flex">
+          {!loading &&
+            (user ? (
+              <DropdownMenu open={profileMenuOpen} onOpenChange={setProfileMenuOpen} modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="cursor-pointer gap-1.5 text-muted-foreground"
+                    aria-label={`Menu da conta: ${profileHeading}`}
+                  >
+                    <User className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span className="max-w-[8rem] truncate">{navbarLabel}</span>
+                    <ChevronDown className="h-4 w-4 shrink-0 opacity-60" aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium text-foreground">{profileHeading}</span>
+                      {profileEmail && (
+                        <span className="text-xs font-normal text-muted-foreground">
+                          {truncateEmail(profileEmail)}
+                        </span>
+                      )}
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <HeaderAccountActions
+                    variant="dropdown"
+                    donateSource="header_profile_menu"
+                    whatsAppSource="header_profile_menu"
+                    isAdmin={isAdmin}
+                    onDonate={() => setProfileMenuOpen(false)}
+                    onNavigate={() => setProfileMenuOpen(false)}
+                    onSignOut={() => void handleSignOut()}
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <DropdownMenu open={moreMenuOpen} onOpenChange={setMoreMenuOpen} modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="cursor-pointer gap-1 text-muted-foreground"
+                      aria-label="Mais opções"
+                    >
+                      Mais
+                      <ChevronDown className="h-4 w-4 opacity-60" aria-hidden="true" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <HeaderAccountActions
+                      variant="dropdown"
+                      donateSource="header_profile_menu"
+                      whatsAppSource="header_profile_menu"
+                      showSignOut={false}
+                      onDonate={() => setMoreMenuOpen(false)}
+                      onNavigate={() => setMoreMenuOpen(false)}
+                    />
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => void handleSignInGoogle()}>
+                      <LogIn className="h-4 w-4" aria-hidden="true" />
+                      Entrar com Google
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
+            ))}
+        </div>
+
         <Dialog open={mobileOpen} onOpenChange={setMobileOpen}>
           <DialogTrigger asChild>
             <Button variant="ghost" size="icon" className="md:hidden" aria-label="Abrir menu">
               <Menu className="h-5 w-5" aria-hidden="true" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[280px]" showClose={true}>
+          <DialogContent className="sm:max-w-[300px]" showClose={true}>
             <DialogHeader>
               <DialogTitle>Menu</DialogTitle>
             </DialogHeader>
-            <nav className="flex flex-col gap-2 mt-4" aria-label="Navegação mobile">
-              {secondaryNavItems.map(({ href, label, icon: Icon }) => (
+            <nav className="mt-4 flex flex-col gap-2" aria-label="Navegação mobile">
+              {mainNavItems.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={closeMobile}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
-                    pathname.startsWith(href)
+                    "flex cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
+                    isNavActive(href)
                       ? "bg-secondary text-secondary-foreground"
                       : "hover:bg-muted"
                   )}
@@ -197,61 +280,41 @@ export function Header() {
                   {label}
                 </Link>
               ))}
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium hover:bg-muted transition-colors"
-                >
-                  <Shield className="h-5 w-5" aria-hidden="true" />
-                  Admin
-                </Link>
-              )}
-              <Link
-                href="/host"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium border border-border hover:bg-muted transition-colors mt-2"
-              >
-                <PlusCircle className="h-5 w-5" aria-hidden="true" />
-                Sala ao vivo
-              </Link>
-              {!loading && (
-                <div className="mt-4 pt-4 border-t space-y-2">
-                  {user ? (
-                    <>
-                      {sessionLabel && (
-                        <p className="px-4 text-xs text-muted-foreground truncate" title={sessionLabel}>
-                          {sessionLabel}
-                        </p>
-                      )}
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full justify-start gap-2"
-                        onClick={() => {
-                          setMobileOpen(false);
-                          void handleSignOut();
-                        }}
-                      >
-                        <LogOut className="h-4 w-4" aria-hidden="true" />
-                        Sair
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="w-full justify-start gap-2"
-                      onClick={() => {
-                        setMobileOpen(false);
-                        void handleSignInGoogle();
-                      }}
-                    >
-                      <LogIn className="h-5 w-5" aria-hidden="true" />
-                      Entrar com Google
-                    </Button>
+
+              <div className="my-2 border-t border-border" role="presentation" />
+
+              {user && profileHeading && (
+                <div className="px-4 py-1">
+                  <p className="text-sm font-medium">{profileHeading}</p>
+                  {profileEmail && (
+                    <p className="text-xs text-muted-foreground">{truncateEmail(profileEmail)}</p>
                   )}
                 </div>
+              )}
+
+              <HeaderAccountActions
+                variant="mobile"
+                donateSource="header_profile_menu"
+                whatsAppSource="header_profile_menu"
+                isAdmin={isAdmin}
+                onNavigate={closeMobile}
+                showSignOut={Boolean(user)}
+                onSignOut={() => void handleSignOut()}
+              />
+
+              {!loading && !user && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="mt-2 w-full justify-start gap-2"
+                  onClick={() => {
+                    closeMobile();
+                    void handleSignInGoogle();
+                  }}
+                >
+                  <LogIn className="h-5 w-5" aria-hidden="true" />
+                  Entrar com Google
+                </Button>
               )}
             </nav>
           </DialogContent>

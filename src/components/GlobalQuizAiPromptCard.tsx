@@ -36,9 +36,42 @@ export interface GeneratedGlobalQuizDraft {
 interface GlobalQuizAiPromptCardProps {
   onApply: (draft: GeneratedGlobalQuizDraft) => void;
   onClearForm: () => void;
+  variant?: "live" | "global";
 }
 
-export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPromptCardProps) {
+const COPY = {
+  global: {
+    title: "Gerar desafio com IA",
+    titleCompact: "Gerar desafio com IA",
+    description:
+      "Descreva o desafio abaixo. A IA preenche título, tema, descrição e perguntas — você pode editar tudo antes de publicar. O prompt permanece para você ajustar e gerar de novo.",
+    descriptionAnonymous:
+      "Entre com Google para gerar título, descrição e perguntas de uma vez (OpenRouter).",
+    promptLabel: "O que você quer neste desafio?",
+    placeholder:
+      "Ex.: Desafio introdutório de astronomia para adolescentes, 5 perguntas fáceis sobre planetas e constelações.",
+    submit: "Gerar desafio completo",
+  },
+  live: {
+    title: "Gerar sala com IA",
+    titleCompact: "Gerar sala com IA",
+    description:
+      "Descreva a sala abaixo. A IA preenche título e perguntas — você pode editar tudo antes de iniciar. O prompt permanece para você ajustar e gerar de novo.",
+    descriptionAnonymous:
+      "Entre com Google para gerar título e perguntas de uma vez (OpenRouter).",
+    promptLabel: "O que você quer nesta sala?",
+    placeholder:
+      "Ex.: Sala introdutória de astronomia para adolescentes, 5 perguntas fáceis sobre planetas e constelações.",
+    submit: "Gerar sala completa",
+  },
+} as const;
+
+export function GlobalQuizAiPromptCard({
+  onApply,
+  onClearForm,
+  variant = "global",
+}: GlobalQuizAiPromptCardProps) {
+  const copy = COPY[variant];
   const { user } = useAuth();
   const { enabled: donateEnabled, isHostContext, openDonateDialog } = useDonate();
   const [prompt, setPrompt] = useState("");
@@ -112,9 +145,9 @@ export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPro
     return (
       <Card className="border-dashed">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Gerar quiz com IA</CardTitle>
+          <CardTitle className="text-base">{copy.titleCompact}</CardTitle>
           <CardDescription>
-            Entre com Google para gerar título, descrição e perguntas de uma vez (OpenRouter).
+            {copy.descriptionAnonymous}
           </CardDescription>
         </CardHeader>
       </Card>
@@ -173,10 +206,9 @@ export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPro
           <div className="flex items-start gap-2">
             <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" aria-hidden />
             <div>
-              <CardTitle className="text-lg">Gerar quiz com IA</CardTitle>
+              <CardTitle className="text-lg">{copy.title}</CardTitle>
               <CardDescription>
-                Descreva o quiz abaixo. A IA preenche título, tema, descrição e perguntas — você pode
-                editar tudo antes de publicar. O prompt permanece para você ajustar e gerar de novo.
+                {copy.description}
               </CardDescription>
             </div>
           </div>
@@ -196,13 +228,13 @@ export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPro
       <CardContent className="space-y-3">
         <div className="space-y-1">
           <label htmlFor="global-ai-prompt" className="text-sm font-medium">
-            O que você quer neste quiz?
+            {copy.promptLabel}
           </label>
           <textarea
             id="global-ai-prompt"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Ex.: Quiz introdutório de astronomia para adolescentes, 5 perguntas fáceis sobre planetas e constelações."
+            placeholder={copy.placeholder}
             disabled={busy}
             rows={4}
             className="w-full rounded-md border bg-background px-3 py-2 text-sm resize-y min-h-[100px]"
@@ -229,7 +261,7 @@ export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPro
             onClick={() => void handleGenerate()}
             disabled={busy || atLimit}
           >
-            {busy ? "Gerando…" : "Gerar quiz completo"}
+            {busy ? "Gerando…" : copy.submit}
           </Button>
         </div>
         {atLimit && (
@@ -249,6 +281,7 @@ export function GlobalQuizAiPromptCard({ onApply, onClearForm }: GlobalQuizAiPro
       onOpenChange={handleDonateSuccessOpenChange}
       onHowToSupport={handleDonateSupport}
       onContinue={handleDonateContinue}
+      variant={variant}
     />
     </>
   );

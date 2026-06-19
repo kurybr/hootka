@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ContactWhatsAppLink, useContactWhatsAppEnabled } from "@/components/ContactWhatsAppLink";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ export function DonateDialog({
   const [qrImage, setQrImage] = useState<string | null>(null);
   const [qrError, setQrError] = useState(false);
   const [loadingQr, setLoadingQr] = useState(false);
+  const whatsAppEnabled = useContactWhatsAppEnabled();
 
   const pixInput = useMemo<DonatePixQrInput>(
     () => ({
@@ -153,6 +155,16 @@ export function DonateDialog({
             Obrigado pelo apoio. 
             O <strong>Hootka</strong> continua evoluindo graças a pessoas como <strong>você</strong>. 💛
           </p>
+
+          {whatsAppEnabled && (
+            <div className="border-t border-border/60 pt-4 text-center text-xs leading-relaxed text-muted-foreground/75">
+              <p>Tem uma ideia para o Hootka?</p>
+              <p>
+                Me chama no{" "}
+                <ContactWhatsAppLink variant="inline" source="donate_dialog" />.
+              </p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

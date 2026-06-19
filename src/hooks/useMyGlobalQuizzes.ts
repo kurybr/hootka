@@ -22,7 +22,7 @@ export function useMyGlobalQuizzes(enabled: boolean) {
       setQuizzes(data.quizzes);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar seus quizzes");
+      setError(err instanceof Error ? err.message : "Erro ao carregar seus desafios");
     } finally {
       setLoading(false);
     }

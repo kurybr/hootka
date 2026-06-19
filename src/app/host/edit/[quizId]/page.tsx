@@ -57,12 +57,12 @@ export default function EditQuizPage() {
 
   return (
     <QuizCreatePageShell
-      title="Editar Quiz"
-      description="Edite o quiz da biblioteca. Cada pergunta tem até 4 alternativas e uma resposta correta."
+      title="Editar sala"
+      description="Edite a sala em Minhas salas. Cada pergunta tem até 4 alternativas e uma resposta correta."
       backHref="/host"
     >
       {!initialized ? (
-        <p className="text-sm text-muted-foreground">Carregando quiz...</p>
+        <p className="text-sm text-muted-foreground">Carregando sala...</p>
       ) : (
         <LiveRoomForm
           key={quizId}
@@ -72,7 +72,7 @@ export default function EditQuizPage() {
           initialQuizTitle={initialQuizTitle}
           initialOptionPaletteId={initialOptionPaletteId}
           initialQuestionTimeLimitSeconds={initialQuestionTimeLimitSeconds}
-          submitLabel="Iniciar Sala com este Quiz"
+          submitLabel="Iniciar sala"
           saveLabel="Salvar Alterações"
           loading={startingRoom}
           saving={saving}
@@ -95,7 +95,7 @@ export default function EditQuizPage() {
               }
               toast({
                 title: "Alterações salvas",
-                description: "O quiz foi atualizado na biblioteca.",
+                description: "A sala foi atualizada em Minhas salas.",
               });
             } catch {
               toast({

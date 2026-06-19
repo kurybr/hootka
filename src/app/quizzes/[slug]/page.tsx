@@ -56,7 +56,7 @@ export default function GlobalQuizDetailPage({
           )}
         </div>
 
-        {loading && <p className="text-sm text-muted-foreground">Carregando quiz...</p>}
+        {loading && <p className="text-sm text-muted-foreground">Carregando desafio...</p>}
         {error && (
           <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
             {error}
@@ -80,7 +80,7 @@ export default function GlobalQuizDetailPage({
                 </p>
                 <div className="flex flex-wrap gap-3 text-sm">
                   <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">
-                    {quiz.visibility === "official" ? "Quiz oficial" : "Quiz comunitário"}
+                    {quiz.visibility === "official" ? "Desafio oficial" : "Desafio comunitário"}
                   </span>
                   <span className="rounded-full bg-muted px-3 py-1">
                     Tentativas: {quiz.attemptLimit === null ? "Ilimitadas" : quiz.attemptLimit}

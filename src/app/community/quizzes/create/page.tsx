@@ -19,14 +19,14 @@ export default function CreateCommunityQuizPage() {
   if (!user || !isCreator) {
     return (
       <QuizCreatePageShell
-        title="Novo quiz global"
-        description="Publique um quiz comunitário com ranking global."
+        title="Novo desafio"
+        description="Publique um desafio comunitário com ranking global."
         backHref="/community/quizzes"
         maxWidth="2xl"
       >
         <GoogleSignInCard
-          title="Entre com Google para criar um quiz"
-          description="Sua conta Google verificada é usada para publicar e gerenciar quizzes comunitários."
+          title="Entre com Google para criar um desafio"
+          description="Sua conta Google verificada é usada para publicar e gerenciar desafios comunitários."
         />
       </QuizCreatePageShell>
     );
@@ -34,21 +34,21 @@ export default function CreateCommunityQuizPage() {
 
   return (
     <QuizCreatePageShell
-      title="Novo quiz global"
-      description="Publique um quiz comunitário com ranking global."
+      title="Novo desafio"
+      description="Publique um desafio comunitário com ranking global."
       backHref="/community/quizzes"
     >
       <GlobalQuizForm
         loading={loading}
         isAdmin={profile?.role === "admin"}
-        submitLabel="Criar quiz global"
+        submitLabel="Criar desafio"
         onSubmit={async (values) => {
           setLoading(true);
           try {
             const { quiz } = await createGlobalQuiz(values);
             toast({
-              title: "Quiz criado",
-              description: "Seu quiz global já está disponível.",
+              title: "Desafio criado",
+              description: "Seu desafio já está disponível.",
             });
             router.push(`/community/quizzes/${quiz.id}`);
           } finally {

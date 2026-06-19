@@ -118,7 +118,7 @@ export default function HostDashboardPage() {
     if (quiz.questions.length === 0) {
       toast({
         variant: "destructive",
-        title: "Quiz vazio",
+        title: "Sala vazia",
         description: "Adicione pelo menos uma pergunta antes de iniciar.",
       });
       return;
@@ -131,7 +131,7 @@ export default function HostDashboardPage() {
     if (validQuestions.length === 0) {
       toast({
         variant: "destructive",
-        title: "Quiz inválido",
+        title: "Sala inválida",
         description: "Adicione perguntas válidas antes de iniciar.",
       });
       return;
@@ -166,14 +166,14 @@ export default function HostDashboardPage() {
     try {
       await libDuplicateQuiz(quiz.id);
       toast({
-        title: "Quiz duplicado",
+        title: "Sala duplicada",
         description: `"Cópia de ${quiz.title}" foi criado.`,
       });
     } catch {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Não foi possível duplicar o quiz.",
+        description: "Não foi possível duplicar a sala.",
       });
     }
   };
@@ -184,7 +184,7 @@ export default function HostDashboardPage() {
     const title = deleteTarget.title;
     setDeleteTarget(null);
     toast({
-      title: "Quiz excluído",
+      title: "Sala excluída",
       description: `"${title}" foi removido.`,
     });
   };
@@ -192,7 +192,7 @@ export default function HostDashboardPage() {
   const handleExport = (quiz: SavedQuiz) => {
     exportQuizToFile(quiz);
     toast({
-      title: "Quiz exportado",
+      title: "Sala exportada",
       description: `"${quiz.title}" foi baixado.`,
     });
   };
@@ -203,8 +203,8 @@ export default function HostDashboardPage() {
     exportMultipleQuizzes(toExport);
     setSelectedIds(new Set());
     toast({
-      title: "Quizzes exportados",
-      description: `${toExport.length} quiz(zes) foram baixados.`,
+      title: "Salas exportadas",
+      description: `${toExport.length} sala(s) foram baixadas.`,
     });
   };
 
@@ -310,7 +310,7 @@ export default function HostDashboardPage() {
         )}
       >
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Biblioteca de Quizzes</h1>
+          <h1 className="text-2xl font-bold">Minhas salas</h1>
           <div className="flex items-center gap-4">
             {user && (
               <div className="flex items-center gap-3">
@@ -337,12 +337,12 @@ export default function HostDashboardPage() {
               </Button>
               <Button variant="outline" onClick={handleImportClick}>
                 <Upload className="mr-2 h-4 w-4" />
-                Importar Quiz
+                Importar sala
               </Button>
               <Button asChild>
                 <Link href="/host/create">
                   <Plus className="mr-2 h-4 w-4" />
-                  Criar Novo Quiz
+                  Criar nova sala
                 </Link>
               </Button>
             </div>
@@ -355,7 +355,7 @@ export default function HostDashboardPage() {
               <div className="flex items-center gap-3">
                 <Cloud className="h-5 w-5 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">
-                  Entre com Google para salvar seus quizzes na nuvem e acessar de
+                  Entre com Google para salvar suas salas na nuvem e acessar de
                   qualquer dispositivo.
                 </p>
               </div>
@@ -381,8 +381,8 @@ export default function HostDashboardPage() {
         )}
 
         <p className="text-muted-foreground">
-          Sem login, os quizzes ficam só neste navegador. Com Google, a biblioteca sincroniza na
-          nuvem (Firebase).
+          Sem login, as salas ficam só neste navegador. Com Google, Minhas salas sincroniza na
+          nuvem.
         </p>
 
         {libraryLoading && (
@@ -428,21 +428,21 @@ export default function HostDashboardPage() {
             <CardContent className="flex flex-col items-center justify-center py-16">
               <FileQuestion className="mb-4 h-16 w-16 text-muted-foreground" />
               <h3 className="mb-2 text-lg font-semibold">
-                Nenhum quiz salvo ainda
+                Nenhuma sala salva ainda
               </h3>
               <p className="mb-6 text-center text-sm text-muted-foreground">
-                Crie seu primeiro quiz e salve-o na biblioteca para reutilizar
+                Crie sua primeira sala e salve em Minhas salas para reutilizar
                 quantas vezes quiser. Ou importe um arquivo .json.
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" size="lg" onClick={handleImportClick}>
                   <Upload className="mr-2 h-4 w-4" />
-                  Importar Quiz
+                  Importar sala
                 </Button>
                 <Button asChild size="lg">
                   <Link href="/host/create">
                     <Plus className="mr-2 h-4 w-4" />
-                    Criar Novo Quiz
+                    Criar nova sala
                   </Link>
                 </Button>
               </div>
@@ -536,7 +536,7 @@ export default function HostDashboardPage() {
       <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Excluir quiz</DialogTitle>
+            <DialogTitle>Excluir sala</DialogTitle>
             <DialogDescription>
               Tem certeza que deseja excluir &quot;{deleteTarget?.title}&quot;?
               Esta ação não pode ser desfeita.

@@ -56,7 +56,7 @@ export default function GlobalQuizRankingPage({
       <div className="mx-auto w-full max-w-4xl space-y-6">
         <div className="flex items-center justify-between">
           <Button variant="outline" asChild>
-            <Link href={`/quizzes/${slug}`}>Voltar ao quiz</Link>
+            <Link href={`/quizzes/${slug}`}>Voltar ao desafio</Link>
           </Button>
           <Button variant="secondary" asChild>
             <Link href="/quizzes">Catálogo</Link>

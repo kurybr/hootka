@@ -2,32 +2,45 @@ import { test, expect } from "@playwright/test";
 
 const BASE_URL = "http://localhost:3000";
 
+async function dismissCookies(page: import("@playwright/test").Page) {
+  const accept = page.getByRole("button", { name: "Aceitar" });
+  if (await accept.isVisible().catch(() => false)) {
+    await accept.click();
+  }
+}
+
+async function gotoCreateRoom(page: import("@playwright/test").Page) {
+  await page.goto(`${BASE_URL}/host/create`);
+  await dismissCookies(page);
+}
+
 test.describe("Create room flow", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(BASE_URL);
+    await dismissCookies(page);
   });
 
   test("navigates from header to host page", async ({ page }) => {
     await page.getByRole("link", { name: "Criar sala" }).click();
 
     await expect(page).toHaveURL(/\/host/);
-    await expect(page.getByRole("heading", { name: "Biblioteca de Quizzes" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Minhas salas" })).toBeVisible();
   });
 
   test("navigates from host to create room page", async ({ page }) => {
     await page.goto(`${BASE_URL}/host`);
 
-    await page.getByRole("link", { name: "Criar Novo Quiz" }).first().click();
+    await page.getByRole("link", { name: "Criar nova sala" }).first().click();
 
     await expect(page).toHaveURL(/\/host\/create/);
     await expect(page.getByRole("heading", { name: "Criar Sala" })).toBeVisible();
     await expect(page.getByText(/sala ao vivo/i)).toBeVisible();
-    await expect(page.getByText("Gerar quiz com IA")).toBeVisible();
+    await expect(page.getByText("Gerar sala com IA")).toBeVisible();
     await expect(page.getByText("Dados da sala")).toBeVisible();
   });
 
   test("shows validation error when creating room with empty question", async ({ page }) => {
-    await page.goto(`${BASE_URL}/host/create`);
+    await gotoCreateRoom(page);
 
     await page.getByRole("button", { name: "Criar Sala" }).click();
 
@@ -35,7 +48,7 @@ test.describe("Create room flow", () => {
   });
 
   test("shows validation error when question has empty options", async ({ page }) => {
-    await page.goto(`${BASE_URL}/host/create`);
+    await gotoCreateRoom(page);
 
     await page.getByPlaceholder("Digite a pergunta...").first().fill("Qual a capital do Brasil?");
     await page.getByRole("button", { name: "Criar Sala" }).click();
@@ -44,7 +57,7 @@ test.describe("Create room flow", () => {
   });
 
   test("fills question and options correctly", async ({ page }) => {
-    await page.goto(`${BASE_URL}/host/create`);
+    await gotoCreateRoom(page);
 
     const questionInput = page.getByPlaceholder("Digite a pergunta...").first();
     await questionInput.fill("Qual a capital do Brasil?");
@@ -58,7 +71,7 @@ test.describe("Create room flow", () => {
   });
 
   test("can add multiple questions", async ({ page }) => {
-    await page.goto(`${BASE_URL}/host/create`);
+    await gotoCreateRoom(page);
 
     await page.getByRole("button", { name: "+ Adicionar Pergunta" }).click();
 
@@ -66,31 +79,34 @@ test.describe("Create room flow", () => {
   });
 
   test("palette picker is visible and selectable", async ({ page }) => {
-    await page.goto(`${BASE_URL}/host/create`);
+    await gotoCreateRoom(page);
 
-    await expect(page.getByText("Cores das alternativas")).toBeVisible();
-    await page.getByText("Copa", { exact: true }).click();
-    await expect(page.getByRole("radio", { name: /Copa/ })).toBeChecked();
+    await expect(page.getByText("Cores das alternativas", { exact: true })).toBeVisible();
+    const brasilPalette = page.getByRole("radio", {
+      name: /Brasil.*bandeira brasileira/i,
+    });
+    await brasilPalette.check({ force: true });
+    await expect(brasilPalette).toBeChecked();
   });
 
   test("save to library checkbox is visible with title field", async ({ page }) => {
-    await page.goto(`${BASE_URL}/host/create`);
+    await gotoCreateRoom(page);
 
-    await expect(page.getByLabel("Título do quiz")).toBeVisible();
-    await expect(page.getByText("Salvar quiz na biblioteca ao criar sala")).toBeVisible();
+    await expect(page.getByLabel("Título da sala")).toBeVisible();
+    await expect(page.getByText("Salvar em Minhas salas ao criar")).toBeVisible();
   });
 
   test("back button returns to host page", async ({ page }) => {
-    await page.goto(`${BASE_URL}/host/create`);
+    await gotoCreateRoom(page);
 
     await page.getByRole("link", { name: "Voltar" }).click();
 
     await expect(page).toHaveURL(/\/host/);
-    await expect(page.getByRole("heading", { name: "Biblioteca de Quizzes" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Minhas salas" })).toBeVisible();
   });
 
   test("creates room successfully with valid quiz", async ({ page }) => {
-    await page.goto(`${BASE_URL}/host/create`);
+    await gotoCreateRoom(page);
 
     await page.getByPlaceholder("Digite a pergunta...").first().fill("1+1=?");
     const optionInputs = page.getByPlaceholder(/Alternativa \d/);

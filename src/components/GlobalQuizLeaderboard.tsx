@@ -234,7 +234,7 @@ export function GlobalQuizLeaderboard({
         <Card className="rounded-xl shadow-sm">
           <CardContent className="py-12">
             <p className="text-center text-sm text-muted-foreground">
-              Ainda não há resultados publicados para este quiz.
+              Ainda não há resultados publicados para este desafio.
             </p>
           </CardContent>
         </Card>

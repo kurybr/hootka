@@ -19,7 +19,7 @@ export function useGlobalQuizCatalog() {
         setQuizzes(data.quizzes);
       } catch (err) {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Erro ao carregar quizzes");
+        setError(err instanceof Error ? err.message : "Erro ao carregar desafios");
       } finally {
         if (!cancelled) {
           setLoading(false);

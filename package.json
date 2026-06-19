@@ -12,7 +12,7 @@
     "docker:build": "docker build -t hootka:latest .",
     "docker:run": "docker run --rm -p 3000:3000 hootka:latest",
     "db:clear": "tsx scripts/clear-database.ts --confirm",
-    "test:unit": "tsx src/lib/quizOptionPalettes.test.ts && tsx src/lib/quizFormDraftStorage.test.ts && tsx src/lib/quizExportImport.test.ts && tsx src/lib/globalQuizUtils.test.ts && tsx src/lib/liveReportCsvExport.test.ts && tsx src/lib/roomRtdbNormalization.test.ts && tsx src/lib/donateConfig.test.ts && tsx src/lib/donatePixQr.test.ts && tsx src/lib/donatePromptStorage.test.ts",
+    "test:unit": "tsx src/lib/quizOptionPalettes.test.ts && tsx src/lib/quizFormDraftStorage.test.ts && tsx src/lib/quizExportImport.test.ts && tsx src/lib/globalQuizUtils.test.ts && tsx src/lib/liveReportCsvExport.test.ts && tsx src/lib/roomRtdbNormalization.test.ts && tsx src/lib/donateConfig.test.ts && tsx src/lib/donatePixQr.test.ts && tsx src/lib/donatePromptStorage.test.ts && tsx src/lib/contactWhatsApp.test.ts && tsx src/lib/joinRoomForm.test.ts",
     "skills:accessibility": "npx skills add mgifford/accessibility-skills -y",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.4",
+    "@radix-ui/react-dropdown-menu": "^2.1.18",
     "@radix-ui/react-separator": "^1.1.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.4",

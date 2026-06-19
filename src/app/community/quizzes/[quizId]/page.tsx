@@ -91,8 +91,8 @@ export default function CommunityQuizDetailPage({
             <Link href="/community/quizzes">Voltar</Link>
           </Button>
           <GoogleSignInCard
-            title="Entre com Google para gerenciar este quiz"
-            description="Donos de quiz e administradores precisam de uma conta Google verificada."
+            title="Entre com Google para gerenciar este desafio"
+            description="Donos de desafio e administradores precisam de uma conta Google verificada."
           />
         </div>
       </main>
@@ -104,9 +104,9 @@ export default function CommunityQuizDetailPage({
       <div className="mx-auto w-full max-w-5xl space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">{quiz?.title ?? "Detalhes do quiz"}</h1>
+            <h1 className="text-3xl font-bold">{quiz?.title ?? "Detalhes do desafio"}</h1>
             <p className="text-muted-foreground">
-              Gerencie ranking, tentativas extras e publicação do quiz.
+              Gerencie ranking, tentativas extras e publicação do desafio.
             </p>
           </div>
           <div className="flex gap-2">
@@ -115,7 +115,7 @@ export default function CommunityQuizDetailPage({
             </Button>
             {quiz && (
               <Button asChild>
-                <Link href={`/community/quizzes/${quiz.id}/edit`}>Editar quiz</Link>
+                <Link href={`/community/quizzes/${quiz.id}/edit`}>Editar desafio</Link>
               </Button>
             )}
           </div>
@@ -160,7 +160,7 @@ export default function CommunityQuizDetailPage({
 
             <PlayerRankingReport
               report={playerRankingReport}
-              description="Melhor pontuação de cada jogador que participou deste quiz."
+              description="Melhor pontuação de cada jogador que participou deste desafio."
             />
 
             {answerReport && (
@@ -178,7 +178,7 @@ export default function CommunityQuizDetailPage({
               <CardContent className="space-y-4">
                 {userStats.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Ninguém iniciou este quiz ainda.
+                    Ninguém iniciou este desafio ainda.
                   </p>
                 ) : (
                   userStats.map((entry) => (

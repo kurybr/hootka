@@ -192,7 +192,7 @@ export function LiveRoomForm({
     }
 
     if ((isEditMode || saveToLibrary) && !quizTitle.trim()) {
-      setError("Informe um título para o quiz.");
+      setError("Informe um título para a sala.");
       return false;
     }
 
@@ -205,7 +205,7 @@ export function LiveRoomForm({
     try {
       await onSave(buildValues());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível salvar o quiz.");
+      setError(err instanceof Error ? err.message : "Não foi possível salvar a sala.");
     }
   };
 
@@ -225,6 +225,7 @@ export function LiveRoomForm({
   return (
     <div className="space-y-6">
       <GlobalQuizAiPromptCard
+        variant="live"
         onApply={(draft) => {
           setQuestions(
             draft.questions.length > 0
@@ -247,20 +248,20 @@ export function LiveRoomForm({
 
       <Card className={QUIZ_SURFACE_CARD_CLASS}>
         <CardHeader>
-          <CardTitle>{isEditMode ? "Dados do quiz" : "Dados da sala"}</CardTitle>
+          <CardTitle>Dados da sala</CardTitle>
           <CardDescription>
             {isEditMode
               ? "Atualize o título, o tempo por pergunta e as cores das alternativas."
-              : "Configure o tempo por pergunta e, se quiser, salve o quiz na biblioteca para reutilizar depois."}
+              : "Configure o tempo por pergunta e, se quiser, salve em Minhas salas para reutilizar depois."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="quiz-title" className="text-sm font-medium">
-              Título do quiz
+            <label htmlFor="room-title" className="text-sm font-medium">
+              Título da sala
             </label>
             <Input
-              id="quiz-title"
+              id="room-title"
               placeholder={
                 isEditMode
                   ? "Ex: Conhecimentos Gerais"
@@ -294,7 +295,7 @@ export function LiveRoomForm({
 
             {!isEditMode && (
               <div className="space-y-3">
-                <span className="text-sm font-medium">Biblioteca</span>
+                <span className="text-sm font-medium">Minhas salas</span>
                 <label className="flex items-center gap-2">
                   <input
                     type="checkbox"
@@ -302,7 +303,7 @@ export function LiveRoomForm({
                     onChange={(event) => setSaveToLibrary(event.target.checked)}
                   />
                   <span className="text-sm">
-                    Salvar quiz na biblioteca ao criar sala
+                    Salvar em Minhas salas ao criar
                   </span>
                 </label>
               </div>

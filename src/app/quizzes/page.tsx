@@ -17,19 +17,19 @@ export default function GlobalQuizCatalogPage() {
   return (
     <main className="min-h-screen p-8 lg:p-12">
       <div className="mx-auto w-full max-w-5xl space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Quizzes Globais</h1>
-            <p className="text-muted-foreground">
-              Descubra quizzes oficiais e comunitários para testar seus conhecimentos.
+            <h1 className="font-heading text-3xl font-bold">Explorar</h1>
+            <p className="text-muted-foreground max-w-xl">
+              Quizzes públicos, seus quizzes e novos desafios para jogar ou publicar.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 shrink-0">
             <Button variant="outline" asChild>
-              <Link href="/">Voltar</Link>
+              <Link href="/community/quizzes">Meus quizzes</Link>
             </Button>
             <Button asChild>
-              <Link href="/community/quizzes">Meus quizzes</Link>
+              <Link href="/community/quizzes/create">Criar quiz</Link>
             </Button>
           </div>
         </div>

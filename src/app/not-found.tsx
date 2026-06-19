@@ -13,7 +13,7 @@ import {
 const quickLinks = [
   { href: "/host", label: "Criar uma sala", icon: PlusCircle },
   { href: "/join", label: "Entrar em uma sala", icon: LogIn },
-  { href: "/quizzes", label: "Ranking global", icon: Trophy },
+  { href: "/quizzes", label: "Explorar quizzes", icon: Trophy },
 ];
 
 export default function NotFound() {

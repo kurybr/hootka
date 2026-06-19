@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { BookOpen, LogIn, Trophy } from "lucide-react";
+import { Mic, Trophy } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardDescription,
@@ -12,24 +13,20 @@ import {
 } from "@/components/ui/card";
 import { AdSense } from "@/components/AdSense";
 
-const playerActionCards = [
+const primaryActionCards = [
   {
     href: "/quizzes",
-    title: "Ranking global",
-    description: "Jogue quizzes públicos e suba no ranking.",
+    title: "Explorar",
+    description: "Quizzes públicos, seus quizzes e novos desafios.",
     icon: Trophy,
+    variant: "default" as const,
   },
   {
-    href: "/community/quizzes",
-    title: "Criar quiz",
-    description: "Publique seu quiz na comunidade (conta Google).",
-    icon: BookOpen,
-  },
-  {
-    href: "/join",
-    title: "Sala ao vivo",
-    description: "Use o código da sala e jogue em tempo real.",
-    icon: LogIn,
+    href: "/host",
+    title: "Criar sala",
+    description: "Monte uma partida ao vivo e compartilhe o código com o grupo.",
+    icon: Mic,
+    variant: "outline" as const,
   },
 ];
 
@@ -42,7 +39,6 @@ export default function HomePage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        {/* Hero section */}
         <div className="space-y-4">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Hootka
@@ -66,7 +62,6 @@ export default function HomePage() {
           </p>
         </section>
 
-        {/* How it works */}
         <section className="rounded-xl border bg-muted/30 px-6 py-5 text-left max-w-2xl mx-auto space-y-4">
           <div>
             <h2 className="text-sm font-medium mb-2 text-foreground">Quiz global</h2>
@@ -86,8 +81,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-8 max-w-4xl mx-auto">
-          {playerActionCards.map((card, i) => {
+        <div className="mx-auto grid w-full max-w-2xl gap-6 sm:grid-cols-2 sm:gap-8">
+          {primaryActionCards.map((card, i) => {
             const Icon = card.icon;
             return (
               <motion.div
@@ -100,7 +95,11 @@ export default function HomePage() {
                   href={card.href}
                   className="block h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
                 >
-                  <Card className="h-full transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer group">
+                  <Card
+                    className={`h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer group ${
+                      card.variant === "outline" ? "border-primary/40 bg-primary/5" : ""
+                    }`}
+                  >
                     <CardHeader className="p-8 sm:p-10">
                       <div className="flex flex-col items-center text-center space-y-4">
                         <div className="rounded-full bg-primary/10 p-4 group-hover:bg-primary/15 transition-colors">
@@ -125,6 +124,13 @@ export default function HomePage() {
             );
           })}
         </div>
+
+        <p className="text-sm text-muted-foreground">
+          Já possui um código?{" "}
+          <Link href="/join" className="font-medium underline underline-offset-4 hover:text-foreground">
+            Entrar em sala
+          </Link>
+        </p>
 
         <AdSense
           slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_BANNER}

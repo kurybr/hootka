@@ -24,7 +24,8 @@ export type GAEventName =
   | "donate_prompt_shown"
   | "donate_dialog_opened"
   | "donate_pix_key_copied"
-  | "donate_prompt_dismissed";
+  | "donate_prompt_dismissed"
+  | "contact_whatsapp_clicked";
 
 export function trackEvent(
   eventName: GAEventName,

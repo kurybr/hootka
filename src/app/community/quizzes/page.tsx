@@ -25,7 +25,7 @@ export default function CommunityQuizzesPage() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
-              <Link href="/quizzes">Catálogo</Link>
+              <Link href="/quizzes">Explorar</Link>
             </Button>
             {user && !user.isAnonymous && (
               <Button asChild>
@@ -61,8 +61,13 @@ export default function CommunityQuizzesPage() {
               <p className="text-sm text-muted-foreground">Carregando seus quizzes...</p>
             ) : quizzes.length === 0 ? (
               <Card className="border-dashed">
-                <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                  Você ainda não criou nenhum quiz global.
+                <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                  <p className="text-muted-foreground mb-4">
+                    Você ainda não criou nenhum quiz global.
+                  </p>
+                  <Button asChild>
+                    <Link href="/community/quizzes/create">Criar quiz</Link>
+                  </Button>
                 </CardContent>
               </Card>
             ) : (

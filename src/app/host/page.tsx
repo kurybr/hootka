@@ -382,7 +382,7 @@ export default function HostDashboardPage() {
 
         <p className="text-muted-foreground">
           Sem login, os quizzes ficam só neste navegador. Com Google, a biblioteca sincroniza na
-          nuvem (Firebase).
+          nuvem.
         </p>
 
         {libraryLoading && (

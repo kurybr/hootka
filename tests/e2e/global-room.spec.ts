@@ -12,7 +12,7 @@ test.describe("Global room - quiz flow with Firebase Emulator", () => {
 
   test("lists quizzes and navigates to quiz detail", async ({ page }) => {
     await expect(
-      page.getByRole("heading", { name: "Quizzes Globais" })
+      page.getByRole("heading", { name: "Explorar" })
     ).toBeVisible();
 
     const quizLink = page.getByRole("link", { name: "Abrir quiz" }).first();

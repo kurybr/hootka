@@ -7,21 +7,14 @@ test.describe("Join room flow", () => {
     await page.goto(BASE_URL);
   });
 
-  test("navigates from home to join page via card", async ({ page }) => {
+  test("navigates from home to join page via link", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "Hootka" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Entrar em sala" }).first().click();
+    await page.getByRole("link", { name: "Entrar em sala" }).click();
 
     await expect(page).toHaveURL(/\/join/);
     await expect(page.getByRole("heading", { name: "Entrar em Sala" })).toBeVisible();
     await expect(page.getByText("Digite o código da sala")).toBeVisible();
-  });
-
-  test("navigates from header to join page", async ({ page }) => {
-    await page.getByRole("link", { name: "Entrar em sala" }).last().click();
-
-    await expect(page).toHaveURL(/\/join/);
-    await expect(page.getByRole("heading", { name: "Entrar em Sala" })).toBeVisible();
   });
 
   test("shows error when submitting empty form", async ({ page }) => {

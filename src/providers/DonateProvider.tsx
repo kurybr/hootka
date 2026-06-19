@@ -50,11 +50,6 @@ export function DonateProvider({ children }: { children: ReactNode }) {
   const [dialogSource, setDialogSource] = useState<string | undefined>();
 
   useEffect(() => {
-    if (!isHostContext) {
-      setConfig(null);
-      return;
-    }
-
     let cancelled = false;
 
     void fetchDonateConfig()
@@ -68,15 +63,18 @@ export function DonateProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [isHostContext]);
+  }, []);
 
-  const enabled = Boolean(config?.enabled && isHostContext);
+  const enabled = Boolean(config?.enabled);
 
   const openDonateDialog = useCallback(
     (options?: OpenDonateDialogOptions) => {
       if (!enabled || !config) return;
       setDialogSource(options?.source);
-      setDialogOpen(true);
+      // Adia um tick para não empilhar modais Radix (dropdown/dialog) e evitar pointer-events preso.
+      window.setTimeout(() => {
+        setDialogOpen(true);
+      }, 0);
     },
     [enabled, config]
   );

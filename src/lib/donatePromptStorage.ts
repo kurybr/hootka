@@ -1,4 +1,4 @@
-export type DonateTrigger = "csv_export" | "library_import";
+export type DonateTrigger = "csv_export" | "library_import" | "quiz_ai_generate";
 
 export type DonatePromptAction = "dismiss" | "opened";
 
@@ -7,6 +7,7 @@ const STORAGE_PREFIX = "hootka_donate";
 const COOLDOWN_MS = {
   csv_export: 30 * 24 * 60 * 60 * 1000,
   library_import: 14 * 24 * 60 * 60 * 1000,
+  quiz_ai_generate: 7 * 24 * 60 * 60 * 1000,
 } as const;
 
 const IMPORT_SESSION_KEY = `${STORAGE_PREFIX}_import_session_shown`;
@@ -75,7 +76,7 @@ export function shouldShowDonatePrompt(
 
   if (isCooldownActive(trigger, now)) return false;
 
-  if (trigger === "csv_export") {
+  if (trigger === "csv_export" || trigger === "quiz_ai_generate") {
     return true;
   }
 

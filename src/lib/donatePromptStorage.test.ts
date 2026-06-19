@@ -51,4 +51,12 @@ assert.equal(
   true
 );
 
+resetDonatePromptStorageForTests();
+assert.equal(shouldShowDonatePrompt("quiz_ai_generate", { isHostContext: true }), true);
+recordDonatePromptShown("quiz_ai_generate", "dismiss", Date.now());
+assert.equal(
+  shouldShowDonatePrompt("quiz_ai_generate", { isHostContext: true, now: Date.now() }),
+  false
+);
+
 console.log("donatePromptStorage.test.ts: ok");

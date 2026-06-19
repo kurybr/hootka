@@ -53,6 +53,8 @@ export default function HostRoomPage() {
   const [exportingKind, setExportingKind] = useState<LiveReportCsvKind | null>(
     null
   );
+  const [gameActionInFlight, setGameActionInFlight] = useState(false);
+  const gameActionInFlightRef = useRef(false);
 
   const { room, loading, error } = useRoom({ roomId, role: "host" });
   const participants = useParticipants(room);
@@ -81,18 +83,27 @@ export default function HostRoomPage() {
     provider.startGame();
   };
 
-  const handleNextQuestion = useCallback(() => {
-    provider.nextQuestion();
-  }, [provider]);
+  const runGameAction = useCallback((action: () => void) => {
+    if (gameActionInFlightRef.current) return;
+    gameActionInFlightRef.current = true;
+    setGameActionInFlight(true);
+    action();
+  }, []);
 
-  const handleForceResult = () => {
-    provider.forceResult();
-  };
+  const handleNextQuestion = useCallback(() => {
+    runGameAction(() => provider.nextQuestion());
+  }, [provider, runGameAction]);
+
+  const handleForceResult = useCallback(() => {
+    runGameAction(() => provider.forceResult());
+  }, [provider, runGameAction]);
 
   const handleEndGame = useCallback(() => {
-    trackEvent("game_finished", { room_id: roomId });
-    provider.endGame();
-  }, [provider, roomId]);
+    runGameAction(() => {
+      trackEvent("game_finished", { room_id: roomId });
+      provider.endGame();
+    });
+  }, [provider, roomId, runGameAction]);
 
   const currentQuestion = room?.questions[currentQuestionIndex];
   const questionTimeLimitMs = resolveQuestionTimeLimitMs(room?.questionTimeLimitMs);
@@ -136,6 +147,11 @@ export default function HostRoomPage() {
     currentQuestionIndex >= room.questions.length - 1;
 
   const previousRankingRef = useRef<typeof ranking>([]);
+
+  useEffect(() => {
+    gameActionInFlightRef.current = false;
+    setGameActionInFlight(false);
+  }, [status, currentQuestionIndex]);
 
   useEffect(() => {
     if (status === "playing" && ranking.length > 0) {
@@ -340,7 +356,11 @@ export default function HostRoomPage() {
                   />
                 </div>
               </div>
-              <Button variant="outline" onClick={handleForceResult}>
+              <Button
+                variant="outline"
+                onClick={handleForceResult}
+                disabled={gameActionInFlight}
+              >
                 Encerrar Pergunta
               </Button>
             </CardContent>
@@ -396,7 +416,12 @@ export default function HostRoomPage() {
                 />
               )}
               {isLastQuestion ? (
-                <Button size="lg" className="w-full" onClick={handleEndGame}>
+                <Button
+                  size="lg"
+                  className="w-full"
+                  onClick={handleEndGame}
+                  disabled={gameActionInFlight}
+                >
                   Ver Ranking Final
                 </Button>
               ) : (
@@ -404,6 +429,7 @@ export default function HostRoomPage() {
                   size="lg"
                   className="w-full"
                   onClick={handleNextQuestion}
+                  disabled={gameActionInFlight}
                 >
                   Próxima Pergunta
                 </Button>

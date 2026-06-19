@@ -16,6 +16,7 @@ import {
   normalizeAnswersFromRtdb,
   normalizeQuestionsFromRtdb,
 } from "@/lib/roomRtdbNormalization";
+import { isBenignLiveGameError } from "@/lib/liveGameErrors";
 
 const HOST_ID_KEY = "quiz_hostId";
 const PARTICIPANT_ID_KEY = "quiz_participantId";
@@ -120,6 +121,9 @@ export class FirebaseProvider implements IRealTimeProvider {
     new Set();
 
   private emitError(message: string, code: string): void {
+    if (isBenignLiveGameError(code) || isBenignLiveGameError(message)) {
+      return;
+    }
     const data: ErrorData = { message, code };
     this.errorListeners.forEach((cb) => cb(data));
   }

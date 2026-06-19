@@ -9,6 +9,7 @@ import type {
   IRealTimeProvider,
 } from "./IRealTimeProvider";
 import type { Participant, Question, QuizOptionPaletteId, Room } from "@/types/quiz";
+import { isBenignLiveGameError } from "@/lib/liveGameErrors";
 
 const HOST_ID_KEY = "quiz_hostId";
 const PARTICIPANT_ID_KEY = "quiz_participantId";
@@ -90,6 +91,12 @@ export class SocketIOProvider implements IRealTimeProvider {
     });
 
     this.socket.on("error", (data: ErrorData) => {
+      if (
+        isBenignLiveGameError(data.code) ||
+        isBenignLiveGameError(data.message)
+      ) {
+        return;
+      }
       this.errorListeners.forEach((cb) => cb(data));
     });
 

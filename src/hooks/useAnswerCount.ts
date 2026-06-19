@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRealTime } from "./useRealTime";
+import { isBenignLiveGameError } from "@/lib/liveGameErrors";
 
 interface UseAnswerCountResult {
   count: number;
@@ -23,6 +24,12 @@ export function useAnswerCount(): UseAnswerCountResult {
     });
 
     const unsubError = provider.onError((err) => {
+      if (
+        isBenignLiveGameError(err.code) ||
+        isBenignLiveGameError(err.message)
+      ) {
+        return;
+      }
       setError(err.message);
     });
 

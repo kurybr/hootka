@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRealTime } from "./useRealTime";
+import { isBenignLiveGameError } from "@/lib/liveGameErrors";
 import type { Room } from "@/types/quiz";
 
 interface UseRoomOptions {
@@ -34,6 +35,9 @@ export function useRoom({ roomId, role }: UseRoomOptions): UseRoomResult {
     const unsubState = provider.onRoomState((r) => {
       setRoom(r);
       setLoading(false);
+      setError((prev) =>
+        prev && isBenignLiveGameError(prev) ? null : prev
+      );
     });
 
     const unsubParticipant = provider.onParticipantJoined((participant) => {
@@ -62,6 +66,12 @@ export function useRoom({ roomId, role }: UseRoomOptions): UseRoomResult {
     });
 
     const unsubError = provider.onError((err) => {
+      if (
+        isBenignLiveGameError(err.code) ||
+        isBenignLiveGameError(err.message)
+      ) {
+        return;
+      }
       setError(err.message);
       setLoading(false);
     });

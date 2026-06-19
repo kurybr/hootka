@@ -10,11 +10,11 @@ test.describe("Join room flow", () => {
   test("navigates from home to join page via room code", async ({ page }) => {
     await expect(
       page.getByRole("heading", {
-        name: "Aprenda, ensine e se divirta.",
+        name: "Escolha como deseja começar.",
       })
     ).toBeVisible();
 
-    await page.getByRole("navigation", { name: "Ações principais" }).getByRole("link", { name: "Ir para uma sala" }).click();
+    await page.getByRole("navigation", { name: "Ações principais" }).getByRole("link", { name: /Ir para uma sala/ }).click();
 
     await expect(page).toHaveURL(/\/join$/);
     await expect(page.getByRole("heading", { name: "Entrar em Sala" })).toBeVisible();
@@ -89,7 +89,7 @@ test.describe("Join room flow", () => {
     await expect(page).toHaveURL(BASE_URL + "/");
     await expect(
       page.getByRole("heading", {
-        name: "Aprenda, ensine e se divirta.",
+        name: "Escolha como deseja começar.",
       })
     ).toBeVisible();
   });

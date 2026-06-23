@@ -1,10 +1,15 @@
 import type { QuizAnswerReport } from "@/lib/answerReportUtils";
+import type { ParticipantAnswerReport } from "@/lib/participantAnswerReportUtils";
 import type { PlayerRankingReport } from "@/lib/playerRankingReportUtils";
 
 export const CSV_SEPARATOR = ";";
 export const CSV_BOM = "\uFEFF";
 
-export type LiveReportCsvKind = "ranking" | "respostas";
+export type LiveReportCsvKind =
+  | "ranking"
+  | "respostas"
+  | "participante"
+  | "todos";
 
 export function escapeCsvField(value: string | number): string {
   const text = String(value);
@@ -72,6 +77,38 @@ export function buildAnswerReportCsv(report: QuizAnswerReport): string {
   return lines.join("\n");
 }
 
+export function buildParticipantAnswerCsv(report: ParticipantAnswerReport): string {
+  const lines = [
+    formatCsvRow([
+      "participante",
+      "codigo_sala",
+      "pergunta_numero",
+      "pergunta",
+      "opcao_letra",
+      "opcao_texto",
+      "respondeu",
+      "correta",
+      "tempo_resposta_ms",
+      "timestamp",
+    ]),
+    ...report.rows.map((row) =>
+      formatCsvRow([
+        report.participantName,
+        report.roomCode,
+        row.questionNumber,
+        row.questionText,
+        row.optionLetter,
+        row.optionText,
+        row.responded ? "sim" : "nao",
+        row.correct === null ? "" : row.correct ? "sim" : "nao",
+        row.responseTimeMs ?? "",
+        row.timestamp,
+      ])
+    ),
+  ];
+  return lines.join("\n");
+}
+
 function formatDateStamp(date = new Date()): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -91,10 +128,28 @@ function slugifyCode(code?: string): string {
 export function buildCsvFilename(
   kind: LiveReportCsvKind,
   roomCode?: string,
-  date = new Date()
+  date = new Date(),
+  participantSlug?: string
 ): string {
-  const prefix = kind === "ranking" ? "hootka-ranking" : "hootka-respostas";
-  return `${prefix}-${slugifyCode(roomCode)}-${formatDateStamp(date)}.csv`;
+  const stamp = formatDateStamp(date);
+  const code = slugifyCode(roomCode);
+
+  if (kind === "ranking") {
+    return `hootka-ranking-${code}-${stamp}.csv`;
+  }
+  if (kind === "respostas") {
+    return `hootka-respostas-${code}-${stamp}.csv`;
+  }
+  if (kind === "participante") {
+    const slug = (participantSlug ?? "participante")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40);
+    return `hootka-respostas-${slug}-${code}-${stamp}.csv`;
+  }
+  return `hootka-respostas-todos-${code}-${stamp}.zip`;
 }
 
 export function withCsvBom(content: string): string {

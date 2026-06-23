@@ -33,7 +33,7 @@ import { PlayerRankingReport } from "@/components/PlayerRankingReport";
 import { AnswerDistribution } from "@/components/AnswerDistribution";
 import { buildRoomAnswerReport } from "@/lib/answerReportUtils";
 import { buildLivePlayerRankingReport } from "@/lib/playerRankingReportUtils";
-import { downloadRoomReportCsv } from "@/lib/liveReportCsvClient";
+import { downloadRoomReportCsv, downloadParticipantAnswerCsv, downloadAllParticipantsZip } from "@/lib/liveReportCsvClient";
 import type { LiveReportCsvKind } from "@/lib/liveReportCsvExport";
 import { SoundToggle } from "@/components/SoundToggle";
 import { Download } from "lucide-react";
@@ -53,6 +53,9 @@ export default function HostRoomPage() {
   const [exportingKind, setExportingKind] = useState<LiveReportCsvKind | null>(
     null
   );
+  const [exportingParticipantId, setExportingParticipantId] = useState<
+    string | null
+  >(null);
   const [gameActionInFlight, setGameActionInFlight] = useState(false);
   const gameActionInFlightRef = useRef(false);
 
@@ -117,7 +120,7 @@ export default function HostRoomPage() {
   );
 
   const handleExportReport = useCallback(
-    async (kind: LiveReportCsvKind) => {
+    async (kind: Extract<LiveReportCsvKind, "ranking" | "respostas">) => {
       if (!room?.hostId) return;
       setExportingKind(kind);
       try {
@@ -142,6 +145,57 @@ export default function HostRoomPage() {
     },
     [room?.hostId, roomId, isHostContext, donateEnabled, openDonateDialog]
   );
+
+  const handleExportParticipant = useCallback(
+    async (participantId: string) => {
+      if (!room?.hostId) return;
+      setExportingParticipantId(participantId);
+      try {
+        await downloadParticipantAnswerCsv(roomId, room.hostId, participantId);
+        promptDonateAfterCsvExport({
+          enabled: donateEnabled,
+          isHostContext,
+          onOpenDonate: () => openDonateDialog({ source: "csv_export" }),
+        });
+      } catch (error) {
+        toast({
+          title: "Falha na exportação",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Não foi possível exportar as respostas do participante.",
+          variant: "destructive",
+        });
+      } finally {
+        setExportingParticipantId(null);
+      }
+    },
+    [room?.hostId, roomId, isHostContext, donateEnabled, openDonateDialog]
+  );
+
+  const handleExportAllParticipants = useCallback(async () => {
+    if (!room?.hostId) return;
+    setExportingKind("todos");
+    try {
+      await downloadAllParticipantsZip(roomId, room.hostId);
+      promptDonateAfterCsvExport({
+        enabled: donateEnabled,
+        isHostContext,
+        onOpenDonate: () => openDonateDialog({ source: "csv_export" }),
+      });
+    } catch (error) {
+      toast({
+        title: "Falha na exportação",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Não foi possível exportar os relatórios dos participantes.",
+        variant: "destructive",
+      });
+    } finally {
+      setExportingKind(null);
+    }
+  }, [room?.hostId, roomId, isHostContext, donateEnabled, openDonateDialog]);
   const isLastQuestion =
     room &&
     currentQuestionIndex >= room.questions.length - 1;
@@ -461,24 +515,63 @@ export default function HostRoomPage() {
               <PlayerRankingReport
                 report={playerRankingReport}
                 headerAction={
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={
+                        playerRankingReport.totalPlayers === 0 ||
+                        exportingKind !== null ||
+                        exportingParticipantId !== null
+                      }
+                      aria-busy={exportingKind === "todos"}
+                      aria-label="Exportar respostas de todos os participantes em ZIP"
+                      onClick={handleExportAllParticipants}
+                    >
+                      <Download className="mr-1 h-4 w-4" aria-hidden />
+                      {exportingKind === "todos"
+                        ? "Exportando..."
+                        : "Exportar todos (ZIP)"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={
+                        playerRankingReport.totalPlayers === 0 ||
+                        exportingKind !== null ||
+                        exportingParticipantId !== null
+                      }
+                      aria-busy={exportingKind === "ranking"}
+                      aria-label="Exportar ranking completo em CSV"
+                      onClick={() => handleExportReport("ranking")}
+                    >
+                      <Download className="mr-1 h-4 w-4" aria-hidden />
+                      {exportingKind === "ranking"
+                        ? "Exportando..."
+                        : "Exportar ranking CSV"}
+                    </Button>
+                  </div>
+                }
+                rowAction={(entry) => (
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
+                    className="h-8 px-2"
                     disabled={
-                      playerRankingReport.totalPlayers === 0 ||
-                      exportingKind !== null
+                      exportingKind !== null ||
+                      exportingParticipantId === entry.id
                     }
-                    aria-busy={exportingKind === "ranking"}
-                    aria-label="Exportar ranking completo em CSV"
-                    onClick={() => handleExportReport("ranking")}
+                    aria-busy={exportingParticipantId === entry.id}
+                    aria-label={`Exportar respostas de ${entry.name} em CSV`}
+                    onClick={() => handleExportParticipant(entry.id)}
                   >
-                    <Download className="mr-1 h-4 w-4" aria-hidden />
-                    {exportingKind === "ranking"
-                      ? "Exportando..."
-                      : "Exportar CSV"}
+                    <Download className="h-4 w-4" aria-hidden />
+                    <span className="sr-only sm:not-sr-only sm:ml-1">CSV</span>
                   </Button>
-                }
+                )}
               />
               {answerReport && (
                 <QuizAnswerReport
@@ -492,7 +585,8 @@ export default function HostRoomPage() {
                       size="sm"
                       disabled={
                         answerReport.totalSessions === 0 ||
-                        exportingKind !== null
+                        exportingKind !== null ||
+                        exportingParticipantId !== null
                       }
                       aria-busy={exportingKind === "respostas"}
                       aria-label="Exportar relatório de respostas em CSV"

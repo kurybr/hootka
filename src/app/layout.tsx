@@ -15,6 +15,7 @@ import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { DonateProvider } from "@/providers/DonateProvider";
 import { PlayerMobileFocusProvider } from "@/providers/PlayerMobileFocusProvider";
+import { ShadowModeBannerSlot } from "@/components/ShadowModeBannerSlot";
 
 /** Corpo — substituto open source da Gotham (SIL Open Font License). */
 const montserrat = Montserrat({
@@ -56,6 +57,7 @@ export default function RootLayout({
                   <PlayerMobileFocusProvider>
                     <DonateProvider>
                       <Header />
+                      <ShadowModeBannerSlot />
                       {children}
                       <ReconnectingOverlay />
                       <Toaster />

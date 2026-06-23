@@ -15,6 +15,7 @@ import {
   signInAnonymously,
   sendSignInLinkToEmail,
   signInWithEmailLink,
+  signInWithCustomToken,
   onAuthStateChanged,
   signOut as firebaseSignOut,
   updateProfile,
@@ -23,6 +24,12 @@ import {
 import { get, ref, update } from "firebase/database";
 import { getFirebaseAuth, getFirebaseDatabase } from "@/lib/firebase";
 import { isValidPlayerDisplayName } from "@/lib/playerIdentity";
+import {
+  clearShadowSession,
+  readShadowSession,
+  writeShadowSession,
+  type ShadowSession,
+} from "@/lib/shadowLogin";
 
 const EMAIL_LINK_EMAIL_KEY = "hootka_email_link_email";
 const EMAIL_LINK_USERNAME_KEY = "hootka_email_link_username";
@@ -57,6 +64,13 @@ interface AuthContextValue {
   ) => Promise<{ redirectPath: string; completed: boolean }>;
   getIdToken: () => Promise<string | null>;
   signOut: () => Promise<void>;
+  isShadowSession: boolean;
+  shadowSession: ShadowSession | null;
+  signInWithShadowToken: (
+    token: string,
+    meta: { email: string; uid: string }
+  ) => Promise<void>;
+  exitShadowSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -73,6 +87,10 @@ const AuthContext = createContext<AuthContextValue>({
   }),
   getIdToken: async () => null,
   signOut: async () => {},
+  isShadowSession: false,
+  shadowSession: null,
+  signInWithShadowToken: async () => {},
+  exitShadowSession: async () => {},
 });
 
 async function saveUserProfile(user: User, username?: string) {
@@ -96,6 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [shadowSession, setShadowSession] = useState<ShadowSession | null>(null);
+
+  useEffect(() => {
+    setShadowSession(readShadowSession());
+  }, []);
 
   useEffect(() => {
     const auth = getFirebaseAuth();
@@ -296,7 +319,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSignOut = async () => {
     const auth = getFirebaseAuth();
     if (!auth) return;
+    clearShadowSession();
+    setShadowSession(null);
     await firebaseSignOut(auth);
+  };
+
+  const handleSignInWithShadowToken = async (
+    token: string,
+    meta: { email: string; uid: string }
+  ) => {
+    const auth = getFirebaseAuth();
+    if (!auth) throw new Error("Firebase não disponível");
+
+    await signInWithCustomToken(auth, token);
+
+    const session: ShadowSession = {
+      email: meta.email,
+      uid: meta.uid,
+      startedAt: Date.now(),
+    };
+    writeShadowSession(session);
+    setShadowSession(session);
+  };
+
+  const handleExitShadowSession = async () => {
+    clearShadowSession();
+    setShadowSession(null);
+    const auth = getFirebaseAuth();
+    if (auth) {
+      await firebaseSignOut(auth);
+    }
   };
 
   return (
@@ -316,6 +368,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         completeEmailLinkSignIn: handleCompleteEmailLinkSignIn,
         getIdToken: handleGetIdToken,
         signOut: handleSignOut,
+        isShadowSession: shadowSession !== null,
+        shadowSession,
+        signInWithShadowToken: handleSignInWithShadowToken,
+        exitShadowSession: handleExitShadowSession,
       }}
     >
       {children}

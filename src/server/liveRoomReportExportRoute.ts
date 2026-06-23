@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getFirebaseEngine } from "@/lib/firebaseEngine";
 import {
   buildLiveRoomAllParticipantsZip,
-  buildLiveRoomParticipantExport,
   buildLiveRoomReportExport,
   mapLiveRoomReportExportError,
 } from "@/server/liveRoomReportExport";
@@ -53,56 +52,6 @@ export async function handleLiveRoomReportExport(
       room,
       hostId,
       kind
-    );
-
-    return new NextResponse(toResponseBody(body), {
-      status: 200,
-      headers: exportHeaders(filename, contentType),
-    });
-  } catch (error) {
-    const mapped = mapLiveRoomReportExportError(error);
-    return NextResponse.json({ error: mapped.message }, { status: mapped.status });
-  }
-}
-
-export async function handleLiveRoomParticipantExport(
-  request: NextRequest,
-  roomId: string
-): Promise<NextResponse> {
-  const engine = getFirebaseEngine();
-  if (!engine) {
-    return NextResponse.json(
-      { error: "Firebase não configurado" },
-      { status: 503 }
-    );
-  }
-
-  const hostId = request.nextUrl.searchParams.get("hostId");
-  const participantId = request.nextUrl.searchParams.get("participantId");
-
-  if (!hostId) {
-    return NextResponse.json(
-      { error: "hostId é obrigatório" },
-      { status: 400 }
-    );
-  }
-  if (!participantId) {
-    return NextResponse.json(
-      { error: "participantId é obrigatório" },
-      { status: 400 }
-    );
-  }
-
-  try {
-    const room = await engine.getRoom(roomId);
-    if (!room) {
-      throw new Error("SALA_NAO_ENCONTRADA");
-    }
-
-    const { body, filename, contentType } = buildLiveRoomParticipantExport(
-      room,
-      hostId,
-      participantId
     );
 
     return new NextResponse(toResponseBody(body), {

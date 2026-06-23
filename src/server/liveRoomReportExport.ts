@@ -31,23 +31,6 @@ function assertHostCanExport(room: Room, hostId: string): void {
   }
 }
 
-export function buildLiveRoomParticipantExport(
-  room: Room,
-  hostId: string,
-  participantId: string
-): LiveRoomReportExportResult {
-  assertHostCanExport(room, hostId);
-
-  const report = buildParticipantAnswerReport(room, participantId);
-  const slug = slugifyParticipantName(report.participantName);
-
-  return {
-    body: withCsvBom(buildParticipantAnswerCsv(report)),
-    filename: buildCsvFilename("participante", room.code, new Date(), slug),
-    contentType: "text/csv; charset=utf-8",
-  };
-}
-
 export async function buildLiveRoomAllParticipantsZip(
   room: Room,
   hostId: string

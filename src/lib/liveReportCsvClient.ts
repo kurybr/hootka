@@ -44,16 +44,6 @@ export async function downloadRoomReportCsv(
   await downloadExportFile(url, `hootka-${kind}.csv`);
 }
 
-export async function downloadParticipantAnswerCsv(
-  roomId: string,
-  hostId: string,
-  participantId: string
-): Promise<void> {
-  const path = `/api/firebase/rooms/${encodeURIComponent(roomId)}/export/participante`;
-  const url = `${path}?hostId=${encodeURIComponent(hostId)}&participantId=${encodeURIComponent(participantId)}`;
-  await downloadExportFile(url, "hootka-respostas-participante.csv");
-}
-
 export async function downloadAllParticipantsZip(
   roomId: string,
   hostId: string
